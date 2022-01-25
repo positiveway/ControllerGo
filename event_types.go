@@ -134,6 +134,8 @@ func makeEvent(id, eventType, btnOrAxis, value string) Event {
 		btnOrAxis = BtnMap[btnOrAxis]
 	} else if eventType == EvAxisChanged {
 		btnOrAxis = AxisMap[btnOrAxis]
+	} else if btnOrAxis == "No" {
+		btnOrAxis = "None"
 	}
 	event := Event{
 		deviceID:  deviceId,
