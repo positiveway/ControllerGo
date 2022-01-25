@@ -4,8 +4,22 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
+
+func checkBytesAmount(bytesNumStr string, nn int) (bytesAmount int) {
+	bytesAmount, err := strconv.Atoi(bytesNumStr)
+	check_err(err)
+	bytesAmount += len(bytesNumStr + ";")
+	if bytesAmount > 1000 {
+		panic("buffer overflow")
+	}
+	if nn != bytesAmount {
+		panic("Incorrect buffer size")
+	}
+	return
+}
 
 func mainWS() {
 	addr := net.UDPAddr{
@@ -27,17 +41,18 @@ func mainWS() {
 			fmt.Printf("Read err  %v", err)
 			continue
 		}
-		if nn > 1000 {
-			panic("buffer overflow")
-		}
 
 		msg := p[:nn]
 		//if nn > maxSize {
 		//	maxSize = nn
 		//}
+
 		msg_str := string(msg)
 		raw_events := strings.Split(msg_str, ";")
-		raw_events = raw_events[:len(raw_events)-1]
+
+		bytesAmount := checkBytesAmount(raw_events[0], nn)
+
+		raw_events = raw_events[1 : len(raw_events)-1]
 		batch_str := ""
 		for _, raw_event := range raw_events {
 			rawSlice := strings.Split(raw_event, ",")
@@ -46,8 +61,8 @@ func mainWS() {
 			batch_str += fmt.Sprintf("%v;", event)
 		}
 
-		fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, msg, raddr)
-		fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, batch_str, raddr)
+		//fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, msg, raddr)
+		fmt.Printf("Bytes: %v; Event: %s Host: %v\n", bytesAmount, batch_str, raddr)
 		//fmt.Printf("Max: %v\n", maxSize)
 
 	}
