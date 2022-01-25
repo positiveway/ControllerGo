@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func mainWS() {
@@ -34,7 +35,19 @@ func mainWS() {
 		//if nn > maxSize {
 		//	maxSize = nn
 		//}
+		msg_str := string(msg)
+		raw_events := strings.Split(msg_str, ";")
+		raw_events = raw_events[:len(raw_events)-1]
+		batch_str := ""
+		for _, raw_event := range raw_events {
+			rawSlice := strings.Split(raw_event, ",")
+			id, eventType, btnOrAxis, value := rawSlice[0], rawSlice[1], rawSlice[2], rawSlice[3]
+			event := makeEvent(id, eventType, btnOrAxis, value)
+			batch_str += fmt.Sprintf("%v;", event)
+		}
+
 		fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, msg, raddr)
+		fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, batch_str, raddr)
 		//fmt.Printf("Max: %v\n", maxSize)
 
 	}
