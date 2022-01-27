@@ -21,6 +21,27 @@ func checkBytesAmount(bytesNumStr string, nn int) (bytesAmount int) {
 	return
 }
 
+func printEvents(events []Event, bytesAmount int, raddr *net.UDPAddr) {
+	batchStr := ""
+	for _, event := range events {
+		batchStr += fmt.Sprintf("%v;", event)
+	}
+	fmt.Printf("Bytes: %v; Event: %s Host: %v\n", bytesAmount, batchStr, raddr)
+}
+
+func convertToEvents(rawEvents []string) (events []Event) {
+	events = []Event{}
+
+	rawEvents = rawEvents[1 : len(rawEvents)-1]
+	for _, rawEvent := range rawEvents {
+		rawSlice := strings.Split(rawEvent, ",")
+		id, eventType, btnOrAxis, value := rawSlice[0], rawSlice[1], rawSlice[2], rawSlice[3]
+		event := makeEvent(id, eventType, btnOrAxis, value)
+		events = append(events, event)
+	}
+	return
+}
+
 func mainWS() {
 	addr := net.UDPAddr{
 		Port: 1234,
@@ -43,10 +64,6 @@ func mainWS() {
 		}
 
 		msg := p[:nn]
-		//if nn > maxSize {
-		//	maxSize = nn
-		//}
-
 		msgStr := string(msg)
 
 		if msgStr[len(msgStr)-1] != ';' {
@@ -55,18 +72,15 @@ func mainWS() {
 		rawEvents := strings.Split(msgStr, ";")
 
 		bytesAmount := checkBytesAmount(rawEvents[0], nn)
+		//if bytesAmount > maxSize {
+		//	maxSize = bytesAmount
+		//}
 
-		rawEvents = rawEvents[1 : len(rawEvents)-1]
-		batchStr := ""
-		for _, rawEvent := range rawEvents {
-			rawSlice := strings.Split(rawEvent, ",")
-			id, eventType, btnOrAxis, value := rawSlice[0], rawSlice[1], rawSlice[2], rawSlice[3]
-			event := makeEvent(id, eventType, btnOrAxis, value)
-			batchStr += fmt.Sprintf("%v;", event)
-		}
+		events := convertToEvents(rawEvents)
+		matchEvents(events)
+		printEvents(events, bytesAmount, raddr)
 
 		//fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, msg, raddr)
-		fmt.Printf("Bytes: %v; Event: %s Host: %v\n", bytesAmount, batchStr, raddr)
 		//fmt.Printf("Max: %v\n", maxSize)
 
 	}
