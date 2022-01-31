@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/bendahl/uinput"
 	"net"
 	"os"
 	"strconv"
@@ -22,6 +23,7 @@ func checkBytesAmount(bytesNumStr string, nn int) (bytesAmount int) {
 }
 
 func printEvents(events []Event, bytesAmount int, raddr *net.UDPAddr) {
+	return
 	batchStr := ""
 	for _, event := range events {
 		batchStr += fmt.Sprintf("%v;", event)
@@ -54,6 +56,15 @@ func mainWS() {
 	}
 	fmt.Printf("Listen at %v\n", addr.String())
 
+	// initialize mouse and check for possible errors
+	mouse, err := uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
+	check_err(err)
+	// always do this after the initialization in order to guarantee that the device will be properly closed
+	defer func(mouse uinput.Mouse) {
+		err := mouse.Close()
+		check_err(err)
+	}(mouse)
+
 	//maxSize := 300
 	for {
 		p := make([]byte, 1024)
@@ -77,7 +88,7 @@ func mainWS() {
 		//}
 
 		events := convertToEvents(rawEvents)
-		matchEvents(events)
+		matchEvents(events, mouse)
 		printEvents(events, bytesAmount, raddr)
 
 		//fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, msg, raddr)
