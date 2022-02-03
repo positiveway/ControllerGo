@@ -1,97 +1,95 @@
 package main
 
-import "math"
+import (
+	"fmt"
+	"math"
+	"sync"
+	"time"
+)
 
 func isGreater(oldValue, newValue float64) bool {
 	return math.Abs(newValue) > math.Abs(oldValue)
 }
 
 type Coords struct {
-	x, y float64
+	_x, _y float64
+	mu     sync.Mutex
 }
 
-func (coords *Coords) Reset() {
-	coords.x = 0
-	coords.y = 0
+func (coords *Coords) reset() {
+	coords.setX(0)
+	coords.setY(0)
 }
 
-const mouseAccelStep = 0.5
-const mouseUpdateEveryN = 5
-const mouseDistThreshold = 5.0
-
-type Movement struct {
-	curCoords     Coords
-	prevCoords    Coords
-	accel         float64
-	accelStep     float64
-	updateEveryN  int
-	updateCounter int
-	distThreshold float64
+func round(val float64) string {
+	return fmt.Sprintf("%.3f", val)
 }
 
-func makeMovement(accelStep float64, updateEveryN int) Movement {
-	return Movement{
-		accelStep:     accelStep,
-		updateEveryN:  updateEveryN,
-		distThreshold: mouseDistThreshold,
+func (coords *Coords) print() {
+	fmt.Printf("X: %s, Y: %s\n", round(coords._x), round(coords._y))
+}
+
+func (coords *Coords) setX(x float64) {
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	coords._x = x
+	//coords.print()
+}
+
+func (coords *Coords) setY(y float64) {
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	coords._y = y
+	//coords.print()
+}
+
+func (coords *Coords) getX() float64 {
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	return coords._x
+}
+
+func (coords *Coords) getY() float64 {
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	return coords._y
+}
+
+const mouseMinMove float64 = 0
+const mouseMaxMove float64 = 20
+
+func convertRange(input, outputStart, outputEnd float64) (output float64) {
+	sign := math.Signbit(input)
+	input = math.Abs(input)
+
+	inputStart := 0.0
+	inputEnd := 1.0
+
+	output = outputStart + ((outputEnd-outputStart)/(inputEnd-inputStart))*(input-inputStart)
+	if sign {
+		output *= -1
 	}
-}
-
-func (movement *Movement) SetX(x float64) {
-	if isGreater(movement.curCoords.x, x) {
-		movement.updateCounter++
-		movement.curCoords.x = x
-	}
-}
-
-func (movement *Movement) SetY(y float64) {
-	if isGreater(movement.curCoords.y, y) {
-		movement.updateCounter++
-		movement.curCoords.y = y
-	}
-}
-
-func (movement *Movement) Reset() {
-	movement.curCoords.Reset()
-	movement.prevCoords.Reset()
-	movement.accel = 0
-}
-
-func (movement *Movement) Distance() float64 {
-	xDif := movement.curCoords.x - movement.prevCoords.x
-	yDif := movement.curCoords.y - movement.prevCoords.y
-	return math.Sqrt(math.Pow(xDif, 2) + math.Pow(yDif, 2))
-}
-
-func (movement *Movement) UpdateAccel() {
-	if movement.updateCounter >= movement.updateEveryN {
-		dist := movement.Distance()
-		if dist > movement.distThreshold {
-			movement.accel += movement.accelStep
-		} else {
-			movement.accel = 0
-		}
-
-		movement.updateCounter = 0
-		movement.prevCoords = movement.curCoords
-		movement.curCoords.Reset()
-	}
-	//movement.updateCounter = 0
-}
-
-func (movement *Movement) ApplyAccel(value float64) float64 {
-	accel := 1 + movement.accel
-	//accel = math.Pow(accel, 2)
-	return value * accel
-}
-
-func (movement *Movement) calcForce(value float64) int32 {
-	force := movement.ApplyAccel(value)
-	return int32(force)
-}
-
-func (movement *Movement) CalcForces() (xForce, yForce int32) {
-	xForce = movement.calcForce(movement.curCoords.x)
-	yForce = movement.calcForce(movement.curCoords.y)
 	return
+}
+
+func mouseForce(val float64) float64 {
+	return convertRange(val, mouseMinMove, mouseMaxMove)
+}
+
+func (coords *Coords) CalcForces() (x, y int32) {
+	x = int32(mouseForce(coords.getX()))
+	y = int32(-mouseForce(coords.getY()))
+	return
+}
+
+func moveMouse() {
+	for {
+		xForce, yForce := mouseMovement.CalcForces()
+		if (xForce != 0) || (yForce != 0) {
+			//fmt.Printf("%v %v\n", xForce, yForce)
+			err := mouse.Move(xForce, yForce)
+			check_err(err)
+		}
+		time.Sleep(INTERVAL)
+	}
 }

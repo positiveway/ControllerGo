@@ -57,13 +57,15 @@ func mainWS() {
 	fmt.Printf("Listen at %v\n", addr.String())
 
 	// initialize mouse and check for possible errors
-	mouse, err := uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
+	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
 	check_err(err)
 	// always do this after the initialization in order to guarantee that the device will be properly closed
 	defer func(mouse uinput.Mouse) {
 		err := mouse.Close()
 		check_err(err)
 	}(mouse)
+
+	go moveMouse()
 
 	//maxSize := 300
 	for {
@@ -88,11 +90,10 @@ func mainWS() {
 		//}
 
 		events := convertToEvents(rawEvents)
-		matchEvents(events, mouse)
+		matchEvents(events)
 		printEvents(events, bytesAmount, raddr)
 
 		//fmt.Printf("Bytes: %v; Event: %s Host: %v\n", nn, msg, raddr)
 		//fmt.Printf("Max: %v\n", maxSize)
-
 	}
 }

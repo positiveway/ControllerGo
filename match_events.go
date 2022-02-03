@@ -7,17 +7,18 @@ import (
 
 const INTERVAL = 25 * time.Millisecond
 
-var mouseMovement Movement = makeMovement(mouseAccelStep, mouseUpdateEveryN)
+var mouseMovement = Coords{}
+var mouse uinput.Mouse
 
-func matchEvents(events []Event, mouse uinput.Mouse) {
+func matchEvents(events []Event) {
 	for _, event := range events {
 		switch event.eventType {
 		case EvAxisChanged:
 			switch event.btnOrAxis {
 			case AxisLeftStickX:
-				mouseMovement.SetX(event.value)
+				mouseMovement.setX(event.value)
 			case AxisLeftStickY:
-				mouseMovement.SetY(event.value)
+				mouseMovement.setY(event.value)
 				//case AxisRightStickX:
 				//	scrollMovement.SetX(event.value)
 				//case AxisRightStickY:
@@ -28,8 +29,4 @@ func matchEvents(events []Event, mouse uinput.Mouse) {
 		}
 	}
 
-	mouseMovement.UpdateAccel()
-	xForce, yForce := mouseMovement.CalcForces()
-	err := mouse.Move(xForce, yForce)
-	check_err(err)
 }
