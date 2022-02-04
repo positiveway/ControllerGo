@@ -100,8 +100,8 @@ func moveMouse() {
 	}
 }
 
-func (coords *Coords) calcScrollInterval() time.Duration {
-	input := math.Abs(coords.getY())
+func calcScrollInterval(value float64) time.Duration {
+	input := math.Abs(value)
 	scroll := convertRange(input, scrollMaxRange)
 	scrollInterval := scrollMaxValue - int64(math.Round(scroll))
 	return time.Duration(scrollInterval) * time.Millisecond
@@ -111,11 +111,12 @@ func getDirection(val float64, horizontal bool) int32 {
 	if horizontal && math.Abs(val) < horizontalScrollThreshold {
 		return 0
 	}
-	if val == 0 {
+	switch {
+	case val == 0:
 		return 0
-	} else if val > 0 {
+	case val > 0:
 		return 1
-	} else if val < 1 {
+	case val < 0:
 		return -1
 	}
 	panic("direction error")
@@ -133,8 +134,14 @@ func (coords *Coords) getDirections() (hDir, vDir int32) {
 
 func scroll() {
 	for {
-		scrollInterval := scrollMovement.calcScrollInterval()
 		dirX, dirY := scrollMovement.getDirections()
+
+		scrollVal := scrollMovement.getY()
+		if dirX != 0 {
+			scrollVal = scrollMovement.getX()
+		}
+		scrollInterval := calcScrollInterval(scrollVal)
+
 		if dirX != 0 {
 			err := mouse.Wheel(true, dirX)
 			check_err(err)
