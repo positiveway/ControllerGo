@@ -7,9 +7,17 @@ import (
 	"time"
 )
 
-func isGreater(oldValue, newValue float64) bool {
-	return math.Abs(newValue) > math.Abs(oldValue)
-}
+const mouseInterval = 25 * time.Millisecond
+const mouseMaxMove float64 = 20
+
+const scrollMinValue = 35
+const scrollMaxValue int64 = 200
+
+const scrollMaxRange = float64(scrollMaxValue - scrollMinValue)
+const horizontalScrollThreshold = 0.3
+
+var mouseMovement = Coords{}
+var scrollMovement = Coords{}
 
 type Coords struct {
 	_x, _y float64
@@ -99,7 +107,10 @@ func (coords *Coords) calcScrollInterval() time.Duration {
 	return time.Duration(scrollInterval) * time.Millisecond
 }
 
-func getDirection(val float64) int32 {
+func getDirection(val float64, horizontal bool) int32 {
+	if horizontal && math.Abs(val) < horizontalScrollThreshold {
+		return 0
+	}
 	if val == 0 {
 		return 0
 	} else if val > 0 {
@@ -110,8 +121,14 @@ func getDirection(val float64) int32 {
 	panic("direction error")
 }
 
-func (coords *Coords) getDirections() (int32, int32) {
-	return getDirection(coords.getX()), getDirection(coords.getY())
+func (coords *Coords) getDirections() (hDir, vDir int32) {
+	hDir, vDir = getDirection(coords.getX(), true), getDirection(coords.getY(), false)
+	hDir *= -1
+
+	if hDir != 0 {
+		vDir = 0
+	}
+	return
 }
 
 func scroll() {

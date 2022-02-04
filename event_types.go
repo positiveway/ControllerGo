@@ -5,12 +5,6 @@ import (
 	"strconv"
 )
 
-func check_err(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
 type Event struct {
 	deviceID  int
 	eventType string
@@ -112,15 +106,6 @@ var EventTypeMap = map[string]string{
 	"Dr": EvDropped,
 }
 
-func contains_str(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
 func makeEvent(id, eventType, btnOrAxis, value string) Event {
 	deviceId, err := strconv.Atoi(id)
 	check_err(err)
@@ -130,7 +115,7 @@ func makeEvent(id, eventType, btnOrAxis, value string) Event {
 	if !ok {
 		panic(fmt.Sprintf("no element %v\n", eventType))
 	}
-	if contains_str(ButtonEvents, eventType) {
+	if contains(ButtonEvents, eventType) {
 		btnOrAxis = BtnMap[btnOrAxis]
 	} else if eventType == EvAxisChanged {
 		btnOrAxis = AxisMap[btnOrAxis]

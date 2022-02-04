@@ -60,10 +60,15 @@ func mainWS() {
 	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
 	check_err(err)
 	// always do this after the initialization in order to guarantee that the device will be properly closed
-	defer func(mouse uinput.Mouse) {
-		err := mouse.Close()
-		check_err(err)
-	}(mouse)
+	defer mouse.Close()
+
+	// initialize keyboard and check for possible errors
+	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("testkeyboard"))
+	if err != nil {
+		return
+	}
+	// always do this after the initialization in order to guarantee that the device will be properly closed
+	defer keyboard.Close()
 
 	go moveMouse()
 	go scroll()
