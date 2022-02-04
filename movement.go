@@ -14,7 +14,7 @@ const scrollMinValue = 35
 const scrollMaxValue int64 = 200
 
 const scrollMaxRange = float64(scrollMaxValue - scrollMinValue)
-const horizontalScrollThreshold = 0.3
+const horizontalScrollThreshold = 0.45
 
 var mouseMovement = Coords{}
 var scrollMovement = Coords{}
