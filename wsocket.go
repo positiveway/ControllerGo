@@ -66,6 +66,7 @@ func mainWS() {
 	}(mouse)
 
 	go moveMouse()
+	go scroll()
 
 	//maxSize := 300
 	for {

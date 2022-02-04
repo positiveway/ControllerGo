@@ -55,13 +55,11 @@ func (coords *Coords) getY() float64 {
 	return coords._y
 }
 
-const mouseMinMove float64 = 0
-const mouseMaxMove float64 = 20
-
-func convertRange(input, outputStart, outputEnd float64) (output float64) {
+func convertRange(input, outputEnd float64) (output float64) {
 	sign := math.Signbit(input)
 	input = math.Abs(input)
 
+	outputStart := 0.0
 	inputStart := 0.0
 	inputEnd := 1.0
 
@@ -73,7 +71,7 @@ func convertRange(input, outputStart, outputEnd float64) (output float64) {
 }
 
 func mouseForce(val float64) float64 {
-	return convertRange(val, mouseMinMove, mouseMaxMove)
+	return convertRange(val, mouseMaxMove)
 }
 
 func (coords *Coords) CalcForces() (x, y int32) {
@@ -90,6 +88,44 @@ func moveMouse() {
 			err := mouse.Move(xForce, yForce)
 			check_err(err)
 		}
-		time.Sleep(INTERVAL)
+		time.Sleep(mouseInterval)
+	}
+}
+
+func (coords *Coords) calcScrollInterval() time.Duration {
+	input := math.Abs(coords.getY())
+	scroll := convertRange(input, scrollMaxRange)
+	scrollInterval := scrollMaxValue - int64(math.Round(scroll))
+	return time.Duration(scrollInterval) * time.Millisecond
+}
+
+func getDirection(val float64) int32 {
+	if val == 0 {
+		return 0
+	} else if val > 0 {
+		return 1
+	} else if val < 1 {
+		return -1
+	}
+	panic("direction error")
+}
+
+func (coords *Coords) getDirections() (int32, int32) {
+	return getDirection(coords.getX()), getDirection(coords.getY())
+}
+
+func scroll() {
+	for {
+		scrollInterval := scrollMovement.calcScrollInterval()
+		dirX, dirY := scrollMovement.getDirections()
+		if dirX != 0 {
+			err := mouse.Wheel(true, dirX)
+			check_err(err)
+		}
+		if dirY != 0 {
+			err := mouse.Wheel(false, dirY)
+			check_err(err)
+		}
+		time.Sleep(scrollInterval)
 	}
 }
