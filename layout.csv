@@ -1,0 +1,65 @@
+Letter,  LeftStick,  RightStick
+A, Left, Left
+B, Left, UpLeft
+C, Left, Up
+D, Left, UpRight
+E, Left, Right
+
+F, UpLeft, Left
+G, UpLeft, UpLeft
+H, UpLeft, Up
+I, UpLeft, UpRight
+J, UpLeft, Right
+
+K, Up, Left
+L, Up, UpLeft
+M, Up, Up
+N, Up, UpRight
+O, Up, Right
+
+P, UpRight, Left
+Q, UpRight, UpLeft
+R, UpRight, Up
+S, UpRight, UpRight
+T, UpRight, Right
+
+U, Right, Left
+V, Right, UpLeft
+W, Right, Up
+X, Right, UpRight
+Y, Right, Right
+
+Z, DownRight, Left
+`, UpRight, DownRight
+
+1, DownLeft, Right
+2, DownLeft, UpRight
+3, DownLeft, Up
+4, DownLeft, UpLeft
+5, DownLeft, Left
+6, Down, Right
+7, Down, UpRight
+8, Down, Up
+9, Down, UpLeft
+0, Down, Left
+
+-, Right, DownRight
+=, Down, DownLeft
+[, Up, DownRight
+], Down, DownRight
+Comma, DownRight, Right
+Dot, DownRight, UpRight
+/, DownRight, UpLeft
+Semicolon, Left, DownRight
+', DownRight, Up
+\, UpLeft, DownRight
+Space, Right, Down
+Backspace, Left, Down
+Enter, Down, Down
+Tab, Up, Down
+Windows, DownLeft, DownLeft
+Control, UpLeft, Down
+Alt, UpRight, Down
+Delete, DownRight, Down
+;Esc, ,
+
