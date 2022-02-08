@@ -38,6 +38,7 @@ var controlKey = uinput.KeyLeftctrl
 var copyCmd = []int{controlKey, uinput.KeyC}
 var pasteCmd = []int{controlKey, uinput.KeyV}
 var cutCmd = []int{controlKey, uinput.KeyX}
+var undoCmd = []int{controlKey, uinput.KeyZ}
 
 var SwitchLang = []int{uinput.KeyRightalt}
 var altTab = []int{uinput.KeyLeftalt, uinput.KeyTab}
@@ -48,7 +49,7 @@ var MiddleMouse = -4
 var SwitchToTyping = []int{-5}
 
 var commandsMap = map[string][]int{
-	BtnSouth:         cutCmd,
+	BtnSouth:         undoCmd,
 	BtnEast:          {uinput.KeyBackspace},
 	BtnNorth:         {uinput.KeySpace},
 	BtnWest:          {uinput.KeyEnter},
