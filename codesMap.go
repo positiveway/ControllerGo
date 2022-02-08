@@ -74,3 +74,25 @@ func addLowercaseLetters() {
 		LetterToCodes[k] = v
 	}
 }
+
+const (
+	ZoneRight     string = "Right"
+	ZoneUpRight          = "UpRight"
+	ZoneUp               = "Up"
+	ZoneUpLeft           = "UpLeft"
+	ZoneLeft             = "Left"
+	ZoneDownLeft         = "DownLeft"
+	ZoneDown             = "Down"
+	ZoneDownRight        = "DownRight"
+)
+
+var ZoneMap = map[string]string{
+	"Right":     ZoneRight,
+	"UpRight":   ZoneUpRight,
+	"Up":        ZoneUp,
+	"UpLeft":    ZoneUpLeft,
+	"Left":      ZoneLeft,
+	"DownLeft":  ZoneDownLeft,
+	"Down":      ZoneDown,
+	"DownRight": ZoneDownRight,
+}

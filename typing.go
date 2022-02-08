@@ -33,6 +33,7 @@ func loadLayout() Layout {
 		}
 		parts := strings.Split(line, ", ")
 		letter, leftStick, rightStick := parts[0], parts[1], parts[2]
+		leftStick, rightStick = ZoneMap[leftStick], ZoneMap[rightStick]
 		position := tuple2{leftStick, rightStick}
 		if _, found := layout[position]; found {
 			panic("duplicate position")
@@ -54,14 +55,14 @@ func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, directio
 
 func genBoundariesMap() BoundariesMap {
 	mapping := map[int]string{
-		0:   "Right",
-		45:  "UpRight",
-		90:  "Up",
-		135: "UpLeft",
-		180: "Left",
-		225: "DownLeft",
-		270: "Down",
-		315: "DownRight",
+		0:   ZoneRight,
+		45:  ZoneUpRight,
+		90:  ZoneUp,
+		135: ZoneUpLeft,
+		180: ZoneLeft,
+		225: ZoneDownLeft,
+		270: ZoneDown,
+		315: ZoneDownRight,
 	}
 	_boundariesMap := BoundariesMap{}
 	for angle, dir := range mapping {
@@ -103,11 +104,7 @@ func calcAngle(x, y float64) int {
 }
 
 func calcMagnitude(x, y float64) float64 {
-	magnitude := math.Sqrt(x*x + y*y)
-	if magnitude > 1.0 {
-		magnitude = 1.0
-	}
-	return magnitude
+	return math.Sqrt(x*x + y*y)
 }
 
 func detectZone(magnitude float64, angle int) string {
