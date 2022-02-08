@@ -12,6 +12,31 @@ type Event struct {
 	value     float64
 }
 
+func makeEvent(id, eventType, btnOrAxis, value string) Event {
+	deviceId, err := strconv.Atoi(id)
+	check_err(err)
+	valueFloat, err := strconv.ParseFloat(value, 32)
+	check_err(err)
+	eventType, ok := EventTypeMap[eventType]
+	if !ok {
+		panic(fmt.Sprintf("no element %v\n", eventType))
+	}
+	if contains(ButtonEvents, eventType) {
+		btnOrAxis = BtnMap[btnOrAxis]
+	} else if eventType == EvAxisChanged {
+		btnOrAxis = AxisMap[btnOrAxis]
+	} else if btnOrAxis == "No" {
+		btnOrAxis = "None"
+	}
+	event := Event{
+		deviceID:  deviceId,
+		value:     valueFloat,
+		eventType: eventType,
+		btnOrAxis: btnOrAxis,
+	}
+	return event
+}
+
 const (
 	AxisLeftStickX  string = "AxisLeftStickX"
 	AxisLeftStickY         = "AxisLeftStickY"
@@ -104,29 +129,4 @@ var EventTypeMap = map[string]string{
 	"C":  EvConnected,
 	"D":  EvDisconnected,
 	"Dr": EvDropped,
-}
-
-func makeEvent(id, eventType, btnOrAxis, value string) Event {
-	deviceId, err := strconv.Atoi(id)
-	check_err(err)
-	valueFloat, err := strconv.ParseFloat(value, 32)
-	check_err(err)
-	eventType, ok := EventTypeMap[eventType]
-	if !ok {
-		panic(fmt.Sprintf("no element %v\n", eventType))
-	}
-	if contains(ButtonEvents, eventType) {
-		btnOrAxis = BtnMap[btnOrAxis]
-	} else if eventType == EvAxisChanged {
-		btnOrAxis = AxisMap[btnOrAxis]
-	} else if btnOrAxis == "No" {
-		btnOrAxis = "None"
-	}
-	event := Event{
-		deviceID:  deviceId,
-		value:     valueFloat,
-		eventType: eventType,
-		btnOrAxis: btnOrAxis,
-	}
-	return event
 }
