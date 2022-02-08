@@ -7,7 +7,9 @@ import (
 )
 
 const mouseMaxMove float64 = 5
-const mouseInterval time.Duration = time.Duration(mouseMaxMove) * time.Millisecond
+const mouseScaleFactor float64 = 1.5
+
+var mouseInterval time.Duration = time.Duration(math.Round(mouseMaxMove*mouseScaleFactor)) * time.Millisecond
 
 const scrollMinValue float64 = 35
 const scrollMaxValue float64 = 200
