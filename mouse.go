@@ -9,11 +9,11 @@ import (
 const mouseInterval = 25 * time.Millisecond
 const mouseMaxMove float64 = 15
 
-const scrollMinValue = 35
-const scrollMaxValue int64 = 200
+const scrollMinValue float64 = 35
+const scrollMaxValue float64 = 200
 
-const scrollMaxRange = float64(scrollMaxValue - scrollMinValue)
-const horizontalScrollThreshold = 0.45
+const scrollMaxRange float64 = scrollMaxValue - scrollMinValue
+const horizontalScrollThreshold float64 = 0.45
 
 var mouseMovement = Coords{}
 var scrollMovement = Coords{}
@@ -63,14 +63,14 @@ func convertRange(input, outputEnd float64) (output float64) {
 	return
 }
 
-func mouseForce(val float64) float64 {
-	return convertRange(val, mouseMaxMove)
+func mouseForce(val float64) int32 {
+	return int32(convertRange(val, mouseMaxMove))
 }
 
 func (coords *Coords) CalcForces() (xForce, yForce int32) {
 	x, y := coords.getValues()
-	xForce = int32(mouseForce(x))
-	yForce = int32(-mouseForce(y))
+	xForce = mouseForce(x)
+	yForce = -mouseForce(y)
 	return
 }
 
@@ -88,7 +88,7 @@ func moveMouse() {
 func calcScrollInterval(value float64) time.Duration {
 	input := math.Abs(value)
 	scroll := convertRange(input, scrollMaxRange)
-	scrollInterval := scrollMaxValue - int64(math.Round(scroll))
+	scrollInterval := scrollMaxValue - math.Round(scroll)
 	return time.Duration(scrollInterval) * time.Millisecond
 }
 

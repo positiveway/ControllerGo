@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"strings"
@@ -10,9 +9,9 @@ import (
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
 const UndefinedMapping = "Undefined"
-const angleMargin = int(45 / 2)
-const magnitudeThresholdPct = 75
-const MagnitudeThreshold = magnitudeThresholdPct / 100
+const angleMargin int = 10
+const magnitudeThresholdPct float64 = 50
+const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
 const NoneStr = ""
 
@@ -104,7 +103,11 @@ func calcAngle(x, y float64) int {
 }
 
 func calcMagnitude(x, y float64) float64 {
-	return math.Sqrt(x*x + y*y)
+	magnitude := math.Sqrt(x*x + y*y)
+	if magnitude > 1.0 {
+		magnitude = 1.0
+	}
+	return magnitude
 }
 
 func detectZone(magnitude float64, angle int) string {
@@ -133,7 +136,7 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 	x, y := coords.getValues()
 	magnitude := calcMagnitude(x, y)
 	angle := calcAngle(x, y)
-	fmt.Printf("(%.2f, %.2f): %v %.2f\n", x, y, angle, magnitude)
+	//fmt.Printf("(%.2f, %.2f): %v %.2f", x, y, angle, magnitude)
 
 	newZone := detectZone(magnitude, angle)
 	if newZone == EdgeZone {
@@ -159,6 +162,7 @@ func typeLetters(letters string) {
 
 func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
 	letter := jTyping._updateZone(prevZone, coords)
+	//fmt.Printf(" %s %s %v\n", jTyping.leftStickZone, jTyping.rightStickZone, jTyping.awaitingNeutralPos)
 	if letter != NoneStr {
 		typeLetters(letter)
 	}

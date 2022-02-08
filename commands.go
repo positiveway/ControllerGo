@@ -114,7 +114,7 @@ func release(seq []int) {
 	}
 }
 
-const TriggerThreshold = 0.3
+const TriggerThreshold float64 = 0.3
 
 var triggersPressed = map[string]bool{
 	BtnLeftTrigger2:  false,

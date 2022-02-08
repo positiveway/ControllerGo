@@ -1,6 +1,8 @@
 package main
 
-import "github.com/bendahl/uinput"
+import (
+	"github.com/bendahl/uinput"
+)
 
 var mouse uinput.Mouse
 var keyboard uinput.Keyboard
