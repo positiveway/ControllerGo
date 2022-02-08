@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -25,42 +24,28 @@ type Coords struct {
 }
 
 func (coords *Coords) reset() {
-	coords.setX(0)
-	coords.setY(0)
-}
-
-func round(val float64) string {
-	return fmt.Sprintf("%.3f", val)
-}
-
-func (coords *Coords) print() {
-	fmt.Printf("X: %s, Y: %s\n", round(coords._x), round(coords._y))
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	coords._x = 0
+	coords._y = 0
 }
 
 func (coords *Coords) setX(x float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
 	coords._x = x
-	//coords.print()
 }
 
 func (coords *Coords) setY(y float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
 	coords._y = y
-	//coords.print()
 }
 
-func (coords *Coords) getX() float64 {
+func (coords *Coords) getValues() (float64, float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	return coords._x
-}
-
-func (coords *Coords) getY() float64 {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	return coords._y
+	return coords._x, coords._y
 }
 
 func convertRange(input, outputEnd float64) (output float64) {
@@ -82,9 +67,10 @@ func mouseForce(val float64) float64 {
 	return convertRange(val, mouseMaxMove)
 }
 
-func (coords *Coords) CalcForces() (x, y int32) {
-	x = int32(mouseForce(coords.getX()))
-	y = int32(-mouseForce(coords.getY()))
+func (coords *Coords) CalcForces() (xForce, yForce int32) {
+	x, y := coords.getValues()
+	xForce = int32(mouseForce(x))
+	yForce = int32(-mouseForce(y))
 	return
 }
 
@@ -93,8 +79,7 @@ func moveMouse() {
 		xForce, yForce := mouseMovement.CalcForces()
 		if (xForce != 0) || (yForce != 0) {
 			//fmt.Printf("%v %v\n", xForce, yForce)
-			err := mouse.Move(xForce, yForce)
-			check_err(err)
+			mouse.Move(xForce, yForce)
 		}
 		time.Sleep(mouseInterval)
 	}
@@ -123,7 +108,8 @@ func getDirection(val float64, horizontal bool) int32 {
 }
 
 func (coords *Coords) getDirections() (hDir, vDir int32) {
-	hDir, vDir = getDirection(coords.getX(), true), getDirection(coords.getY(), false)
+	x, y := coords.getValues()
+	hDir, vDir = getDirection(x, true), getDirection(y, false)
 	hDir *= -1
 
 	if hDir != 0 {
@@ -134,21 +120,20 @@ func (coords *Coords) getDirections() (hDir, vDir int32) {
 
 func scroll() {
 	for {
-		dirX, dirY := scrollMovement.getDirections()
+		hDir, vDir := scrollMovement.getDirections()
 
-		scrollVal := scrollMovement.getY()
-		if dirX != 0 {
-			scrollVal = scrollMovement.getX()
+		x, y := scrollMovement.getValues()
+		scrollVal := y
+		if hDir != 0 {
+			scrollVal = x
 		}
 		scrollInterval := calcScrollInterval(scrollVal)
 
-		if dirX != 0 {
-			err := mouse.Wheel(true, dirX)
-			check_err(err)
+		if hDir != 0 {
+			mouse.Wheel(true, hDir)
 		}
-		if dirY != 0 {
-			err := mouse.Wheel(false, dirY)
-			check_err(err)
+		if vDir != 0 {
+			mouse.Wheel(false, vDir)
 		}
 		time.Sleep(scrollInterval)
 	}

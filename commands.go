@@ -17,9 +17,9 @@ func (c *CommandsMode) switchMode() {
 
 	mouseMovement.reset()
 	scrollMovement.reset()
-	for k := range triggersPressed {
-		triggersPressed[k] = false
-	}
+	//for k := range triggersPressed {
+	//	triggersPressed[k] = false
+	//}
 }
 
 func (c *CommandsMode) get() bool {

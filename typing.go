@@ -6,11 +6,14 @@ import (
 	"strings"
 )
 
-const neutralZone = "⬤"
-const edgeZone = "❌"
+const NeutralZone = "⬤"
+const EdgeZone = "❌"
+const UndefinedMapping = "Undefined"
 const angleMargin = 15
 const magnitudeThresholdPct = 75
-const magnitudeThreshold = magnitudeThresholdPct / 100
+const MagnitudeThreshold = magnitudeThresholdPct / 100
+
+const NoneStr = ""
 
 type tuple2 = [2]string
 type Layout = map[tuple2]string
@@ -27,6 +30,7 @@ func loadLayout() Layout {
 		if line == "" || strings.HasPrefix(line, ";") {
 			continue
 		}
+		line = strings.ToLower(line)
 		parts := strings.Split(line, ", ")
 		letter, leftStick, rightStick := parts[0], parts[1], parts[2]
 		position := tuple2{leftStick, rightStick}
@@ -75,13 +79,14 @@ type JoystickTyping struct {
 	layout                        Layout
 	leftStickZone, rightStickZone string
 	awaitingNeutralPos            bool
+	leftCoords, rightCoords       Coords
 }
 
 func makeJoystickTyping() JoystickTyping {
 	return JoystickTyping{
 		layout:             loadLayout(),
-		leftStickZone:      neutralZone,
-		rightStickZone:     neutralZone,
+		leftStickZone:      NeutralZone,
+		rightStickZone:     NeutralZone,
 		awaitingNeutralPos: false,
 	}
 }
@@ -98,7 +103,77 @@ func calcAngle(x, y float64) int {
 }
 
 func calcMagnitude(x, y float64) float64 {
-	val := math.Pow(x, 2) + math.Pow(y, 2)
-	norm := math.Sqrt(val / 2)
-	return norm
+	return max(math.Abs(x), math.Abs(y))
+}
+
+func detectZone(magnitude float64, angle int) string {
+	if magnitude > MagnitudeThreshold {
+		return getOrDefault(boundariesMap, angle, EdgeZone)
+	} else {
+		return NeutralZone
+	}
+}
+
+func (jTyping *JoystickTyping) detectLetter() string {
+	curZones := tuple2{jTyping.leftStickZone, jTyping.rightStickZone}
+	for _, zone := range curZones {
+		if zone == NeutralZone {
+			return NoneStr
+		} else if zone == EdgeZone {
+			panic("zone to letter error")
+		}
+	}
+	jTyping.awaitingNeutralPos = true
+	letter := getOrDefault(jTyping.layout, curZones, UndefinedMapping)
+	return letter
+}
+
+func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) string {
+	x, y := coords.getValues()
+	magnitude := calcMagnitude(x, y)
+	angle := calcAngle(x, y)
+
+	newZone := detectZone(magnitude, angle)
+	if newZone == EdgeZone {
+		return NoneStr
+	}
+	if newZone != *prevZone {
+		*prevZone = newZone
+		if jTyping.awaitingNeutralPos {
+			if newZone == NeutralZone {
+				jTyping.awaitingNeutralPos = false
+			}
+		} else {
+			return jTyping.detectLetter()
+		}
+	}
+	return NoneStr
+}
+
+func typeLetters(letters string) {
+	for _, letter := range letters {
+		key := LetterToCodes[letter]
+		keyboard.KeyPress(key)
+	}
+}
+
+func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
+	letter := jTyping._updateZone(prevZone, coords)
+	if letter != NoneStr {
+		typeLetters(letter)
+	}
+}
+
+func (jTyping *JoystickTyping) updateZoneLeft() {
+	coords := &jTyping.leftCoords
+	prevZone := &jTyping.leftStickZone
+
+	jTyping.updateZone(prevZone, coords)
+}
+
+func (jTyping *JoystickTyping) updateZoneRight() {
+	coords := &jTyping.rightCoords
+	prevZone := &jTyping.rightStickZone
+
+	jTyping.updateZone(prevZone, coords)
 }

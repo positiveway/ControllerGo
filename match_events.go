@@ -24,7 +24,20 @@ func matchEvents(events []Event) {
 					scrollMovement.setY(event.value)
 				}
 			case true:
-				println("jopa")
+				switch event.btnOrAxis {
+				case AxisLeftStickX:
+					joystickTyping.leftCoords.setX(event.value)
+					joystickTyping.updateZoneLeft()
+				case AxisLeftStickY:
+					joystickTyping.leftCoords.setY(event.value)
+					joystickTyping.updateZoneLeft()
+				case AxisRightStickX:
+					joystickTyping.rightCoords.setX(event.value)
+					joystickTyping.updateZoneRight()
+				case AxisRightStickY:
+					joystickTyping.rightCoords.setY(event.value)
+					joystickTyping.updateZoneRight()
+				}
 			}
 
 		case EvButtonChanged:

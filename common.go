@@ -8,12 +8,28 @@ func check_err(err error) {
 	}
 }
 
+func getOrDefault[k comparable, v any](m map[k]v, key k, defaultVal v) v {
+	if val, found := m[key]; found {
+		return val
+	} else {
+		return defaultVal
+	}
+}
+
 type Number interface {
 	int64 | float64 | int | int32 | float32
 }
 
 type BasicType interface {
 	Number | string | bool
+}
+
+func max[T Number](a, b T) T {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
 }
 
 func reverse[T BasicType](seq []T) []T {
