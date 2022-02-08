@@ -1,12 +1,5 @@
 package main
 
-import (
-	"github.com/bendahl/uinput"
-)
-
-var mouse uinput.Mouse
-var keyboard uinput.Keyboard
-
 func matchEvents(events []Event) {
 	for _, event := range events {
 		switch event.eventType {

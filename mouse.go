@@ -7,7 +7,7 @@ import (
 )
 
 const mouseInterval = 25 * time.Millisecond
-const mouseMaxMove float64 = 20
+const mouseMaxMove float64 = 15
 
 const scrollMinValue = 35
 const scrollMaxValue int64 = 200

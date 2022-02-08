@@ -35,9 +35,13 @@ var TRIGGERS = []string{BtnLeftTrigger2, BtnRightTrigger2}
 var NoAction = []int{-1}
 
 var controlKey = uinput.KeyLeftctrl
-var copyCmd = []int{controlKey, uinput.KeyC}
-var pasteCmd = []int{controlKey, uinput.KeyV}
-var cutCmd = []int{controlKey, uinput.KeyX}
+
+//var copyCmd = []int{controlKey, uinput.KeyC}
+//var pasteCmd = []int{controlKey, uinput.KeyV}
+//var cutCmd = []int{controlKey, uinput.KeyX}
+var copyCmd = []int{uinput.KeyCopy}
+var pasteCmd = []int{uinput.KeyPaste}
+var cutCmd = []int{uinput.KeyCut}
 
 var SwitchLang = []int{uinput.KeyRightalt}
 var altTab = []int{uinput.KeyLeftalt, uinput.KeyTab}

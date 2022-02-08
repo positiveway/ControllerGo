@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/bendahl/uinput"
 	"net"
 	"os"
 	"strconv"
@@ -55,23 +54,6 @@ func mainWS() {
 		os.Exit(-1)
 	}
 	fmt.Printf("Listen at %v\n", addr.String())
-
-	// initialize mouse and check for possible errors
-	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
-	check_err(err)
-	// always do this after the initialization in order to guarantee that the device will be properly closed
-	defer mouse.Close()
-
-	// initialize keyboard and check for possible errors
-	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("testkeyboard"))
-	if err != nil {
-		return
-	}
-	// always do this after the initialization in order to guarantee that the device will be properly closed
-	defer keyboard.Close()
-
-	go moveMouse()
-	go scroll()
 
 	//maxSize := 300
 	for {

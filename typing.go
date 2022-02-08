@@ -30,7 +30,6 @@ func loadLayout() Layout {
 		if line == "" || strings.HasPrefix(line, ";") {
 			continue
 		}
-		line = strings.ToLower(line)
 		parts := strings.Split(line, ", ")
 		letter, leftStick, rightStick := parts[0], parts[1], parts[2]
 		position := tuple2{leftStick, rightStick}
@@ -151,10 +150,8 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 }
 
 func typeLetters(letters string) {
-	for _, letter := range letters {
-		key := LetterToCodes[letter]
-		keyboard.KeyPress(key)
-	}
+	key := LetterToCodes[letters]
+	keyboard.KeyPress(key)
 }
 
 func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
