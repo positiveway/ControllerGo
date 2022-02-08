@@ -1,11 +1,21 @@
 package main
 
-import "math"
+import (
+	"math"
+	"os"
+	"syscall"
+)
 
 func check_err(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func setPriority() {
+	pid := os.Getppid()
+	err := syscall.Setpriority(syscall.PRIO_PROCESS, pid, -20)
+	check_err(err)
 }
 
 func getOrDefault[k comparable, v any](m map[k]v, key k, defaultVal v) v {

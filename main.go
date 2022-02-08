@@ -8,6 +8,7 @@ var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 
 func main() {
+	setPriority()
 	addLowercaseLetters()
 
 	var err error
