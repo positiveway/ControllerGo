@@ -53,9 +53,9 @@ Dot, DownRight, UpRight
 Semicolon, Left, DownRight
 ', DownRight, Up
 \, UpLeft, DownRight
-Space, Right, Down
-Backspace, Left, Down
-Enter, Down, Down
+;Space, Right, Down
+;Backspace, Left, Down
+;Enter, Down, Down
 Tab, Up, Down
 Windows, DownLeft, DownLeft
 Control, UpLeft, Down
