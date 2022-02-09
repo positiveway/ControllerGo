@@ -89,9 +89,6 @@ func mouseForce(val float64) int32 {
 	force := convertRange(val, mouseMaxMove)
 	//printForce(force, "before")
 	applyPower(&force)
-
-	//printForce(mouseAccel, "accel")
-	//force = applyAccel(force)
 	//printForce(force, "after")
 	return int32(math.Round(force))
 }
@@ -109,13 +106,11 @@ func printPair[T Number](_x, _y T, prefix string) {
 
 func calcForces() (int32, int32) {
 	x, y := mouseMovement.getValues()
-	calcAccel(x, y)
 	xForce := mouseForce(x)
 	yForce := -mouseForce(y)
 
-	//if (x != 0.0 || y != 0.0) && accel != 0.0 {
+	//if x != 0.0 || y != 0.0{
 	//	printPair(x, y, "x, y")
-	//	fmt.Printf("accel: %.2f\n", accel)
 	//	printPair(xForce, yForce, "force")
 	//	fmt.Println()
 	//}
