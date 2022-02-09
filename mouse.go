@@ -23,7 +23,6 @@ const scrollMaxRange float64 = scrollMaxValue - scrollMinValue
 const horizontalScrollThreshold float64 = 0.45
 
 var mouseMovement = Coords{}
-var prevMouse = Coords{}
 var scrollMovement = Coords{}
 
 type Coords struct {
