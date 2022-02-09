@@ -34,6 +34,11 @@ type BasicType interface {
 	Number | string | bool
 }
 
+func round(number float64, precision int) float64 {
+	multiplier := math.Pow(10, float64(precision))
+	return math.Round(number*multiplier) / multiplier
+}
+
 func max[T Number](a, b T) T {
 	if a > b {
 		return a

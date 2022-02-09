@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func checkBytesAmount(bytesNumStr string, nn int) (bytesAmount int) {
+func checkBytesAmount(bytesNumStr string, nn int) int {
 	bytesAmount, err := strconv.Atoi(bytesNumStr)
 	check_err(err)
 	bytesAmount += len(bytesNumStr + ";")
@@ -18,7 +18,7 @@ func checkBytesAmount(bytesNumStr string, nn int) (bytesAmount int) {
 	if nn != bytesAmount {
 		panic("Incorrect buffer size")
 	}
-	return
+	return bytesAmount
 }
 
 func printEvents(events []Event, bytesAmount int, raddr *net.UDPAddr) {
@@ -30,8 +30,8 @@ func printEvents(events []Event, bytesAmount int, raddr *net.UDPAddr) {
 	fmt.Printf("Bytes: %v; Event: %s Host: %v\n", bytesAmount, batchStr, raddr)
 }
 
-func convertToEvents(rawEvents []string) (events []Event) {
-	events = []Event{}
+func convertToEvents(rawEvents []string) []Event {
+	var events []Event
 
 	rawEvents = rawEvents[1 : len(rawEvents)-1]
 	for _, rawEvent := range rawEvents {
@@ -40,7 +40,7 @@ func convertToEvents(rawEvents []string) (events []Event) {
 		event := makeEvent(id, eventType, btnOrAxis, value)
 		events = append(events, event)
 	}
-	return
+	return events
 }
 
 func mainWS() {

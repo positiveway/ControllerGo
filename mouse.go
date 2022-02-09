@@ -1,16 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"time"
 )
 
 const mouseMaxMove float64 = 5
-const mouseScaleFactor float64 = 2
+const deadzone float64 = 0.06
 
+//const mouseScaleFactor float64 = 2
 //var mouseInterval time.Duration = time.Duration(math.Round(mouseMaxMove*mouseScaleFactor)) * time.Millisecond
-const mouseInterval time.Duration = 9 * time.Millisecond
+const mouseIntervalInt int = 9
+const mouseInterval time.Duration = time.Duration(mouseIntervalInt) * time.Millisecond
 
 const scrollMinValue float64 = 35
 const scrollMaxValue float64 = 200
@@ -19,6 +22,7 @@ const scrollMaxRange float64 = scrollMaxValue - scrollMinValue
 const horizontalScrollThreshold float64 = 0.45
 
 var mouseMovement = Coords{}
+var prevMouse = Coords{}
 var scrollMovement = Coords{}
 
 type Coords struct {
@@ -45,41 +49,65 @@ func (coords *Coords) setY(y float64) {
 	coords._y = y
 }
 
+func (coords *Coords) setValues(x, y float64) {
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	coords._x = x
+	coords._y = y
+}
+
 func (coords *Coords) getValues() (float64, float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
 	return coords._x, coords._y
 }
 
-func convertRange(input, outputEnd float64) (output float64) {
+func convertRange(input, outputEnd float64) float64 {
 	sign := math.Signbit(input)
 	input = math.Abs(input)
 
-	outputStart := 0.0
+	if input <= deadzone {
+		return 0.0
+	}
+
+	outputStart := 1.0
 	inputStart := 0.0
 	inputEnd := 1.0
 
-	output = outputStart + ((outputEnd-outputStart)/(inputEnd-inputStart))*(input-inputStart)
+	output := outputStart + ((outputEnd-outputStart)/(inputEnd-inputStart))*(input-inputStart)
 	if sign {
 		output *= -1
 	}
-	return
+	return output
 }
 
 func mouseForce(val float64) int32 {
-	return int32(convertRange(val, mouseMaxMove))
+	force := convertRange(val, mouseMaxMove)
+	//force *= 1 + accel
+	return int32(force)
 }
 
-func (coords *Coords) CalcForces() (xForce, yForce int32) {
-	x, y := coords.getValues()
-	xForce = mouseForce(x)
-	yForce = -mouseForce(y)
-	return
+func printPair[T Number](_x, _y T, prefix string) {
+	x, y := float64(_x), float64(_y)
+	if x != 0.0 || y != 0.0 {
+		fmt.Printf("%s: %0.2f %0.2f\n", prefix, x, y)
+	}
+}
+
+func calcForces() (int32, int32) {
+	x, y := mouseMovement.getValues()
+	//accel := calcAccel(x, y)
+	xForce := mouseForce(x)
+	yForce := -mouseForce(y)
+
+	//printPair(x, y, "x, y")
+	//printPair(xForce, yForce, "force")
+	return xForce, yForce
 }
 
 func moveMouse() {
 	for {
-		xForce, yForce := mouseMovement.CalcForces()
+		xForce, yForce := calcForces()
 		if (xForce != 0) || (yForce != 0) {
 			//fmt.Printf("%v %v\n", xForce, yForce)
 			mouse.Move(xForce, yForce)
@@ -110,20 +138,20 @@ func getDirection(val float64, horizontal bool) int32 {
 	panic("direction error")
 }
 
-func (coords *Coords) getDirections() (hDir, vDir int32) {
-	x, y := coords.getValues()
-	hDir, vDir = getDirection(x, true), getDirection(y, false)
+func getDirections() (int32, int32) {
+	x, y := scrollMovement.getValues()
+	hDir, vDir := getDirection(x, true), getDirection(y, false)
 	hDir *= -1
 
 	if hDir != 0 {
 		vDir = 0
 	}
-	return
+	return hDir, vDir
 }
 
 func scroll() {
 	for {
-		hDir, vDir := scrollMovement.getDirections()
+		hDir, vDir := getDirections()
 
 		x, y := scrollMovement.getValues()
 		scrollVal := y
