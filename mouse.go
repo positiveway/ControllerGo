@@ -90,7 +90,7 @@ func mouseForce(val float64) int32 {
 	//printForce(force, "before")
 	applyPower(&force)
 	//printForce(force, "after")
-	return int32(math.Round(force))
+	return int32(force)
 }
 
 func printForce(force float64, prefix string) {
