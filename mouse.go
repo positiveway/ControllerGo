@@ -8,6 +8,7 @@ import (
 )
 
 const mouseMaxMove float64 = 4
+const forcePower float64 = 1.5
 const deadzone float64 = 0.06
 
 //const mouseScaleFactor float64 = 3
@@ -63,8 +64,7 @@ func (coords *Coords) getValues() (float64, float64) {
 }
 
 func convertRange(input, outputEnd float64) float64 {
-	sign := math.Signbit(input)
-	input = math.Abs(input)
+	sign := getSignMakeAbs(&input)
 
 	if input <= deadzone {
 		return 0.0
@@ -75,16 +75,22 @@ func convertRange(input, outputEnd float64) float64 {
 	inputEnd := 1.0
 
 	output := outputStart + ((outputEnd-outputStart)/(inputEnd-inputStart))*(input-inputStart)
-	if sign {
-		output *= -1
-	}
+	applySign(sign, &output)
 	return output
+}
+
+func applyPower(force *float64) {
+	sign := getSignMakeAbs(force)
+	*force = math.Pow(*force, forcePower)
+	applySign(sign, force)
 }
 
 func mouseForce(val float64) int32 {
 	force := convertRange(val, mouseMaxMove)
 	//printForce(force, "before")
-	printForce(mouseAccel, "accel")
+	applyPower(&force)
+
+	//printForce(mouseAccel, "accel")
 	//force = applyAccel(force)
 	//printForce(force, "after")
 	return int32(math.Round(force))

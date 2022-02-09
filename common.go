@@ -34,6 +34,18 @@ type BasicType interface {
 	Number | string | bool
 }
 
+func applySign(sign bool, val *float64) {
+	if sign {
+		*val *= -1
+	}
+}
+
+func getSignMakeAbs(val *float64) bool {
+	sign := math.Signbit(*val)
+	*val = math.Abs(*val)
+	return sign
+}
+
 func round(number float64, precision int) float64 {
 	multiplier := math.Pow(10, float64(precision))
 	return math.Round(number*multiplier) / multiplier
