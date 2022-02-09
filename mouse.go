@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-const mouseMaxMove float64 = 5
+const mouseMaxMove float64 = 4
 const deadzone float64 = 0.06
 
-//const mouseScaleFactor float64 = 2
-//var mouseInterval time.Duration = time.Duration(math.Round(mouseMaxMove*mouseScaleFactor)) * time.Millisecond
-const mouseIntervalInt int = 9
+//const mouseScaleFactor float64 = 3
+//var mouseIntervalInt int = int(math.Round(mouseMaxMove*mouseScaleFactor))
+const mouseIntervalInt int = 12
 const mouseInterval time.Duration = time.Duration(mouseIntervalInt) * time.Millisecond
 
 const scrollMinValue float64 = 35
@@ -83,25 +83,36 @@ func convertRange(input, outputEnd float64) float64 {
 
 func mouseForce(val float64) int32 {
 	force := convertRange(val, mouseMaxMove)
-	//force *= 1 + accel
-	return int32(force)
+	//printForce(force, "before")
+	printForce(mouseAccel, "accel")
+	//force = applyAccel(force)
+	//printForce(force, "after")
+	return int32(math.Round(force))
+}
+
+func printForce(force float64, prefix string) {
+	if force != 0.0 {
+		fmt.Printf("%s: %0.3f\n", prefix, force)
+	}
 }
 
 func printPair[T Number](_x, _y T, prefix string) {
 	x, y := float64(_x), float64(_y)
-	if x != 0.0 || y != 0.0 {
-		fmt.Printf("%s: %0.2f %0.2f\n", prefix, x, y)
-	}
+	fmt.Printf("%s: %0.2f %0.2f\n", prefix, x, y)
 }
 
 func calcForces() (int32, int32) {
 	x, y := mouseMovement.getValues()
-	//accel := calcAccel(x, y)
+	calcAccel(x, y)
 	xForce := mouseForce(x)
 	yForce := -mouseForce(y)
 
-	//printPair(x, y, "x, y")
-	//printPair(xForce, yForce, "force")
+	//if (x != 0.0 || y != 0.0) && accel != 0.0 {
+	//	printPair(x, y, "x, y")
+	//	fmt.Printf("accel: %.2f\n", accel)
+	//	printPair(xForce, yForce, "force")
+	//	fmt.Println()
+	//}
 	return xForce, yForce
 }
 
