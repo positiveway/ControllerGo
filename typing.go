@@ -9,7 +9,7 @@ import (
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
 const UndefinedMapping = "Undefined"
-const angleMargin int = 10
+const angleMargin int = 7
 const magnitudeThresholdPct float64 = 10
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
