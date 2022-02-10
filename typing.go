@@ -22,7 +22,7 @@ func loadLayout() Layout {
 	dat, err := os.ReadFile("layout.csv")
 	check_err(err)
 	lines := strings.Split(string(dat), "\n")
-	lines = lines[1:]
+	lines = lines[2:]
 
 	layout := Layout{}
 	for _, line := range lines {
@@ -30,8 +30,11 @@ func loadLayout() Layout {
 		if line == "" || strings.HasPrefix(line, ";") {
 			continue
 		}
-		parts := strings.Split(line, ", ")
-		letter, leftStick, rightStick := parts[0], parts[1], parts[2]
+		parts := strings.Split(line, "|")
+		for ind, part := range parts {
+			parts[ind] = strings.TrimSpace(part)
+		}
+		leftStick, rightStick, letter := parts[0], parts[1], parts[2]
 		leftStick, rightStick = ZoneMap[leftStick], ZoneMap[rightStick]
 		position := tuple2{leftStick, rightStick}
 		if _, found := layout[position]; found {
@@ -156,7 +159,9 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 }
 
 func typeLetters(letters string) {
-	if key, found := LetterToCodes[letters]; found {
+	key := LetterToCodes[letters]
+	//if letters != UndefinedMapping && letters != "None" && key != 0 {
+	if key != 0 { //simplification of the version above
 		keyboard.KeyPress(key)
 	} else {
 		//fmt.Println(UndefinedMapping)

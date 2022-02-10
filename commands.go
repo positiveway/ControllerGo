@@ -60,7 +60,7 @@ var commandsMap = map[string][]int{
 	BtnRightTrigger:  SwitchLang,
 	BtnRightTrigger2: {LeftMouse},
 	BtnSelect:        {uinput.KeyLeftmeta},
-	BtnStart:         NoAction,
+	BtnStart:         {uinput.KeyEsc},
 	BtnMode:          NoAction,
 	BtnLeftThumb:     copyCmd,
 	BtnRightThumb:    pasteCmd,
