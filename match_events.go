@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func matchEvents(events []Event) {
 	for _, event := range events {
 		switch event.eventType {
@@ -39,6 +41,10 @@ func matchEvents(events []Event) {
 			buttonPressed(event.btnOrAxis)
 		case EvButtonReleased:
 			buttonReleased(event.btnOrAxis)
+		case EvDisconnected:
+			fmt.Printf("Gamepad %v: disconnected\n", event.deviceID)
+		case EvConnected:
+			fmt.Printf("Gamepad %v: connected\n", event.deviceID)
 		}
 	}
 
