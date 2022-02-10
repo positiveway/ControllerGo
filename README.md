@@ -31,4 +31,4 @@ App supports controller's connection and disconnection at runtime.
 
 На руском копи паст не работает не ебу почему, issue что ли создай и PR чтоб исправить.
 
-Xbox is likely to work as well. Testing is requied.
+Xbox is likely to work as well. Testing is required.
