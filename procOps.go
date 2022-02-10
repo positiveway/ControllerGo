@@ -44,6 +44,7 @@ func checkEventServer() {
 func startProc(execPath string) {
 	cmd := exec.Command(execPath)
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	err := cmd.Start()
 	check_err(err)
 	proc = cmd.Process
