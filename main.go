@@ -8,11 +8,14 @@ var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 
 func main() {
-	setPriority()
+	setSelfPriority()
+
+	startEventServer()
+	defer killEventServer()
+
 	addLowercaseLetters()
 
 	var err error
-
 	// initialize mouse and check for possible errors
 	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
 	check_err(err)

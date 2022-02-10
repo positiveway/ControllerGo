@@ -16,10 +16,10 @@ const deadzone float64 = 0.06
 const mouseIntervalInt int = 12
 const mouseInterval time.Duration = time.Duration(mouseIntervalInt) * time.Millisecond
 
-const scrollMinValue float64 = 35
-const scrollMaxValue float64 = 200
+const scrollFastestInterval float64 = 35
+const scrollSlowestInterval float64 = 250
 
-const scrollMaxRange float64 = scrollMaxValue - scrollMinValue
+const scrollIntervalRange float64 = scrollSlowestInterval - scrollFastestInterval
 const horizontalScrollThreshold float64 = 0.45
 
 var mouseMovement = Coords{}
@@ -129,8 +129,8 @@ func moveMouse() {
 
 func calcScrollInterval(value float64) time.Duration {
 	input := math.Abs(value)
-	scroll := convertRange(input, scrollMaxRange)
-	scrollInterval := scrollMaxValue - math.Round(scroll)
+	scroll := convertRange(input, scrollIntervalRange)
+	scrollInterval := scrollSlowestInterval - math.Round(scroll)
 	return time.Duration(scrollInterval) * time.Millisecond
 }
 

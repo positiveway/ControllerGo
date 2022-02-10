@@ -33,7 +33,7 @@ func printEvents(events []Event, bytesAmount int, raddr *net.UDPAddr) {
 func convertToEvents(rawEvents []string) []Event {
 	var events []Event
 
-	rawEvents = rawEvents[1 : len(rawEvents)-1]
+	rawEvents = rawEvents[1:]
 	for _, rawEvent := range rawEvents {
 		rawSlice := strings.Split(rawEvent, ",")
 		id, eventType, btnOrAxis, value := rawSlice[0], rawSlice[1], rawSlice[2], rawSlice[3]
@@ -42,6 +42,8 @@ func convertToEvents(rawEvents []string) []Event {
 	}
 	return events
 }
+
+const gamepadConnectedMsg = "gamepadConnected"
 
 func mainWS() {
 	addr := net.UDPAddr{
@@ -70,12 +72,18 @@ func mainWS() {
 		if msgStr[len(msgStr)-1] != ';' {
 			panic("Invalid message format")
 		}
+		msgStr = msgStr[:len(msgStr)-1]
 		rawEvents := strings.Split(msgStr, ";")
 
 		bytesAmount := checkBytesAmount(rawEvents[0], nn)
 		//if bytesAmount > maxSize {
 		//	maxSize = bytesAmount
 		//}
+
+		if rawEvents[1] == gamepadConnectedMsg {
+			fmt.Println("Gamepad connected")
+			continue
+		}
 
 		events := convertToEvents(rawEvents)
 		matchEvents(events)
