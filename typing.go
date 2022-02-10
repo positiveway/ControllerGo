@@ -156,8 +156,11 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 }
 
 func typeLetters(letters string) {
-	key := LetterToCodes[letters]
-	keyboard.KeyPress(key)
+	if key, found := LetterToCodes[letters]; found {
+		keyboard.KeyPress(key)
+	} else {
+		//fmt.Println(UndefinedMapping)
+	}
 }
 
 func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
