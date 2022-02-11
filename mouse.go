@@ -16,7 +16,7 @@ const deadzone float64 = 0.06
 const mouseIntervalInt int = 12
 const mouseInterval time.Duration = time.Duration(mouseIntervalInt) * time.Millisecond
 
-const scrollFastestInterval float64 = 35
+const scrollFastestInterval float64 = 20
 const scrollSlowestInterval float64 = 250
 
 const scrollIntervalRange float64 = scrollSlowestInterval - scrollFastestInterval
