@@ -10,8 +10,9 @@ import (
 
 const EventServerNotRunningMsg = "Event server is not running"
 
+var BaseDir string
+var EventServerExecPath string
 var proc *os.Process
-var EventServerExecPath string = getCurFileDir() + "/ControllerRust"
 
 func getCurFileDir() string {
 	ex, err := os.Executable()
@@ -74,7 +75,7 @@ func setSelfPriority() {
 	setHighPriority(pid)
 }
 
-var getLocaleExecPath = getCurFileDir() + "/getLocale.sh"
+var getLocaleExecPath string
 
 func getLocale() string {
 	cmd := exec.Command("sh", getLocaleExecPath)

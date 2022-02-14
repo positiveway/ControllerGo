@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,8 +32,11 @@ func splitByAnyOf(str string, separators string) []string {
 	return res
 }
 
+var layoutDir string
+
 func readLayoutFile(filename string) [][]string {
-	dat, err := os.ReadFile(filename)
+	file := filepath.Join(layoutDir, filename)
+	dat, err := os.ReadFile(file)
 	check_err(err)
 	lines := strings.Split(string(dat), "\n")
 	lines = lines[2:]
