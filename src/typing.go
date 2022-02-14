@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"strings"
 )
 
 const NeutralZone = "⬤"
@@ -30,7 +29,6 @@ func loadTypingLayout() TypingLayout {
 		if !contains(AllZones, rightStick) {
 			panicMisspelled(rightStick)
 		}
-		letter = strings.ToLower(letter)
 		position := SticksPosition{leftStick, rightStick}
 		assignWithDuplicateCheck(layout, position, letter)
 	}
