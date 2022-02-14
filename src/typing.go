@@ -6,16 +6,15 @@ import (
 
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
-const UndefinedMapping = "Undefined"
-const angleMargin int = 7
+const NoLetter = -1
+const angleMargin int = 10
 const magnitudeThresholdPct float64 = 40
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
-const EmptyStr = ""
 const NoneStr = "None"
 
 type SticksPosition = [2]string
-type TypingLayout = map[SticksPosition]string
+type TypingLayout = map[SticksPosition]int
 
 func loadTypingLayout() TypingLayout {
 	linesParts := readLayoutFile("typing_layout.csv")
@@ -29,8 +28,12 @@ func loadTypingLayout() TypingLayout {
 		if !contains(AllZones, rightStick) {
 			panicMisspelled(rightStick)
 		}
+		if letter == NoneStr {
+			continue
+		}
+		code := getCodeFromLetter(letter)
 		position := SticksPosition{leftStick, rightStick}
-		assignWithDuplicateCheck(layout, position, letter)
+		assignWithDuplicateCheck(layout, position, code)
 	}
 	return layout
 }
@@ -111,21 +114,21 @@ func detectZone(magnitude float64, angle int) string {
 	}
 }
 
-func (jTyping *JoystickTyping) detectLetter() string {
+func (jTyping *JoystickTyping) detectLetter() int {
 	curZones := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
 	for _, zone := range curZones {
 		if zone == NeutralZone {
-			return EmptyStr
+			return NoLetter
 		} else if zone == EdgeZone {
 			panic("zone to letter error")
 		}
 	}
 	jTyping.awaitingNeutralPos = true
-	letter := getOrDefault(jTyping.layout, curZones, UndefinedMapping)
+	letter := getOrDefault(jTyping.layout, curZones, NoLetter)
 	return letter
 }
 
-func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) string {
+func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) int {
 	x, y := coords.getValues()
 	magnitude := calcMagnitude(x, y)
 	angle := calcAngle(x, y)
@@ -133,11 +136,11 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 
 	newZone := detectZone(magnitude, angle)
 	if newZone == EdgeZone {
-		return EmptyStr
+		return NoLetter
 	}
 	if newZone != *prevZone {
 		*prevZone = newZone
-		//return jTyping.detectLetter()
+		jTyping.awaitingNeutralPos = false //FIXME
 		if jTyping.awaitingNeutralPos {
 			if newZone == NeutralZone {
 				jTyping.awaitingNeutralPos = false
@@ -146,24 +149,21 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 			return jTyping.detectLetter()
 		}
 	}
-	return EmptyStr
+	return NoLetter
 }
 
-func typeLetter(letter string) {
-	if letter != UndefinedMapping && letter != NoneStr {
-		key := getCodeFromLetter(letter)
-		keyboard.KeyPress(key)
+func typeLetter(letter int) {
+	if letter != NoLetter {
+		keyboard.KeyPress(letter)
 	} else {
-		//fmt.Println(UndefinedMapping)
+		//fmt.Println(NoLetter)
 	}
 }
 
 func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
 	letter := jTyping._updateZone(prevZone, coords)
 	//fmt.Printf(" %s %s %v\n", jTyping.leftStickZone, jTyping.rightStickZone, jTyping.awaitingNeutralPos)
-	if letter != EmptyStr {
-		typeLetter(letter)
-	}
+	typeLetter(letter)
 }
 
 func (jTyping *JoystickTyping) updateZoneLeft() {

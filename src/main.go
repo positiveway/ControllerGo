@@ -13,7 +13,11 @@ func setLayoutDir(layoutName string) {
 }
 
 func initPath() {
-	BaseDir = filepath.Dir(getCurFileDir())
+	if RunFromTerminal {
+		BaseDir = filepath.Dir(getCurFileDir())
+	} else {
+		BaseDir = "/home/user/GolandProjects/ControllerGo"
+	}
 	EventServerExecPath = filepath.Join(BaseDir, "Build", "ControllerRust")
 	getLocaleExecPath = getCurFileDir() + "/getLocale.sh"
 }
@@ -27,13 +31,16 @@ func loadConfigs() {
 	boundariesMap = genBoundariesMap()
 }
 
+const RunFromTerminal = true
+
 func main() {
 	loadConfigs()
 	setSelfPriority()
 
-	startEventServer()
-	defer killEventServer()
-
+	if RunFromTerminal {
+		startEventServer()
+		defer killEventServer()
+	}
 	var err error
 	// initialize mouse and check for possible errors
 	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))

@@ -63,6 +63,7 @@ var LetterToCodes = map[string]int{
 	"Y": uinput.KeyY,
 	"Z": uinput.KeyZ,
 
+	"0": uinput.Key0,
 	"1": uinput.Key1,
 	"2": uinput.Key2,
 	"3": uinput.Key3,
