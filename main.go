@@ -8,12 +8,13 @@ var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 
 func main() {
+	convertLetterToCodeMapping()
+	joystickTyping = makeJoystickTyping()
+	commandsLayout = loadCommandsLayout()
 	setSelfPriority()
 
-	startEventServer()
+	//startEventServer()
 	defer killEventServer()
-
-	addLowercaseLetters()
 
 	var err error
 	// initialize mouse and check for possible errors

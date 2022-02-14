@@ -3,7 +3,54 @@ package main
 import (
 	"fmt"
 	"math"
+	"os"
+	"strings"
 )
+
+func assignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
+	if _, found := m[key]; found {
+		panic("duplicate position")
+	}
+	m[key] = val
+}
+
+func splitByAnyOf(str string, separators string) []string {
+	if separators == "" {
+		panic("Empty separator")
+	}
+	var res []string
+	prevSplitInd := 0
+	for ind, symbol := range str {
+		if strings.ContainsRune(separators, symbol) {
+			res = append(res, str[prevSplitInd:ind])
+			prevSplitInd = ind + 1
+		}
+	}
+	prevSplitInd = min(len(str), prevSplitInd)
+	res = append(res, str[prevSplitInd:])
+	return res
+}
+
+func readLayoutFile(filename string) [][]string {
+	dat, err := os.ReadFile(filename)
+	check_err(err)
+	lines := strings.Split(string(dat), "\n")
+	lines = lines[2:]
+
+	var linesParts [][]string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, ";") {
+			continue
+		}
+		parts := splitByAnyOf(line, "&|>:,=")
+		for ind, part := range parts {
+			parts[ind] = strings.TrimSpace(part)
+		}
+		linesParts = append(linesParts, parts)
+	}
+	return linesParts
+}
 
 func panicMisspelled(str string) {
 	panic(fmt.Sprintf("Probably misspelled: %s\n", str))
@@ -15,7 +62,7 @@ func check_err(err error) {
 	}
 }
 
-func getOrDefault[k comparable, v any](m map[k]v, key k, defaultVal v) v {
+func getOrDefault[K comparable, V any](m map[K]V, key K, defaultVal V) V {
 	if val, found := m[key]; found {
 		return val
 	} else {
@@ -28,7 +75,7 @@ type Number interface {
 }
 
 type BasicType interface {
-	Number | string | bool
+	Number | string | bool | rune
 }
 
 func applySign(sign bool, val *float64) {
@@ -50,6 +97,14 @@ func round(number float64, precision int) float64 {
 
 func max[T Number](a, b T) T {
 	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func min[T Number](a, b T) T {
+	if a < b {
 		return a
 	} else {
 		return b

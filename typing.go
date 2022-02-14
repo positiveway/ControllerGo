@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"os"
 	"strings"
 )
 
@@ -13,27 +12,17 @@ const angleMargin int = 7
 const magnitudeThresholdPct float64 = 40
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
-const NoneStr = ""
+const EmptyStr = ""
+const NoneStr = "None"
 
-type tuple2 = [2]string
-type Layout = map[tuple2]string
+type SticksPosition = [2]string
+type TypingLayout = map[SticksPosition]string
 
-func loadLayout() Layout {
-	dat, err := os.ReadFile("layout.csv")
-	check_err(err)
-	lines := strings.Split(string(dat), "\n")
-	lines = lines[2:]
+func loadTypingLayout() TypingLayout {
+	linesParts := readLayoutFile("typing_layout.csv")
 
-	layout := Layout{}
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, ";") {
-			continue
-		}
-		parts := strings.Split(line, "|")
-		for ind, part := range parts {
-			parts[ind] = strings.TrimSpace(part)
-		}
+	layout := TypingLayout{}
+	for _, parts := range linesParts {
 		leftStick, rightStick, letter := parts[0], parts[1], parts[2]
 		if !contains(AllZones, leftStick) {
 			panicMisspelled(leftStick)
@@ -41,11 +30,9 @@ func loadLayout() Layout {
 		if !contains(AllZones, rightStick) {
 			panicMisspelled(rightStick)
 		}
-		position := tuple2{leftStick, rightStick}
-		if _, found := layout[position]; found {
-			panic("duplicate position")
-		}
-		layout[position] = letter
+		letter = strings.ToLower(letter)
+		position := SticksPosition{leftStick, rightStick}
+		assignWithDuplicateCheck(layout, position, letter)
 	}
 	return layout
 }
@@ -84,7 +71,7 @@ func genBoundariesMap() BoundariesMap {
 }
 
 type JoystickTyping struct {
-	layout                        Layout
+	layout                        TypingLayout
 	leftStickZone, rightStickZone string
 	awaitingNeutralPos            bool
 	leftCoords, rightCoords       Coords
@@ -92,14 +79,14 @@ type JoystickTyping struct {
 
 func makeJoystickTyping() JoystickTyping {
 	return JoystickTyping{
-		layout:             loadLayout(),
+		layout:             loadTypingLayout(),
 		leftStickZone:      NeutralZone,
 		rightStickZone:     NeutralZone,
 		awaitingNeutralPos: false,
 	}
 }
 
-var joystickTyping = makeJoystickTyping()
+var joystickTyping JoystickTyping
 
 func calcAngle(x, y float64) int {
 	val := math.Atan2(y, x) * (180 / math.Pi)
@@ -127,10 +114,10 @@ func detectZone(magnitude float64, angle int) string {
 }
 
 func (jTyping *JoystickTyping) detectLetter() string {
-	curZones := tuple2{jTyping.leftStickZone, jTyping.rightStickZone}
+	curZones := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
 	for _, zone := range curZones {
 		if zone == NeutralZone {
-			return NoneStr
+			return EmptyStr
 		} else if zone == EdgeZone {
 			panic("zone to letter error")
 		}
@@ -148,7 +135,7 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 
 	newZone := detectZone(magnitude, angle)
 	if newZone == EdgeZone {
-		return NoneStr
+		return EmptyStr
 	}
 	if newZone != *prevZone {
 		*prevZone = newZone
@@ -161,13 +148,12 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 			return jTyping.detectLetter()
 		}
 	}
-	return NoneStr
+	return EmptyStr
 }
 
-func typeLetters(letters string) {
-	key := LetterToCodes[letters]
-	//if letters != UndefinedMapping && letters != "None" && key != 0 {
-	if key != 0 { //simplification of the version above
+func typeLetter(letter string) {
+	if letter != UndefinedMapping && letter != NoneStr {
+		key := getCodeFromLetter(letter)
 		keyboard.KeyPress(key)
 	} else {
 		//fmt.Println(UndefinedMapping)
@@ -177,8 +163,8 @@ func typeLetters(letters string) {
 func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
 	letter := jTyping._updateZone(prevZone, coords)
 	//fmt.Printf(" %s %s %v\n", jTyping.leftStickZone, jTyping.rightStickZone, jTyping.awaitingNeutralPos)
-	if letter != NoneStr {
-		typeLetters(letter)
+	if letter != EmptyStr {
+		typeLetter(letter)
 	}
 }
 

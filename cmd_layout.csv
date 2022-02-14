@@ -1,0 +1,21 @@
+Button : Command
+------------------------------
+South:         Control, Z
+East:          Backspace
+North:         Space
+West:          Enter
+WestHold:      Control, Alt, L
+NorthHold:     Control, Alt, B
+LeftTrigger:   SwitchToTyping
+LeftTrigger2:  RightMouse
+RightTrigger:  Rightalt
+RightTrigger2: LeftMouse
+Select:        Windows
+Start:         Esc
+Mode:          NoAction
+LeftThumb:     Control, C
+RightThumb:    Control, V
+DPadUp:        Up
+DPadDown:      Down
+DPadLeft:      Left
+DPadRight:     Right

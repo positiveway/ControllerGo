@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/bendahl/uinput"
 	"sync"
 	"time"
 )
@@ -18,8 +17,8 @@ func (c *CommandsMode) switchMode() {
 
 	mouseMovement.reset()
 	scrollMovement.reset()
-	//for k := range triggersPressed {
-	//	triggersPressed[k] = false
+	//for trigger := range triggersPressed {
+	//	triggersPressed[trigger] = false
 	//}
 }
 
@@ -67,6 +66,7 @@ const MiddleMouse = -4
 const SwitchToTyping = -5
 
 var commonCmdMapping = map[string]int{
+	"NoAction":       NoAction,
 	"LeftMouse":      LeftMouse,
 	"RightMouse":     RightMouse,
 	"MiddleMouse":    MiddleMouse,
@@ -75,30 +75,45 @@ var commonCmdMapping = map[string]int{
 
 var holdStartTime = map[string]time.Time{}
 
-var commandsMap = map[string][]int{
-	BtnSouth:         {uinput.KeyLeftctrl, uinput.KeyZ},
-	BtnEast:          {uinput.KeyBackspace},
-	BtnNorth:         {uinput.KeySpace},
-	BtnWest:          {uinput.KeyEnter},
-	BtnWestHold:      {uinput.KeyLeftctrl, uinput.KeyLeftalt, uinput.KeyL},
-	BtnNorthHold:     {uinput.KeyLeftctrl, uinput.KeyLeftalt, uinput.KeyB},
-	BtnC:             {NoAction},
-	BtnZ:             {NoAction},
-	BtnLeftTrigger:   {SwitchToTyping},
-	BtnLeftTrigger2:  {RightMouse},
-	BtnRightTrigger:  {uinput.KeyRightalt},
-	BtnRightTrigger2: {LeftMouse},
-	BtnSelect:        {uinput.KeyLeftmeta},
-	BtnStart:         {uinput.KeyEsc},
-	BtnMode:          {NoAction},
-	BtnLeftThumb:     {uinput.KeyLeftctrl, uinput.KeyC},
-	BtnRightThumb:    {uinput.KeyLeftctrl, uinput.KeyV},
-	BtnDPadUp:        {uinput.KeyUp},
-	BtnDPadDown:      {uinput.KeyDown},
-	BtnDPadLeft:      {uinput.KeyLeft},
-	BtnDPadRight:     {uinput.KeyRight},
-	BtnUnknown:       {NoAction},
+type CommandsLayout = map[string][]int
+
+func genEmptyCommandsLayout() CommandsLayout {
+	layout := CommandsLayout{}
+	var NoActionSlice = []int{NoAction}
+	for _, btn := range AllButtons {
+		layout[btn] = NoActionSlice
+	}
+	return layout
 }
+
+func loadCommandsLayout() CommandsLayout {
+	layout := genEmptyCommandsLayout()
+	linesParts := readLayoutFile("cmd_layout.csv")
+	for _, parts := range linesParts {
+		btn := parts[0]
+		keys := parts[1:]
+
+		if btnSynonym, found := BtnSynonyms[btn]; found {
+			btn = btnSynonym
+		}
+		if _, found := layout[btn]; !found {
+			panicMisspelled(btn)
+		}
+		var codes []int
+		for _, key := range keys {
+			if code, found := commonCmdMapping[key]; found {
+				codes = append(codes, code)
+			} else {
+				code := getCodeFromLetter(key)
+				codes = append(codes, code)
+			}
+		}
+		layout[btn] = codes
+	}
+	return layout
+}
+
+var commandsLayout CommandsLayout
 
 func press(seq []int) {
 	switch seq[0] {
@@ -145,7 +160,7 @@ func detectTriggers(event Event) {
 	if !isTriggerBtn(btn) {
 		return
 	}
-	command := commandsMap[btn]
+	command := commandsLayout[btn]
 
 	if event.value > TriggerThreshold && !triggersPressed[btn] {
 		triggersPressed[btn] = true
@@ -161,11 +176,11 @@ func buttonPressed(btn string) {
 		return
 	}
 	holdBtn := btn + HoldSuffix
-	if _, found := commandsMap[holdBtn]; found {
+	if _, found := commandsLayout[holdBtn]; found {
 		holdStartTime[holdBtn] = time.Now()
 		return
 	}
-	command := commandsMap[btn]
+	command := commandsLayout[btn]
 	press(command)
 }
 
@@ -176,15 +191,15 @@ func buttonReleased(btn string) {
 		return
 	}
 	holdBtn := btn + HoldSuffix
-	if _, found := commandsMap[holdBtn]; found {
+	if _, found := commandsLayout[holdBtn]; found {
 		startTime := holdStartTime[holdBtn]
 		holdDuration := time.Now().Sub(startTime)
 		//fmt.Printf("duration: %v\n", holdDuration)
 		if holdDuration > holdThreshold {
 			btn = holdBtn
 		}
-		press(commandsMap[btn])
+		press(commandsLayout[btn])
 	}
-	command := commandsMap[btn]
+	command := commandsLayout[btn]
 	release(command)
 }

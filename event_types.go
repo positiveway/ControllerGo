@@ -94,6 +94,15 @@ const (
 	BtnUnknown              = "BtnUnknown"
 )
 
+var BtnSynonyms = map[string]string{
+	"LeftTrigger":   BtnLeftTrigger,
+	"LeftTrigger2":  BtnLeftTrigger2,
+	"RightTrigger":  BtnRightTrigger,
+	"RightTrigger2": BtnRightTrigger2,
+	"LeftStick":     BtnLeftThumb,
+	"RightStick":    BtnRightThumb,
+}
+
 var AllButtons = []string{
 	BtnSouth,
 	BtnEast,
@@ -122,6 +131,7 @@ var AllButtons = []string{
 	BtnDPadDownHold,
 	BtnDPadLeftHold,
 	BtnDPadRightHold,
+	BtnUnknown,
 }
 
 var BtnMap = map[string]string{
