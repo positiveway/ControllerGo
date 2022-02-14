@@ -7,10 +7,15 @@ import (
 var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 
-func main() {
+func loadConfigs() {
 	convertLetterToCodeMapping()
 	joystickTyping = makeJoystickTyping()
 	commandsLayout = loadCommandsLayout()
+	boundariesMap = genBoundariesMap()
+}
+
+func main() {
+	loadConfigs()
 	setSelfPriority()
 
 	//startEventServer()

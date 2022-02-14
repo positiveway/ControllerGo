@@ -39,7 +39,7 @@ func loadTypingLayout() TypingLayout {
 
 type BoundariesMap = map[int]string
 
-var boundariesMap = genBoundariesMap()
+var boundariesMap BoundariesMap
 
 func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction string) {
 	for angle := lowerBound; angle < upperBound; angle++ {

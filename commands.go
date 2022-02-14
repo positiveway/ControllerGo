@@ -79,7 +79,7 @@ type CommandsLayout = map[string][]int
 
 func genEmptyCommandsLayout() CommandsLayout {
 	layout := CommandsLayout{}
-	var NoActionSlice = []int{NoAction}
+	NoActionSlice := []int{NoAction}
 	for _, btn := range AllButtons {
 		layout[btn] = NoActionSlice
 	}
