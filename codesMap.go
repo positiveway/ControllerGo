@@ -86,13 +86,13 @@ const (
 	ZoneDownRight        = "DownRight"
 )
 
-var ZoneMap = map[string]string{
-	"Right":     ZoneRight,
-	"UpRight":   ZoneUpRight,
-	"Up":        ZoneUp,
-	"UpLeft":    ZoneUpLeft,
-	"Left":      ZoneLeft,
-	"DownLeft":  ZoneDownLeft,
-	"Down":      ZoneDown,
-	"DownRight": ZoneDownRight,
+var AllZones = []string{
+	ZoneRight,
+	ZoneUpRight,
+	ZoneUp,
+	ZoneUpLeft,
+	ZoneLeft,
+	ZoneDownLeft,
+	ZoneDown,
+	ZoneDownRight,
 }

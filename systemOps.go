@@ -73,3 +73,16 @@ func setSelfPriority() {
 	pid := os.Getppid()
 	setHighPriority(pid)
 }
+
+var getLocaleExecPath = getCurFileDir() + "/getLocale.sh"
+
+func getLocale() string {
+	cmd := exec.Command("sh", getLocaleExecPath)
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return string(stdout)
+}

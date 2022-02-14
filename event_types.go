@@ -61,28 +61,68 @@ var AxisMap = map[string]string{
 	"U":  AxisUnknown,
 }
 
+const HoldSuffix = "Hold"
+
 const (
-	BtnSouth         string = "BtnSouth"
-	BtnEast                 = "BtnEast"
-	BtnNorth                = "BtnNorth"
-	BtnWest                 = "BtnWest"
+	BtnSouth         string = "South"
+	BtnEast                 = "East"
+	BtnNorth                = "North"
+	BtnWest                 = "West"
+	BtnSouthHold            = BtnSouth + HoldSuffix
+	BtnEastHold             = BtnEast + HoldSuffix
+	BtnNorthHold            = BtnNorth + HoldSuffix
+	BtnWestHold             = BtnWest + HoldSuffix
 	BtnC                    = "BtnC"
 	BtnZ                    = "BtnZ"
-	BtnLeftTrigger          = "BtnLeftTrigger"
-	BtnLeftTrigger2         = "BtnLeftTrigger2"
-	BtnRightTrigger         = "BtnRightTrigger"
-	BtnRightTrigger2        = "BtnRightTrigger2"
-	BtnSelect               = "BtnSelect"
-	BtnStart                = "BtnStart"
-	BtnMode                 = "BtnMode"
-	BtnLeftThumb            = "BtnLeftThumb"
-	BtnRightThumb           = "BtnRightThumb"
-	BtnDPadUp               = "BtnDPadUp"
-	BtnDPadDown             = "BtnDPadDown"
-	BtnDPadLeft             = "BtnDPadLeft"
-	BtnDPadRight            = "BtnDPadRight"
+	BtnLeftTrigger          = "LB"
+	BtnLeftTrigger2         = "LT"
+	BtnRightTrigger         = "RB"
+	BtnRightTrigger2        = "RT"
+	BtnSelect               = "Select"
+	BtnStart                = "Start"
+	BtnMode                 = "Mode"
+	BtnLeftThumb            = "LeftThumb"
+	BtnRightThumb           = "RightThumb"
+	BtnDPadUp               = "DPadUp"
+	BtnDPadDown             = "DPadDown"
+	BtnDPadLeft             = "DPadLeft"
+	BtnDPadRight            = "DPadRight"
+	BtnDPadUpHold           = BtnDPadUp + HoldSuffix
+	BtnDPadDownHold         = BtnDPadDown + HoldSuffix
+	BtnDPadLeftHold         = BtnDPadLeft + HoldSuffix
+	BtnDPadRightHold        = BtnDPadRight + HoldSuffix
 	BtnUnknown              = "BtnUnknown"
 )
+
+var AllButtons = []string{
+	BtnSouth,
+	BtnEast,
+	BtnNorth,
+	BtnWest,
+	BtnSouthHold,
+	BtnEastHold,
+	BtnNorthHold,
+	BtnWestHold,
+	BtnC,
+	BtnZ,
+	BtnLeftTrigger,
+	BtnLeftTrigger2,
+	BtnRightTrigger,
+	BtnRightTrigger2,
+	BtnSelect,
+	BtnStart,
+	BtnMode,
+	BtnLeftThumb,
+	BtnRightThumb,
+	BtnDPadUp,
+	BtnDPadDown,
+	BtnDPadLeft,
+	BtnDPadRight,
+	BtnDPadUpHold,
+	BtnDPadDownHold,
+	BtnDPadLeftHold,
+	BtnDPadRightHold,
+}
 
 var BtnMap = map[string]string{
 	"S":  BtnSouth,

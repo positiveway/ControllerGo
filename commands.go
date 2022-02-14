@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/bendahl/uinput"
 	"sync"
+	"time"
 )
 
 type CommandsMode struct {
@@ -29,88 +30,102 @@ func (c *CommandsMode) get() bool {
 }
 
 var typingMode = CommandsMode{}
+var needToSwitchBackLang = false
 
-var TRIGGERS = []string{BtnLeftTrigger2, BtnRightTrigger2}
+var pressMouseOrKey = func(key int) {
+	switch key {
+	case LeftMouse:
+		mouse.LeftPress()
+	case RightMouse:
+		mouse.RightPress()
+	case MiddleMouse:
+		mouse.MiddlePress()
+	default:
+		keyboard.KeyDown(key)
+	}
+}
 
-var NoAction = []int{-1}
+var releaseMouseOrKey = func(key int) {
+	switch key {
+	case LeftMouse:
+		mouse.LeftRelease()
+	case RightMouse:
+		mouse.RightRelease()
+	case MiddleMouse:
+		mouse.MiddleRelease()
+	default:
+		keyboard.KeyUp(key)
+	}
+}
 
-var controlKey = uinput.KeyLeftctrl
-var copyCmd = []int{controlKey, uinput.KeyC}
-var pasteCmd = []int{controlKey, uinput.KeyV}
-var cutCmd = []int{controlKey, uinput.KeyX}
-var undoCmd = []int{controlKey, uinput.KeyZ}
+//var altTab = []int{uinput.KeyLeftalt, uinput.KeyTab}
 
-var SwitchLang = []int{uinput.KeyRightalt}
-var altTab = []int{uinput.KeyLeftalt, uinput.KeyTab}
+const NoAction = -1
+const LeftMouse = -2
+const RightMouse = -3
+const MiddleMouse = -4
+const SwitchToTyping = -5
 
-var LeftMouse = -2
-var RightMouse = -3
-var MiddleMouse = -4
-var SwitchToTyping = []int{-5}
+var commonCmdMapping = map[string]int{
+	"LeftMouse":      LeftMouse,
+	"RightMouse":     RightMouse,
+	"MiddleMouse":    MiddleMouse,
+	"SwitchToTyping": SwitchToTyping,
+}
+
+var holdStartTime = map[string]time.Time{}
 
 var commandsMap = map[string][]int{
-	BtnSouth:         undoCmd,
+	BtnSouth:         {uinput.KeyLeftctrl, uinput.KeyZ},
 	BtnEast:          {uinput.KeyBackspace},
 	BtnNorth:         {uinput.KeySpace},
 	BtnWest:          {uinput.KeyEnter},
-	BtnC:             NoAction,
-	BtnZ:             NoAction,
-	BtnLeftTrigger:   SwitchToTyping,
+	BtnWestHold:      {uinput.KeyLeftctrl, uinput.KeyLeftalt, uinput.KeyL},
+	BtnNorthHold:     {uinput.KeyLeftctrl, uinput.KeyLeftalt, uinput.KeyB},
+	BtnC:             {NoAction},
+	BtnZ:             {NoAction},
+	BtnLeftTrigger:   {SwitchToTyping},
 	BtnLeftTrigger2:  {RightMouse},
-	BtnRightTrigger:  SwitchLang,
+	BtnRightTrigger:  {uinput.KeyRightalt},
 	BtnRightTrigger2: {LeftMouse},
 	BtnSelect:        {uinput.KeyLeftmeta},
 	BtnStart:         {uinput.KeyEsc},
-	BtnMode:          NoAction,
-	BtnLeftThumb:     copyCmd,
-	BtnRightThumb:    pasteCmd,
+	BtnMode:          {NoAction},
+	BtnLeftThumb:     {uinput.KeyLeftctrl, uinput.KeyC},
+	BtnRightThumb:    {uinput.KeyLeftctrl, uinput.KeyV},
 	BtnDPadUp:        {uinput.KeyUp},
 	BtnDPadDown:      {uinput.KeyDown},
 	BtnDPadLeft:      {uinput.KeyLeft},
 	BtnDPadRight:     {uinput.KeyRight},
-	BtnUnknown:       NoAction,
+	BtnUnknown:       {NoAction},
 }
 
 func press(seq []int) {
-	if equal(seq, NoAction) {
+	switch seq[0] {
+	case NoAction:
 		return
-	}
-	if equal(seq, SwitchToTyping) {
+	case SwitchToTyping:
 		typingMode.switchMode()
 		return
 	}
+	//if len(seq) > 1 && seq[0] == controlKey {
+	//	locale := getLocale()
+	//	println(locale)
+	//}
 	for _, el := range seq {
-		switch el {
-		case LeftMouse:
-			mouse.LeftPress()
-		case RightMouse:
-			mouse.RightPress()
-		case MiddleMouse:
-			mouse.MiddlePress()
-		default:
-			keyboard.KeyDown(el)
-		}
+		pressMouseOrKey(el)
 	}
 }
 
 func release(seq []int) {
-	if equal(seq, NoAction) {
+	switch seq[0] {
+	case NoAction:
 		return
-	}
-	if equal(seq, SwitchToTyping) {
+	case SwitchToTyping:
 		return
 	}
 	for _, el := range reverse(seq) {
-		switch el {
-		case LeftMouse:
-			mouse.LeftRelease()
-		case RightMouse:
-			mouse.RightRelease()
-		case MiddleMouse:
-			mouse.MiddleRelease()
-		default:
-			keyboard.KeyUp(el)
-		}
+		releaseMouseOrKey(el)
 	}
 }
 
@@ -121,9 +136,13 @@ var triggersPressed = map[string]bool{
 	BtnRightTrigger2: false,
 }
 
+func isTriggerBtn(btn string) bool {
+	return btn == BtnLeftTrigger2 || btn == BtnRightTrigger2
+}
+
 func detectTriggers(event Event) {
 	btn := event.btnOrAxis
-	if !contains(TRIGGERS, btn) {
+	if !isTriggerBtn(btn) {
 		return
 	}
 	command := commandsMap[btn]
@@ -138,16 +157,33 @@ func detectTriggers(event Event) {
 }
 
 func buttonPressed(btn string) {
-	if contains(TRIGGERS, btn) {
+	if isTriggerBtn(btn) {
+		return
+	}
+	holdBtn := btn + HoldSuffix
+	if _, found := commandsMap[holdBtn]; found {
+		holdStartTime[holdBtn] = time.Now()
 		return
 	}
 	command := commandsMap[btn]
 	press(command)
 }
 
+const holdThreshold time.Duration = 400 * time.Millisecond
+
 func buttonReleased(btn string) {
-	if contains(TRIGGERS, btn) {
+	if isTriggerBtn(btn) {
 		return
+	}
+	holdBtn := btn + HoldSuffix
+	if _, found := commandsMap[holdBtn]; found {
+		startTime := holdStartTime[holdBtn]
+		holdDuration := time.Now().Sub(startTime)
+		//fmt.Printf("duration: %v\n", holdDuration)
+		if holdDuration > holdThreshold {
+			btn = holdBtn
+		}
+		press(commandsMap[btn])
 	}
 	command := commandsMap[btn]
 	release(command)

@@ -47,5 +47,4 @@ func matchEvents(events []Event) {
 			fmt.Printf("Gamepad %v: connected\n", event.deviceID)
 		}
 	}
-
 }

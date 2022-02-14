@@ -1,8 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"math"
 )
+
+func panicMisspelled(str string) {
+	panic(fmt.Sprintf("Probably misspelled: %s\n", str))
+}
 
 func check_err(err error) {
 	if err != nil {

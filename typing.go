@@ -10,7 +10,7 @@ const NeutralZone = "⬤"
 const EdgeZone = "❌"
 const UndefinedMapping = "Undefined"
 const angleMargin int = 7
-const magnitudeThresholdPct float64 = 10
+const magnitudeThresholdPct float64 = 40
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
 const NoneStr = ""
@@ -35,7 +35,12 @@ func loadLayout() Layout {
 			parts[ind] = strings.TrimSpace(part)
 		}
 		leftStick, rightStick, letter := parts[0], parts[1], parts[2]
-		leftStick, rightStick = ZoneMap[leftStick], ZoneMap[rightStick]
+		if !contains(AllZones, leftStick) {
+			panicMisspelled(leftStick)
+		}
+		if !contains(AllZones, rightStick) {
+			panicMisspelled(rightStick)
+		}
 		position := tuple2{leftStick, rightStick}
 		if _, found := layout[position]; found {
 			panic("duplicate position")
@@ -147,6 +152,7 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) str
 	}
 	if newZone != *prevZone {
 		*prevZone = newZone
+		//return jTyping.detectLetter()
 		if jTyping.awaitingNeutralPos {
 			if newZone == NeutralZone {
 				jTyping.awaitingNeutralPos = false
