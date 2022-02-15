@@ -6,7 +6,7 @@ import (
 
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
-const angleMargin int = 18
+const angleMargin int = 16
 const magnitudeThresholdPct float64 = 35
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
@@ -42,7 +42,7 @@ type BoundariesMap = map[int]string
 var boundariesMap BoundariesMap
 
 func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction string) {
-	for angle := lowerBound; angle < upperBound; angle++ {
+	for angle := lowerBound; angle <= upperBound; angle++ {
 		_boundariesMap[angle] = direction
 	}
 }
@@ -57,6 +57,9 @@ func genBoundariesMap() BoundariesMap {
 		225: ZoneDownLeft,
 		270: ZoneDown,
 		315: ZoneDownRight,
+	}
+	if angleMargin > 22 {
+		panic("With this margin of angle areas will overlap")
 	}
 	_boundariesMap := BoundariesMap{}
 	for angle, dir := range mapping {
