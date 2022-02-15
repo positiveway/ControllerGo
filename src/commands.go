@@ -17,9 +17,6 @@ func (c *CommandsMode) switchMode() {
 
 	mouseMovement.reset()
 	scrollMovement.reset()
-	//for trigger := range triggersPressed {
-	//	triggersPressed[trigger] = false
-	//}
 }
 
 func (c *CommandsMode) get() bool {
@@ -30,34 +27,6 @@ func (c *CommandsMode) get() bool {
 
 var typingMode = CommandsMode{}
 var needToSwitchBackLang = false
-
-var pressMouseOrKey = func(key int) {
-	switch key {
-	case LeftMouse:
-		mouse.LeftPress()
-	case RightMouse:
-		mouse.RightPress()
-	case MiddleMouse:
-		mouse.MiddlePress()
-	default:
-		keyboard.KeyDown(key)
-	}
-}
-
-var releaseMouseOrKey = func(key int) {
-	switch key {
-	case LeftMouse:
-		mouse.LeftRelease()
-	case RightMouse:
-		mouse.RightRelease()
-	case MiddleMouse:
-		mouse.MiddleRelease()
-	default:
-		keyboard.KeyUp(key)
-	}
-}
-
-//var altTab = []int{uinput.KeyLeftalt, uinput.KeyTab}
 
 const NoAction = -1
 const LeftMouse = -2
@@ -128,7 +97,7 @@ func press(seq []int) {
 	//	println(locale)
 	//}
 	for _, el := range seq {
-		pressMouseOrKey(el)
+		pressKeyOrMouse(el)
 	}
 }
 
@@ -140,7 +109,7 @@ func release(seq []int) {
 		return
 	}
 	for _, el := range reverse(seq) {
-		releaseMouseOrKey(el)
+		releaseKeyOrMouse(el)
 	}
 }
 

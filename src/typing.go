@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"time"
 )
 
 const NeutralZone = "⬤"
@@ -115,17 +116,13 @@ func detectZone(magnitude float64, angle int) string {
 }
 
 func (jTyping *JoystickTyping) detectLetter() int {
-	curZones := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
-	for _, zone := range curZones {
-		if zone == NeutralZone {
-			return NoLetter
-		} else if zone == EdgeZone {
-			panic("zone to letter error")
-		}
+	if jTyping.leftStickZone == NeutralZone ||
+		jTyping.rightStickZone == NeutralZone {
+		return NoLetter
 	}
-	jTyping.awaitingNeutralPos = true
-	letter := getOrDefault(jTyping.layout, curZones, NoLetter)
-	return letter
+	position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
+	code := getOrDefault(jTyping.layout, position, NoLetter)
+	return code
 }
 
 func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) int {
@@ -140,30 +137,17 @@ func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) int
 	}
 	if newZone != *prevZone {
 		*prevZone = newZone
-		jTyping.awaitingNeutralPos = false //FIXME
-		if jTyping.awaitingNeutralPos {
-			if newZone == NeutralZone {
-				jTyping.awaitingNeutralPos = false
-			}
-		} else {
-			return jTyping.detectLetter()
-		}
+		return jTyping.detectLetter()
 	}
 	return NoLetter
-}
-
-func typeLetter(letter int) {
-	if letter != NoLetter {
-		keyboard.KeyPress(letter)
-	} else {
-		//fmt.Println(NoLetter)
-	}
 }
 
 func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
 	letter := jTyping._updateZone(prevZone, coords)
 	//fmt.Printf(" %s %s %v\n", jTyping.leftStickZone, jTyping.rightStickZone, jTyping.awaitingNeutralPos)
-	typeLetter(letter)
+	if letter != NoLetter {
+		keyboard.KeyPress(letter)
+	}
 }
 
 func (jTyping *JoystickTyping) updateZoneLeft() {
@@ -178,4 +162,14 @@ func (jTyping *JoystickTyping) updateZoneRight() {
 	prevZone := &jTyping.rightStickZone
 
 	jTyping.updateZone(prevZone, coords)
+}
+
+func typeWithSticks() {
+	for {
+		if typingMode.get() {
+			joystickTyping.updateZoneLeft()
+			joystickTyping.updateZoneRight()
+		}
+		time.Sleep(mouseInterval)
+	}
 }

@@ -5,9 +5,6 @@ import (
 	"path/filepath"
 )
 
-var mouse uinput.Mouse
-var keyboard uinput.Keyboard
-
 func setLayoutDir(layoutName string) {
 	layoutDir = filepath.Join(BaseDir, "Layouts", layoutName)
 }
@@ -41,6 +38,7 @@ func main() {
 		startEventServer()
 		defer killEventServer()
 	}
+
 	var err error
 	// initialize mouse and check for possible errors
 	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
@@ -58,6 +56,7 @@ func main() {
 
 	go moveMouse()
 	go scroll()
+	go typeWithSticks()
 
 	mainWS()
 }

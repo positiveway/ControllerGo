@@ -118,10 +118,12 @@ func calcForces() (int32, int32) {
 
 func moveMouse() {
 	for {
-		xForce, yForce := calcForces()
-		if (xForce != 0) || (yForce != 0) {
-			//fmt.Printf("%v %v\n", xForce, yForce)
-			mouse.Move(xForce, yForce)
+		if !typingMode.get() {
+			xForce, yForce := calcForces()
+			if (xForce != 0) || (yForce != 0) {
+				//fmt.Printf("%v %v\n", xForce, yForce)
+				mouse.Move(xForce, yForce)
+			}
 		}
 		time.Sleep(mouseInterval)
 	}
@@ -162,20 +164,23 @@ func getDirections() (int32, int32) {
 
 func scroll() {
 	for {
-		hDir, vDir := getDirections()
+		scrollInterval := mouseInterval // default update interval
+		if !typingMode.get() {
+			hDir, vDir := getDirections()
 
-		x, y := scrollMovement.getValues()
-		scrollVal := y
-		if hDir != 0 {
-			scrollVal = x
-		}
-		scrollInterval := calcScrollInterval(scrollVal)
+			x, y := scrollMovement.getValues()
+			scrollVal := y
+			if hDir != 0 {
+				scrollVal = x
+			}
+			scrollInterval = calcScrollInterval(scrollVal)
 
-		if hDir != 0 {
-			mouse.Wheel(true, hDir)
-		}
-		if vDir != 0 {
-			mouse.Wheel(false, vDir)
+			if hDir != 0 {
+				mouse.Wheel(true, hDir)
+			}
+			if vDir != 0 {
+				mouse.Wheel(false, vDir)
+			}
 		}
 		time.Sleep(scrollInterval)
 	}
