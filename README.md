@@ -1,3 +1,4 @@
+
 ## Functionality
  - Mouse and scrolling emulation
  - Typing with sticks
@@ -10,7 +11,9 @@
  - Xbox
 
 ## Supported OS
- - Linux (Works on **Wayland**, requires **sudo**)
+ - Linux (requires **sudo**)
+	 - Wayland
+	 - X11
  - Windows (support is comming)
 
 ## Typing
