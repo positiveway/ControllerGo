@@ -2,13 +2,12 @@ package main
 
 import (
 	"math"
-	"time"
 )
 
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
 const angleMargin int = 18
-const magnitudeThresholdPct float64 = 40
+const magnitudeThresholdPct float64 = 35
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
 const NoneStr = "None"
@@ -118,10 +117,13 @@ func zoneCanBeUsed(zone string) bool {
 	return zone != EdgeZone && zone != NeutralZone
 }
 
-func zoneChanged(zone string, prevZone *string) bool {
+func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 	if zone != EdgeZone {
 		if *prevZone != zone {
 			*prevZone = zone
+			if zone == NeutralZone {
+				jTyping.awaitingNeutralPos = false
+			}
 			return true
 		}
 	}
@@ -136,7 +138,7 @@ func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bo
 
 	zone := detectZone(magnitude, angle)
 	canUse := zoneCanBeUsed(zone)
-	changed := zoneChanged(zone, prevZone)
+	changed := jTyping.zoneChanged(zone, prevZone)
 	return canUse, changed
 }
 
@@ -150,19 +152,13 @@ func (jTyping *JoystickTyping) updateZones() {
 		//fmt.Printf("%v %v\n", leftChanged, rightChanged)
 
 		if leftChanged || rightChanged {
-			position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
-			if code, found := jTyping.layout[position]; found {
-				keyboard.KeyPress(code)
+			if !jTyping.awaitingNeutralPos {
+				jTyping.awaitingNeutralPos = true
+				position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
+				if code, found := jTyping.layout[position]; found {
+					keyboard.KeyPress(code)
+				}
 			}
 		}
-	}
-}
-
-func typeWithSticks() {
-	for {
-		if typingMode.get() {
-			joystickTyping.updateZones()
-		}
-		time.Sleep(mouseInterval)
 	}
 }
