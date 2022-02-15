@@ -1,13 +1,13 @@
-## Supported controllers
- - PlayStation Dualshock
- - Xbox
-
 ## Functionality
  - Mouse and scrolling emulation
  - Typing with sticks
  - Custom layouts for commands and typing
- - Ability to assign different actions depending on key was held or pressed
+ - Different actions for holding and shortly pressing a key
  - Remmaping of any key or trigger
+
+## Supported controllers
+ - PlayStation Dualshock
+ - Xbox
 
 ## Supported OS
  - Linux (Works on **Wayland**, requires **sudo**)
