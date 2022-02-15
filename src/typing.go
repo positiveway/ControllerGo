@@ -7,7 +7,7 @@ import (
 
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
-const angleMargin int = 15
+const angleMargin int = 18
 const magnitudeThresholdPct float64 = 40
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
