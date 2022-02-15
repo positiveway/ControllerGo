@@ -29,6 +29,7 @@ func matchEvents(events []Event) {
 				case AxisRightStickY:
 					joystickTyping.rightCoords.setY(event.value)
 				}
+				joystickTyping.updateZones()
 			}
 
 		case EvButtonChanged:

@@ -56,7 +56,7 @@ func main() {
 
 	go moveMouse()
 	go scroll()
-	go typeWithSticks()
+	//go typeWithSticks()
 
 	mainWS()
 }

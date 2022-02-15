@@ -8,7 +8,7 @@ import (
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
 const NoLetter = -1
-const angleMargin int = 10
+const angleMargin int = 15
 const magnitudeThresholdPct float64 = 40
 const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
@@ -115,60 +115,54 @@ func detectZone(magnitude float64, angle int) string {
 	}
 }
 
-func (jTyping *JoystickTyping) detectLetter() int {
-	if jTyping.leftStickZone == NeutralZone ||
-		jTyping.rightStickZone == NeutralZone {
-		return NoLetter
-	}
-	position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
-	code := getOrDefault(jTyping.layout, position, NoLetter)
-	return code
+func zoneCanBeUsed(zone string) bool {
+	return zone != EdgeZone && zone != NeutralZone
 }
 
-func (jTyping *JoystickTyping) _updateZone(prevZone *string, coords *Coords) int {
+func zoneChanged(zone string, prevZone *string) bool {
+	if zone != EdgeZone {
+		if *prevZone != zone {
+			*prevZone = zone
+			return true
+		}
+	}
+	return false
+}
+
+func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
 	x, y := coords.getValues()
 	magnitude := calcMagnitude(x, y)
 	angle := calcAngle(x, y)
 	//fmt.Printf("(%.2f, %.2f): %v %.2f", x, y, angle, magnitude)
 
-	newZone := detectZone(magnitude, angle)
-	if newZone == EdgeZone {
-		return NoLetter
-	}
-	if newZone != *prevZone {
-		*prevZone = newZone
-		return jTyping.detectLetter()
-	}
-	return NoLetter
+	zone := detectZone(magnitude, angle)
+	canUse := zoneCanBeUsed(zone)
+	changed := zoneChanged(zone, prevZone)
+	return canUse, changed
 }
 
-func (jTyping *JoystickTyping) updateZone(prevZone *string, coords *Coords) {
-	letter := jTyping._updateZone(prevZone, coords)
-	//fmt.Printf(" %s %s %v\n", jTyping.leftStickZone, jTyping.rightStickZone, jTyping.awaitingNeutralPos)
-	if letter != NoLetter {
-		keyboard.KeyPress(letter)
+func (jTyping *JoystickTyping) updateZones() {
+	leftCanUse, leftChanged := jTyping.calcNewZone(&jTyping.leftStickZone, &jTyping.leftCoords)
+	rightCanUse, rightChanged := jTyping.calcNewZone(&jTyping.rightStickZone, &jTyping.rightCoords)
+
+	if leftCanUse && rightCanUse {
+		//fmt.Printf("%s %s\n", jTyping.leftStickZone, jTyping.rightStickZone)
+		//fmt.Printf("%v %v\n", leftCanUse, rightCanUse)
+		//fmt.Printf("%v %v\n", leftChanged, rightChanged)
+
+		if leftChanged || rightChanged {
+			position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
+			if code, found := jTyping.layout[position]; found {
+				keyboard.KeyPress(code)
+			}
+		}
 	}
-}
-
-func (jTyping *JoystickTyping) updateZoneLeft() {
-	coords := &jTyping.leftCoords
-	prevZone := &jTyping.leftStickZone
-
-	jTyping.updateZone(prevZone, coords)
-}
-
-func (jTyping *JoystickTyping) updateZoneRight() {
-	coords := &jTyping.rightCoords
-	prevZone := &jTyping.rightStickZone
-
-	jTyping.updateZone(prevZone, coords)
 }
 
 func typeWithSticks() {
 	for {
 		if typingMode.get() {
-			joystickTyping.updateZoneLeft()
-			joystickTyping.updateZoneRight()
+			joystickTyping.updateZones()
 		}
 		time.Sleep(mouseInterval)
 	}
