@@ -112,7 +112,7 @@ func release(seq []int) {
 	}
 }
 
-const TriggerThreshold float64 = 0.3
+const TriggerThreshold float64 = 0.15
 
 var triggersPressed = map[string]bool{
 	BtnLeftTrigger2:  false,
@@ -153,7 +153,7 @@ func buttonPressed(btn string) {
 	press(commandsLayout[btn])
 }
 
-const holdThreshold time.Duration = 200 * time.Millisecond
+const holdThreshold time.Duration = 150 * time.Millisecond
 
 func releaseHold() {
 	for {
