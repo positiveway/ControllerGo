@@ -164,7 +164,7 @@ func getDirections() (int32, int32) {
 
 func scroll() {
 	for {
-		scrollInterval := mouseInterval // default update interval
+		scrollInterval := DefaultWaitInterval
 		if !typingMode.get() {
 			hDir, vDir := getDirections()
 

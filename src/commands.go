@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -39,6 +40,7 @@ var commonCmdMapping = map[string]int{
 	"SwitchToTyping": SwitchToTyping,
 }
 
+var holdTimeMutex = sync.Mutex{}
 var holdStartTime = map[string]time.Time{}
 
 type CommandsLayout = map[string][]int
@@ -74,6 +76,12 @@ func loadCommandsLayout() CommandsLayout {
 				codes = append(codes, code)
 			}
 		}
+		if len(codes) == 0 {
+			panic(fmt.Sprintf("Empty command mapping for button %s\n", btn))
+		}
+		if codes[0] == NoAction {
+			continue
+		}
 		layout[btn] = codes
 	}
 	return layout
@@ -82,10 +90,7 @@ func loadCommandsLayout() CommandsLayout {
 var commandsLayout CommandsLayout
 
 func press(seq []int) {
-	switch seq[0] {
-	case NoAction:
-		return
-	case SwitchToTyping:
+	if seq[0] == SwitchToTyping {
 		typingMode.switchMode()
 		return
 	}
@@ -99,10 +104,7 @@ func press(seq []int) {
 }
 
 func release(seq []int) {
-	switch seq[0] {
-	case NoAction:
-		return
-	case SwitchToTyping:
+	if seq[0] == SwitchToTyping {
 		return
 	}
 	for _, el := range reverse(seq) {
@@ -143,14 +145,32 @@ func buttonPressed(btn string) {
 	}
 	holdBtn := btn + HoldSuffix
 	if _, found := commandsLayout[holdBtn]; found {
+		holdTimeMutex.Lock()
 		holdStartTime[holdBtn] = time.Now()
+		holdTimeMutex.Unlock()
 		return
 	}
-	command := commandsLayout[btn]
-	press(command)
+	press(commandsLayout[btn])
 }
 
-const holdThreshold time.Duration = 400 * time.Millisecond
+const holdThreshold time.Duration = 200 * time.Millisecond
+
+func releaseHold() {
+	for {
+		holdTimeMutex.Lock()
+		for holdBtn, startTime := range holdStartTime {
+			holdDuration := time.Now().Sub(startTime)
+			//fmt.Printf("duration: %v\n", holdDuration)
+			if holdDuration > holdThreshold {
+				press(commandsLayout[holdBtn])
+				delete(holdStartTime, holdBtn)
+			}
+		}
+		holdTimeMutex.Unlock()
+
+		time.Sleep(DefaultWaitInterval)
+	}
+}
 
 func buttonReleased(btn string) {
 	if isTriggerBtn(btn) {
@@ -158,14 +178,14 @@ func buttonReleased(btn string) {
 	}
 	holdBtn := btn + HoldSuffix
 	if _, found := commandsLayout[holdBtn]; found {
-		startTime := holdStartTime[holdBtn]
-		holdDuration := time.Now().Sub(startTime)
-		//fmt.Printf("duration: %v\n", holdDuration)
-		if holdDuration > holdThreshold {
+		holdTimeMutex.Lock()
+		if _, exist := holdStartTime[holdBtn]; exist {
+			press(commandsLayout[btn])
+			delete(holdStartTime, holdBtn)
+		} else {
 			btn = holdBtn
 		}
-		press(commandsLayout[btn])
+		holdTimeMutex.Unlock()
 	}
-	command := commandsLayout[btn]
-	release(command)
+	release(commandsLayout[btn])
 }

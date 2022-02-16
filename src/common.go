@@ -6,7 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
+
+const DefaultWaitInterval time.Duration = 25 * time.Millisecond
 
 func assignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
 	if _, found := m[key]; found {

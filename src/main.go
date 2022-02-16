@@ -56,6 +56,7 @@ func main() {
 
 	go moveMouse()
 	go scroll()
+	go releaseHold()
 
 	mainWS()
 }
