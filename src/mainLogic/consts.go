@@ -2,6 +2,12 @@ package mainLogic
 
 import "time"
 
+//layout
+const LayoutInUse string = "Linux"
+
+//path
+const DefaultProjectDir string = "/home/user/GolandProjects/ControllerGo"
+
 //commands
 const TriggerThreshold float64 = 0.15
 const holdThreshold = 150 * time.Millisecond
@@ -28,11 +34,8 @@ const magnitudeThresholdPct float64 = 35
 const MagnitudeThreshold = magnitudeThresholdPct / 100
 
 //common
-const DefaultWaitInterval = 25 * time.Millisecond
+const DefaultWaitInterval time.Duration = 25 * time.Millisecond
 
 //web socket
 const SocketPort int = 1234
 const SocketIP string = "0.0.0.0"
-
-//path
-const DefaultProjectDir = "/home/user/GolandProjects/ControllerGo"

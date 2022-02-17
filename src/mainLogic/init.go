@@ -11,7 +11,7 @@ func setLayoutDir(layoutName string) {
 
 func loadConfigs() {
 	InitPath()
-	setLayoutDir("Linux")
+	setLayoutDir(LayoutInUse)
 	convertLetterToCodeMapping()
 	joystickTyping = makeJoystickTyping()
 	commandsLayout = loadCommandsLayout()
