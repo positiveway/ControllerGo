@@ -1,4 +1,4 @@
-package main
+package mainLogic
 
 import (
 	"fmt"
@@ -6,10 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
-
-const DefaultWaitInterval time.Duration = 25 * time.Millisecond
 
 func assignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
 	if _, found := m[key]; found {
@@ -35,12 +32,12 @@ func splitByAnyOf(str string, separators string) []string {
 	return res
 }
 
-var layoutDir string
+var LayoutDir string
 
 func readLayoutFile(filename string) [][]string {
-	file := filepath.Join(layoutDir, filename)
+	file := filepath.Join(LayoutDir, filename)
 	dat, err := os.ReadFile(file)
-	check_err(err)
+	CheckErr(err)
 	lines := strings.Split(string(dat), "\n")
 	lines = lines[2:]
 
@@ -63,7 +60,7 @@ func panicMisspelled(str string) {
 	panic(fmt.Sprintf("Probably misspelled: %s\n", str))
 }
 
-func check_err(err error) {
+func CheckErr(err error) {
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package main
+package mainLogic
 
 import "fmt"
 

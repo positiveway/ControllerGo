@@ -1,16 +1,15 @@
-package main
+package mainLogic
 
 import (
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 )
 
 func checkBytesAmount(bytesNumStr string, nn int) int {
 	bytesAmount, err := strconv.Atoi(bytesNumStr)
-	check_err(err)
+	CheckErr(err)
 	bytesAmount += len(bytesNumStr + ";")
 	if bytesAmount > 1000 {
 		panic("buffer overflow")
@@ -45,15 +44,14 @@ func convertToEvents(rawEvents []string) []Event {
 
 const gamepadConnectedMsg = "gamepadConnected"
 
-func mainWS() {
+func RunWebSocket() {
 	addr := net.UDPAddr{
-		Port: 1234,
-		IP:   net.ParseIP("0.0.0.0"),
+		Port: SocketPort,
+		IP:   net.ParseIP(SocketIP),
 	}
 	server, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		fmt.Printf("Listen err %v\n", err)
-		os.Exit(-1)
+		panic(fmt.Sprintf("Listen err %v\n", err))
 	}
 	fmt.Printf("Listen at %v\n", addr.String())
 

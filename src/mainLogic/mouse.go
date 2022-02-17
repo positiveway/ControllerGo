@@ -1,26 +1,12 @@
-package main
+package mainLogic
 
 import (
+	"ControllerGo/src/osSpecific"
 	"fmt"
 	"math"
 	"sync"
 	"time"
 )
-
-const mouseMaxMove float64 = 4
-const forcePower float64 = 1.5
-const deadzone float64 = 0.06
-
-//const mouseScaleFactor float64 = 3
-//var mouseIntervalInt int = int(math.Round(mouseMaxMove*mouseScaleFactor))
-const mouseIntervalInt int = 12
-const mouseInterval time.Duration = time.Duration(mouseIntervalInt) * time.Millisecond
-
-const scrollFastestInterval float64 = 20
-const scrollSlowestInterval float64 = 250
-
-const scrollIntervalRange float64 = scrollSlowestInterval - scrollFastestInterval
-const horizontalScrollThreshold float64 = 0.45
 
 var mouseMovement = Coords{}
 var scrollMovement = Coords{}
@@ -70,10 +56,8 @@ func convertRange(input, outputEnd float64) float64 {
 	}
 
 	outputStart := 1.0
-	inputStart := 0.0
-	inputEnd := 1.0
 
-	output := outputStart + ((outputEnd-outputStart)/(inputEnd-inputStart))*(input-inputStart)
+	output := outputStart + (outputEnd-outputStart)*input
 	applySign(sign, &output)
 	return output
 }
@@ -116,13 +100,13 @@ func calcForces() (int32, int32) {
 	return xForce, yForce
 }
 
-func moveMouse() {
+func RunMouseMoveThread() {
 	for {
 		if !typingMode.get() {
 			xForce, yForce := calcForces()
 			if (xForce != 0) || (yForce != 0) {
 				//fmt.Printf("%v %v\n", xForce, yForce)
-				mouse.Move(xForce, yForce)
+				osSpecific.MoveMouse(xForce, yForce)
 			}
 		}
 		time.Sleep(mouseInterval)
@@ -162,7 +146,7 @@ func getDirections() (int32, int32) {
 	return hDir, vDir
 }
 
-func scroll() {
+func RunScrollThread() {
 	for {
 		scrollInterval := DefaultWaitInterval
 		if !typingMode.get() {
@@ -174,13 +158,7 @@ func scroll() {
 				scrollVal = x
 			}
 			scrollInterval = calcScrollInterval(scrollVal)
-
-			if hDir != 0 {
-				mouse.Wheel(true, hDir)
-			}
-			if vDir != 0 {
-				mouse.Wheel(false, vDir)
-			}
+			osSpecific.Scroll(hDir, vDir)
 		}
 		time.Sleep(scrollInterval)
 	}

@@ -1,14 +1,12 @@
-package main
+package mainLogic
 
 import (
+	"ControllerGo/src/osSpecific"
 	"math"
 )
 
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
-const angleMargin int = 16
-const magnitudeThresholdPct float64 = 35
-const MagnitudeThreshold float64 = magnitudeThresholdPct / 100
 
 const NoneStr = "None"
 
@@ -159,7 +157,7 @@ func (jTyping *JoystickTyping) updateZones() {
 				jTyping.awaitingNeutralPos = true
 				position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
 				if code, found := jTyping.layout[position]; found {
-					keyboard.KeyPress(code)
+					osSpecific.TypeKey(code)
 				}
 			}
 		}

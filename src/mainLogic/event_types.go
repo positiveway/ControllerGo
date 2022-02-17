@@ -1,4 +1,4 @@
-package main
+package mainLogic
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ type Event struct {
 
 func makeEvent(id, eventType, btnOrAxis, value string) Event {
 	deviceId, err := strconv.Atoi(id)
-	check_err(err)
+	CheckErr(err)
 	valueFloat, err := strconv.ParseFloat(value, 32)
-	check_err(err)
+	CheckErr(err)
 	eventType, ok := EventTypeMap[eventType]
 	if !ok {
 		panic(fmt.Sprintf("no element %v\n", eventType))

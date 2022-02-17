@@ -1,6 +1,7 @@
-package main
+package mainLogic
 
 import (
+	"ControllerGo/src/osSpecific"
 	"fmt"
 	"sync"
 	"time"
@@ -27,16 +28,13 @@ var typingMode = CommandsMode{}
 var needToSwitchBackLang = false
 
 const NoAction = -1
-const LeftMouse = -2
-const RightMouse = -3
-const MiddleMouse = -4
-const SwitchToTyping = -5
+const SwitchToTyping = -2
 
 var commonCmdMapping = map[string]int{
 	"NoAction":       NoAction,
-	"LeftMouse":      LeftMouse,
-	"RightMouse":     RightMouse,
-	"MiddleMouse":    MiddleMouse,
+	"LeftMouse":      osSpecific.LeftMouse,
+	"RightMouse":     osSpecific.RightMouse,
+	"MiddleMouse":    osSpecific.MiddleMouse,
 	"SwitchToTyping": SwitchToTyping,
 }
 
@@ -95,11 +93,11 @@ func press(seq []int) {
 		return
 	}
 	//if len(seq) > 1 && seq[0] == controlKey {
-	//	locale := getLocale()
+	//	locale := osSpecific.GetLocale()
 	//	println(locale)
 	//}
 	for _, el := range seq {
-		pressKeyOrMouse(el)
+		osSpecific.PressKeyOrMouse(el)
 	}
 }
 
@@ -108,11 +106,9 @@ func release(seq []int) {
 		return
 	}
 	for _, el := range reverse(seq) {
-		releaseKeyOrMouse(el)
+		osSpecific.ReleaseKeyOrMouse(el)
 	}
 }
-
-const TriggerThreshold float64 = 0.15
 
 var triggersPressed = map[string]bool{
 	BtnLeftTrigger2:  false,
@@ -153,9 +149,7 @@ func buttonPressed(btn string) {
 	press(commandsLayout[btn])
 }
 
-const holdThreshold time.Duration = 150 * time.Millisecond
-
-func releaseHold() {
+func RunReleaseHoldThread() {
 	for {
 		holdTimeMutex.Lock()
 		for holdBtn, startTime := range holdStartTime {
