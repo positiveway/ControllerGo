@@ -26,7 +26,7 @@ const RunFromTerminal = true
 
 func RunMain() {
 	InitSettings()
-	osSpecific.RunOsLogic()
+	osSpecific.InitResources()
 
 	SetSelfPriority()
 

@@ -17,7 +17,7 @@ func InitPath() {
 	if RunFromTerminal {
 		BaseDir = filepath.Dir(osSpecific.GetCurFileDir())
 	} else {
-		BaseDir = osSpecific.DefaultProjectDir
+		BaseDir = DefaultProjectDir
 	}
 	EventServerExecPath = filepath.Join(BaseDir, "Build", "ControllerRust")
 }

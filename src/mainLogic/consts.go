@@ -33,3 +33,6 @@ const DefaultWaitInterval = 25 * time.Millisecond
 //web socket
 const SocketPort int = 1234
 const SocketIP string = "0.0.0.0"
+
+//path
+const DefaultProjectDir = "/home/user/GolandProjects/ControllerGo"
