@@ -32,13 +32,20 @@ func splitByAnyOf(str string, separators string) []string {
 	return res
 }
 
-var LayoutDir string
-
-func readLayoutFile(filename string) [][]string {
-	file := filepath.Join(LayoutDir, filename)
+func ReadFile(file string) string {
 	dat, err := os.ReadFile(file)
 	CheckErr(err)
-	lines := strings.Split(string(dat), "\n")
+	return string(dat)
+}
+
+func ReadLines(file string) []string {
+	content := ReadFile(file)
+	return strings.Split(content, "\n")
+}
+
+func ReadLayoutFile(pathFromLayoutsDir string) [][]string {
+	file := filepath.Join(LayoutsDir, pathFromLayoutsDir)
+	lines := ReadLines(file)
 	lines = lines[2:]
 
 	var linesParts [][]string

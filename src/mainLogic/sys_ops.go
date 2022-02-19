@@ -5,22 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
-var BaseDir string
-var EventServerExecPath string
-
 var proc *os.Process
-
-func InitPath() {
-	if RunFromTerminal {
-		BaseDir = filepath.Dir(osSpecific.GetCurFileDir())
-	} else {
-		BaseDir = DefaultProjectDir
-	}
-	EventServerExecPath = filepath.Join(BaseDir, "Build", "ControllerRust")
-}
 
 func CheckEventServer() {
 	if proc == nil {

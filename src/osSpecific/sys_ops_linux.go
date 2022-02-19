@@ -9,6 +9,8 @@ import (
 	"syscall"
 )
 
+const DefaultProjectDir string = "/home/user/GolandProjects/ControllerGo"
+
 var GetLocaleExecPath string
 
 func InitResources() {

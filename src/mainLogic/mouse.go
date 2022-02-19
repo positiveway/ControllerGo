@@ -102,12 +102,10 @@ func calcForces() (int32, int32) {
 
 func RunMouseMoveThread() {
 	for {
-		if !typingMode.get() {
-			xForce, yForce := calcForces()
-			if (xForce != 0) || (yForce != 0) {
-				//fmt.Printf("%v %v\n", xForce, yForce)
-				osSpecific.MoveMouse(xForce, yForce)
-			}
+		xForce, yForce := calcForces()
+		if (xForce != 0) || (yForce != 0) {
+			//fmt.Printf("%v %v\n", xForce, yForce)
+			osSpecific.MoveMouse(xForce, yForce)
 		}
 		time.Sleep(mouseInterval)
 	}
@@ -135,8 +133,7 @@ func getDirection(val float64, horizontal bool) int32 {
 	panic("direction error")
 }
 
-func getDirections() (int32, int32) {
-	x, y := scrollMovement.getValues()
+func getDirections(x, y float64) (int32, int32) {
 	hDir, vDir := getDirection(x, true), getDirection(y, false)
 	hDir *= -1
 
@@ -148,18 +145,25 @@ func getDirections() (int32, int32) {
 
 func RunScrollThread() {
 	for {
-		scrollInterval := DefaultWaitInterval
-		if !typingMode.get() {
-			hDir, vDir := getDirections()
+		x, y := scrollMovement.getValues()
+		hDir, vDir := getDirections(x, y)
 
-			x, y := scrollMovement.getValues()
+		if hDir != 0 {
+			osSpecific.ScrollHorizontal(hDir)
+		}
+		if vDir != 0 {
+			osSpecific.ScrollVertical(vDir)
+		}
+
+		scrollInterval := DefaultWaitInterval
+		if hDir != 0 || vDir != 0 {
 			scrollVal := y
 			if hDir != 0 {
 				scrollVal = x
 			}
 			scrollInterval = calcScrollInterval(scrollVal)
-			osSpecific.Scroll(hDir, vDir)
 		}
+
 		time.Sleep(scrollInterval)
 	}
 }

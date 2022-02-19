@@ -63,11 +63,10 @@ func MoveMouse(x, y int32) {
 	mouse.Move(x, y)
 }
 
-func Scroll(hDir, vDir int32) {
-	if hDir != 0 {
-		mouse.Wheel(true, hDir)
-	}
-	if vDir != 0 {
-		mouse.Wheel(false, vDir)
-	}
+func ScrollHorizontal(direction int32) {
+	mouse.Wheel(true, direction)
+}
+
+func ScrollVertical(direction int32) {
+	mouse.Wheel(false, direction)
 }

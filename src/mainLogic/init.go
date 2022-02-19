@@ -2,16 +2,39 @@ package mainLogic
 
 import (
 	"ControllerGo/src/osSpecific"
+	"fmt"
+	"os"
+	"path"
 	"path/filepath"
+	"runtime"
+	"strings"
 )
 
-func setLayoutDir(layoutName string) {
-	LayoutDir = filepath.Join(BaseDir, "Layouts", layoutName)
+const RunFromTerminal = true
+
+func InitPath() {
+	if RunFromTerminal {
+		BaseDir = filepath.Dir(filepath.Dir(osSpecific.GetCurFileDir()))
+	} else {
+		BaseDir = osSpecific.DefaultProjectDir
+	}
+	EventServerExecPath = filepath.Join(BaseDir, "Build", runtime.GOOS, "ControllerRust")
+	LayoutsDir = filepath.Join(BaseDir, "Layouts")
+}
+
+func setLayoutDir() {
+	LayoutInUse = ReadFile(filepath.Join(LayoutsDir, "layout_to_use.txt"))
+	LayoutInUse = strings.TrimSpace(LayoutInUse)
+
+	curLayoutDir := path.Join(LayoutsDir, LayoutInUse)
+	if _, err := os.Stat(curLayoutDir); os.IsNotExist(err) {
+		panic(fmt.Sprintf("Layout folder with such name doesn't exist: %s\n", LayoutInUse))
+	}
 }
 
 func loadConfigs() {
 	InitPath()
-	setLayoutDir(LayoutInUse)
+	setLayoutDir()
 	convertLetterToCodeMapping()
 	joystickTyping = makeJoystickTyping()
 	commandsLayout = loadCommandsLayout()
@@ -21,8 +44,6 @@ func loadConfigs() {
 func InitSettings() {
 	loadConfigs()
 }
-
-const RunFromTerminal = true
 
 func RunMain() {
 	InitSettings()

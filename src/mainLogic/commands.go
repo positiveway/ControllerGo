@@ -3,6 +3,7 @@ package mainLogic
 import (
 	"ControllerGo/src/osSpecific"
 	"fmt"
+	"path"
 	"sync"
 	"time"
 )
@@ -16,6 +17,8 @@ func (c *CommandsMode) switchMode() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c._mode = !c._mode
+	mouseMovement.reset()
+	scrollMovement.reset()
 }
 
 func (c *CommandsMode) get() bool {
@@ -54,7 +57,7 @@ func genEmptyCommandsLayout() CommandsLayout {
 
 func loadCommandsLayout() CommandsLayout {
 	layout := genEmptyCommandsLayout()
-	linesParts := readLayoutFile("cmd_layout.csv")
+	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "cmd_layout.csv"))
 	for _, parts := range linesParts {
 		btn := parts[0]
 		keys := parts[1:]

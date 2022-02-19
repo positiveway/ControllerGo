@@ -2,11 +2,11 @@ package mainLogic
 
 import "time"
 
-//layout
-const LayoutInUse string = "Linux"
-
 //path
-const DefaultProjectDir string = "/home/user/GolandProjects/ControllerGo"
+var BaseDir string
+var LayoutsDir string
+var LayoutInUse string
+var EventServerExecPath string
 
 //commands
 const TriggerThreshold float64 = 0.15
@@ -29,7 +29,7 @@ const scrollIntervalRange = scrollSlowestInterval - scrollFastestInterval
 const horizontalScrollThreshold float64 = 0.45
 
 //typing
-const angleMargin int = 16
+const angleMargin int = 18
 const magnitudeThresholdPct float64 = 35
 const MagnitudeThreshold = magnitudeThresholdPct / 100
 
