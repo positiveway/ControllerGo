@@ -5,17 +5,40 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
-func assignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
+func ToInt(value string) int {
+	res, err := strconv.Atoi(value)
+	CheckErr(err)
+	return res
+}
+
+func ToMilliseconds(value string) time.Duration {
+	valInt := ToInt(value)
+	return time.Duration(valInt) * time.Millisecond
+}
+
+func ToIntToFloat(value string) float64 {
+	return float64(ToInt(value))
+}
+
+func ToFloat(value string) float64 {
+	res, err := strconv.ParseFloat(value, 64)
+	CheckErr(err)
+	return res
+}
+
+func AssignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
 	if _, found := m[key]; found {
 		panic("duplicate position")
 	}
 	m[key] = val
 }
 
-func splitByAnyOf(str string, separators string) []string {
+func SplitByAnyOf(str string, separators string) []string {
 	if separators == "" {
 		panic("Empty separator")
 	}
@@ -32,6 +55,15 @@ func splitByAnyOf(str string, separators string) []string {
 	return res
 }
 
+func StartsWithAnyOf(str string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(str, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func ReadFile(file string) string {
 	dat, err := os.ReadFile(file)
 	CheckErr(err)
@@ -43,18 +75,18 @@ func ReadLines(file string) []string {
 	return strings.Split(content, "\n")
 }
 
-func ReadLayoutFile(pathFromLayoutsDir string) [][]string {
+func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	file := filepath.Join(LayoutsDir, pathFromLayoutsDir)
 	lines := ReadLines(file)
-	lines = lines[2:]
+	lines = lines[skipLines:]
 
 	var linesParts [][]string
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, ";") {
+		if line == "" || StartsWithAnyOf(line, []string{";", "//"}) {
 			continue
 		}
-		parts := splitByAnyOf(line, "&|>:,=")
+		parts := SplitByAnyOf(line, "&|>:,=")
 		for ind, part := range parts {
 			parts[ind] = strings.TrimSpace(part)
 		}
@@ -63,7 +95,7 @@ func ReadLayoutFile(pathFromLayoutsDir string) [][]string {
 	return linesParts
 }
 
-func panicMisspelled(str string) {
+func PanicMisspelled(str string) {
 	panic(fmt.Sprintf("Probably misspelled: %s\n", str))
 }
 

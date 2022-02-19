@@ -14,23 +14,23 @@ type SticksPosition = [2]string
 type TypingLayout = map[SticksPosition]int
 
 func loadTypingLayout() TypingLayout {
-	linesParts := ReadLayoutFile("typing_layout.csv")
+	linesParts := ReadLayoutFile("typing_layout.csv", 2)
 
 	layout := TypingLayout{}
 	for _, parts := range linesParts {
 		leftStick, rightStick, letter := parts[0], parts[1], parts[2]
 		if !contains(AllZones, leftStick) {
-			panicMisspelled(leftStick)
+			PanicMisspelled(leftStick)
 		}
 		if !contains(AllZones, rightStick) {
-			panicMisspelled(rightStick)
+			PanicMisspelled(rightStick)
 		}
 		if letter == NoneStr {
 			continue
 		}
 		code := getCodeFromLetter(letter)
 		position := SticksPosition{leftStick, rightStick}
-		assignWithDuplicateCheck(layout, position, code)
+		AssignWithDuplicateCheck(layout, position, code)
 	}
 	return layout
 }

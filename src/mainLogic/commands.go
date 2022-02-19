@@ -57,7 +57,7 @@ func genEmptyCommandsLayout() CommandsLayout {
 
 func loadCommandsLayout() CommandsLayout {
 	layout := genEmptyCommandsLayout()
-	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "cmd_layout.csv"))
+	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "cmd_layout.csv"), 2)
 	for _, parts := range linesParts {
 		btn := parts[0]
 		keys := parts[1:]
@@ -66,7 +66,7 @@ func loadCommandsLayout() CommandsLayout {
 			btn = btnSynonym
 		}
 		if _, found := layout[btn]; !found {
-			panicMisspelled(btn)
+			PanicMisspelled(btn)
 		}
 		var codes []int
 		for _, key := range keys {

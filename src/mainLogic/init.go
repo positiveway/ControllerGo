@@ -32,17 +32,14 @@ func setLayoutDir() {
 	}
 }
 
-func loadConfigs() {
+func InitSettings() {
 	InitPath()
 	setLayoutDir()
+	setConfigVars()
 	convertLetterToCodeMapping()
 	joystickTyping = makeJoystickTyping()
 	commandsLayout = loadCommandsLayout()
 	boundariesMap = genBoundariesMap()
-}
-
-func InitSettings() {
-	loadConfigs()
 }
 
 func RunMain() {
