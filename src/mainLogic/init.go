@@ -18,8 +18,8 @@ func InitPath() {
 	} else {
 		BaseDir = osSpecific.DefaultProjectDir
 	}
-	EventServerExecPath = filepath.Join(BaseDir, "Build", runtime.GOOS, "ControllerRust")
-	LayoutsDir = filepath.Join(BaseDir, "Layouts")
+	EventServerExecPath = filepath.Join(BaseDir, "build", runtime.GOOS, "ControllerRust")
+	LayoutsDir = filepath.Join(BaseDir, "layouts")
 }
 
 func setLayoutDir() {
