@@ -147,9 +147,9 @@ func buttonPressed(btn string) {
 		holdTimeMutex.Lock()
 		holdStartTime[holdBtn] = time.Now()
 		holdTimeMutex.Unlock()
-		return
+	} else {
+		press(commandsLayout[btn])
 	}
-	press(commandsLayout[btn])
 }
 
 func RunReleaseHoldThread() {
