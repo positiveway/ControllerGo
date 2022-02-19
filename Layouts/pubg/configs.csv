@@ -11,7 +11,7 @@ mouseInterval = 12
 
 //scroll
 scrollFastestInterval = 20
-scrollSlowestInterval = 160
+scrollSlowestInterval = 120
 
 horizontalScrollThreshold = 0.45
 
