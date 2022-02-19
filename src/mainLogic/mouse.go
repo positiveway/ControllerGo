@@ -123,7 +123,7 @@ func getDirection(val float64, horizontal bool) int32 {
 		return 0
 	}
 	switch {
-	case val == 0:
+	case math.Abs(val) < deadzone:
 		return 0
 	case val > 0:
 		return 1
