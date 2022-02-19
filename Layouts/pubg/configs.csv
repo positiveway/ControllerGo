@@ -1,0 +1,23 @@
+//commands
+TriggerThreshold = 0.15
+holdThreshold = 150
+
+//mouse
+mouseMaxMove = 4
+forcePower = 1.5
+deadzone = 0.06
+
+mouseInterval = 12
+
+//scroll
+scrollFastestInterval = 20
+scrollSlowestInterval = 250
+
+horizontalScrollThreshold = 0.45
+
+//typing
+angleMargin = 18
+magnitudeThresholdPct = 35
+
+//common
+DefaultWaitInterval = 25

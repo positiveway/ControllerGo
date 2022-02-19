@@ -33,6 +33,7 @@ func convertLetterToCodeMapping() {
 		"LeftShift":   "Shift",
 		"Backspace":   "BS",
 		"Delete":      "Del",
+		"CapsLock":    "Caps",
 	}
 	toLowerMap(synonyms)
 	for k, v := range synonyms {
