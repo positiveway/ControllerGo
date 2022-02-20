@@ -48,16 +48,22 @@ func (coords *Coords) getValues() (float64, float64) {
 	return coords._x, coords._y
 }
 
-func convertRange(input, outputEnd float64) float64 {
+func applyDeadzone(value *float64) {
+	if math.Abs(*value) < Deadzone {
+		*value = 0.0
+	}
+}
+
+func convertRange(input, outputMax float64) float64 {
 	sign := getSignMakeAbs(&input)
 
-	if input <= deadzone {
+	if input == 0.0 {
 		return 0.0
 	}
 
-	outputStart := 1.0
+	outputMin := 1.0
 
-	output := outputStart + (outputEnd-outputStart)*input
+	output := outputMin + (outputMax-outputMin)*input
 	applySign(sign, &output)
 	return output
 }
@@ -123,7 +129,7 @@ func getDirection(val float64, horizontal bool) int32 {
 		return 0
 	}
 	switch {
-	case math.Abs(val) < deadzone:
+	case val == 0.0:
 		return 0
 	case val > 0:
 		return 1
