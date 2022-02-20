@@ -61,6 +61,7 @@ func setConfigVars() {
 	mouseMaxMove = toIntToFloatConfig("mouseMaxMove")
 	forcePower = toFloatConfig("forcePower")
 	Deadzone = toFloatConfig("Deadzone")
+	inputRange = 1.0 - Deadzone
 
 	mouseInterval = toMillisecondsConfig("mouseInterval")
 
@@ -88,6 +89,7 @@ var holdThreshold time.Duration
 var mouseMaxMove float64
 var forcePower float64
 var Deadzone float64
+var inputRange float64
 
 //var mouseScaleFactor float64 = 3
 //var mouseIntervalInt int = int(math.Round(mouseMaxMove*mouseScaleFactor))

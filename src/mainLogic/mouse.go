@@ -61,9 +61,13 @@ func convertRange(input, outputMax float64) float64 {
 		return 0.0
 	}
 
+	if input > 1.0 {
+		panic(fmt.Sprintf("Axis input value is greater than 1.0. Current value: %v\n", input))
+	}
+
 	outputMin := 1.0
 
-	output := outputMin + (outputMax-outputMin)*input
+	output := outputMin + ((outputMax-outputMin)/(inputRange))*(input-Deadzone)
 	applySign(sign, &output)
 	return output
 }
