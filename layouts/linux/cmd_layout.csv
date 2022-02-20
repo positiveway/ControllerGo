@@ -4,6 +4,7 @@ South:         Control, Z
 East:          Backspace
 North:         Space
 West:          Enter
+EastHold:      Del
 WestHold:      Control, Alt, L
 NorthHold:     Control, Alt, B
 LeftTrigger:   SwitchToTyping

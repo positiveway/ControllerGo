@@ -3,7 +3,7 @@ module ControllerGo
 go 1.18
 
 require (
-	github.com/bendahl/uinput v1.5.0
+	github.com/bendahl/uinput v1.5.1
 	github.com/go-vgo/robotgo v0.100.10
 )
 
