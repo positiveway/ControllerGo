@@ -2,6 +2,7 @@ package mainLogic
 
 import (
 	"ControllerGo/src/osSpecific"
+	"fmt"
 	"math"
 )
 
@@ -12,6 +13,7 @@ const NoneStr = "None"
 
 type SticksPosition = [2]string
 type TypingLayout = map[SticksPosition]int
+type AngleRange = [2]int
 
 func loadTypingLayout() TypingLayout {
 	linesParts := ReadLayoutFile("typing.csv", 2)
@@ -46,6 +48,12 @@ func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, directio
 }
 
 func genBoundariesMap() BoundariesMap {
+	newMapping := map[string]AngleRange{
+		ZoneRight:   {350, 22},
+		ZoneUpRight: {24, 71},
+	}
+	fmt.Println(newMapping)
+	// % 360
 	mapping := map[int]string{
 		0:   ZoneRight,
 		45:  ZoneUpRight,
@@ -108,6 +116,7 @@ func calcMagnitude(x, y float64) float64 {
 
 func detectZone(magnitude float64, angle int) string {
 	if magnitude > MagnitudeThreshold {
+		//fmt.Printf("%v\n", angle)
 		return getOrDefault(boundariesMap, angle, EdgeZone)
 	} else {
 		return NeutralZone
@@ -132,10 +141,10 @@ func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 }
 
 func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
-	x, y := coords.getValues()
-	magnitude := calcMagnitude(x, y)
+	x, y := coords.getValuesNoDeadzone()
 	angle := calcAngle(x, y)
-	//fmt.Printf("(%.2f, %.2f): %v %.2f", x, y, angle, magnitude)
+	x, y = applyDeadzoneToCoords(x, y)
+	magnitude := calcMagnitude(x, y)
 
 	zone := detectZone(magnitude, angle)
 	canUse := zoneCanBeUsed(zone)

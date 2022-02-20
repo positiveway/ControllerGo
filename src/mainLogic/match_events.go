@@ -6,8 +6,6 @@ func matchEvents(events []Event) {
 	for _, event := range events {
 		switch event.eventType {
 		case EvAxisChanged:
-			applyDeadzone(&event.value)
-
 			switch typingMode.get() {
 			case false:
 				switch event.btnOrAxis {

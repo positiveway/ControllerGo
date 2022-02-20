@@ -42,15 +42,26 @@ func (coords *Coords) setValues(x, y float64) {
 	coords._y = y
 }
 
-func (coords *Coords) getValues() (float64, float64) {
+func (coords *Coords) getValuesNoDeadzone() (float64, float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
 	return coords._x, coords._y
 }
 
-func applyDeadzone(value *float64) {
-	if math.Abs(*value) < Deadzone {
-		*value = 0.0
+func (coords *Coords) getValues() (float64, float64) {
+	x, y := coords.getValuesNoDeadzone()
+	return applyDeadzoneToCoords(x, y)
+}
+
+func applyDeadzoneToCoords(x, y float64) (float64, float64) {
+	return applyDeadzone(x), applyDeadzone(y)
+}
+
+func applyDeadzone(value float64) float64 {
+	if math.Abs(value) < Deadzone {
+		return 0.0
+	} else {
+		return value
 	}
 }
 
