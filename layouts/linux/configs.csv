@@ -4,7 +4,7 @@ holdThreshold = 150
 
 //mouse
 mouseMaxMove = 4
-forcePower = 1.5
+forcePower = 1.6
 deadzone = 0.14
 
 mouseInterval = 12
