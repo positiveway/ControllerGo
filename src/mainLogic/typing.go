@@ -53,27 +53,32 @@ func genBoundariesMap() BoundariesMap {
 		ZoneUpRight: {24, 71},
 	}
 	fmt.Println(newMapping)
-	// % 360
-	mapping := map[int]string{
-		0:   ZoneRight,
-		45:  ZoneUpRight,
-		90:  ZoneUp,
-		135: ZoneUpLeft,
-		180: ZoneLeft,
-		225: ZoneDownLeft,
-		270: ZoneDown,
-		315: ZoneDownRight,
-	}
-	if angleMargin > 22 {
+	// %360
+
+	if RightAngleMargin+DiagonalAngleMargin > 45 {
 		panic("With this margin of angle areas will overlap")
 	}
+
+	mapping := map[string]AngleRange{
+		ZoneRight:     {0, RightAngleMargin},
+		ZoneUpRight:   {45, DiagonalAngleMargin},
+		ZoneUp:        {90, RightAngleMargin},
+		ZoneUpLeft:    {135, DiagonalAngleMargin},
+		ZoneLeft:      {180, RightAngleMargin},
+		ZoneDownLeft:  {225, DiagonalAngleMargin},
+		ZoneDown:      {270, RightAngleMargin},
+		ZoneDownRight: {315, DiagonalAngleMargin},
+	}
+
 	_boundariesMap := BoundariesMap{}
-	for angle, dir := range mapping {
-		genRange(angle, angle+angleMargin, _boundariesMap, dir)
+	for direction, angleRange := range mapping {
+		angle, angleMargin := angleRange[0], angleRange[1]
+
+		genRange(angle, angle+angleMargin, _boundariesMap, direction)
 		if angle == 0 {
-			genRange(360-angleMargin, 360, _boundariesMap, dir)
+			genRange(360-angleMargin, 360, _boundariesMap, direction)
 		} else {
-			genRange(angle-angleMargin, angle, _boundariesMap, dir)
+			genRange(angle-angleMargin, angle, _boundariesMap, direction)
 		}
 	}
 	return _boundariesMap

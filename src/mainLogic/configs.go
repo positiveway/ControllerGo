@@ -73,7 +73,8 @@ func setConfigVars() {
 	horizontalScrollThreshold = toFloatConfig("horizontalScrollThreshold")
 
 	//typing
-	angleMargin = toIntConfig("angleMargin")
+	RightAngleMargin = toIntConfig("RightAngleMargin")
+	DiagonalAngleMargin = toIntConfig("DiagonalAngleMargin")
 	magnitudeThresholdPct = toIntToFloatConfig("magnitudeThresholdPct")
 	MagnitudeThreshold = magnitudeThresholdPct / 100
 
@@ -103,7 +104,8 @@ var scrollIntervalRange float64
 var horizontalScrollThreshold float64
 
 //typing
-var angleMargin int
+var RightAngleMargin int
+var DiagonalAngleMargin int
 var magnitudeThresholdPct float64
 var MagnitudeThreshold float64
 

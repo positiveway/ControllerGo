@@ -16,7 +16,8 @@ scrollSlowestInterval = 160
 horizontalScrollThreshold = 0.45
 
 //typing
-angleMargin = 20
+RightAngleMargin = 18
+DiagonalAngleMargin = 26
 magnitudeThresholdPct = 35
 
 //common
