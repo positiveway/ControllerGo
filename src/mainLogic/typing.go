@@ -146,8 +146,7 @@ func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 }
 
 func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
-	x, y := coords.getValuesNoDeadzone()
-	x, y = applyDeadzoneToCoords(x, y)
+	x, y := coords.getValues()
 	angle := calcAngle(x, y)
 	magnitude := calcMagnitude(x, y)
 

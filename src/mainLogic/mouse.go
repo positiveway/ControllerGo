@@ -50,10 +50,6 @@ func (coords *Coords) getValuesNoDeadzone() (float64, float64) {
 
 func (coords *Coords) getValues() (float64, float64) {
 	x, y := coords.getValuesNoDeadzone()
-	return applyDeadzoneToCoords(x, y)
-}
-
-func applyDeadzoneToCoords(x, y float64) (float64, float64) {
 	return applyDeadzone(x), applyDeadzone(y)
 }
 
