@@ -85,10 +85,13 @@ func applyPower(force *float64) {
 	applySign(sign, force)
 }
 
-func mouseForce(val float64) int32 {
+func mouseForce(val float64, magnitude float64) int32 {
 	force := convertRange(val, mouseMaxMove)
 	//printForce(force, "before")
 	applyPower(&force)
+	if magnitude >= MaxAccelThreshold {
+		force *= MaxAccelMultiplier
+	}
 	//printForce(force, "after")
 	return int32(force)
 }
@@ -106,8 +109,9 @@ func printPair[T Number](_x, _y T, prefix string) {
 
 func calcForces() (int32, int32) {
 	x, y := mouseMovement.getValues()
-	xForce := mouseForce(x)
-	yForce := -mouseForce(y)
+	magnitude := calcMagnitude(x, y)
+	xForce := mouseForce(x, magnitude)
+	yForce := -mouseForce(y, magnitude)
 
 	//if x != 0.0 || y != 0.0{
 	//	printPair(x, y, "x, y")
