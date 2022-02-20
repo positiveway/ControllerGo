@@ -14,7 +14,7 @@ type SticksPosition = [2]string
 type TypingLayout = map[SticksPosition]int
 
 func loadTypingLayout() TypingLayout {
-	linesParts := ReadLayoutFile("typing_layout.csv", 2)
+	linesParts := ReadLayoutFile("typing.csv", 2)
 
 	layout := TypingLayout{}
 	for _, parts := range linesParts {

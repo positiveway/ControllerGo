@@ -57,7 +57,7 @@ func genEmptyCommandsLayout() CommandsLayout {
 
 func loadCommandsLayout() CommandsLayout {
 	layout := genEmptyCommandsLayout()
-	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "cmd_layout.csv"), 2)
+	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "commands.csv"), 2)
 	for _, parts := range linesParts {
 		btn := parts[0]
 		keys := parts[1:]
