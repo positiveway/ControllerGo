@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+func ToBool(value string) bool {
+	res, err := strconv.ParseBool(value)
+	CheckErr(err)
+	return res
+}
+
 func ToInt(value string) int {
 	res, err := strconv.Atoi(value)
 	CheckErr(err)

@@ -34,6 +34,10 @@ func getConfig(constName string) string {
 	}
 }
 
+func toBoolConfig(name string) bool {
+	return ToBool(getConfig(name))
+}
+
 func toIntConfig(name string) int {
 	return ToInt(getConfig(name))
 }
@@ -53,6 +57,9 @@ func toIntToFloatConfig(name string) float64 {
 func setConfigVars() {
 	loadConfigs()
 
+	//games
+	GamesModeOn = toBoolConfig("GamesModeOn")
+
 	//commands
 	TriggerThreshold = toFloatConfig("TriggerThreshold")
 	holdThreshold = toMillisecondsConfig("holdThreshold")
@@ -60,8 +67,12 @@ func setConfigVars() {
 	//mouse
 	mouseMaxMove = toIntToFloatConfig("mouseMaxMove")
 	forcePower = toFloatConfig("forcePower")
-	MaxAccelThreshold = toFloatConfig("MaxAccelThreshold")
+
 	MaxAccelMultiplier = toFloatConfig("MaxAccelMultiplier")
+	MaxAccelRadiusThreshold = toFloatConfig("MaxAccelRadiusThreshold")
+	MaxAccelAngleMargin = toIntConfig("MaxAccelAngleMargin")
+	initMaxAccelValues()
+
 	Deadzone = toFloatConfig("Deadzone")
 	inputRange = 1.0 - Deadzone
 
@@ -84,6 +95,9 @@ func setConfigVars() {
 	DefaultWaitInterval = toMillisecondsConfig("DefaultWaitInterval")
 }
 
+//games
+var GamesModeOn bool
+
 //commands
 var TriggerThreshold float64
 var holdThreshold time.Duration
@@ -93,7 +107,9 @@ var mouseMaxMove float64
 var forcePower float64
 var Deadzone float64
 var inputRange float64
-var MaxAccelThreshold float64
+var MaxAccelRadiusThreshold float64
+var MaxAccelAngleMargin int
+var MaxAccelMinAngle, MaxAccelMaxAngle int
 var MaxAccelMultiplier float64
 
 //var mouseScaleFactor float64 = 3

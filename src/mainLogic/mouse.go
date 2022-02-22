@@ -4,80 +4,11 @@ import (
 	"ControllerGo/src/osSpecific"
 	"fmt"
 	"math"
-	"sync"
 	"time"
 )
 
 var mouseMovement = Coords{}
 var scrollMovement = Coords{}
-
-type Coords struct {
-	_x, _y float64
-	mu     sync.Mutex
-}
-
-func (coords *Coords) reset() {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	coords._x = 0
-	coords._y = 0
-}
-
-func (coords *Coords) setX(x float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	coords._x = x
-}
-
-func (coords *Coords) setY(y float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	coords._y = y
-}
-
-func (coords *Coords) setValues(x, y float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	coords._x = x
-	coords._y = y
-}
-
-func (coords *Coords) getValuesNoDeadzone() (float64, float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	return coords._x, coords._y
-}
-
-func (coords *Coords) getValues() (float64, float64) {
-	x, y := coords.getValuesNoDeadzone()
-	return applyDeadzone(x), applyDeadzone(y)
-}
-
-func applyDeadzone(value float64) float64 {
-	if math.Abs(value) < Deadzone {
-		return 0.0
-	} else {
-		return value
-	}
-}
-
-func convertRange(input, outputMax float64) float64 {
-	sign := getSignMakeAbs(&input)
-
-	if input == 0.0 {
-		return 0.0
-	}
-
-	if input > 1.0 {
-		panic(fmt.Sprintf("Axis input value is greater than 1.0. Current value: %v\n", input))
-	}
-
-	outputMin := 1.0
-
-	output := outputMin + ((outputMax-outputMin)/(inputRange))*(input-Deadzone)
-	applySign(sign, &output)
-	return output
-}
 
 func applyPower(force *float64) {
 	sign := getSignMakeAbs(force)
@@ -89,9 +20,9 @@ func mouseForce(val float64, magnitude float64) int32 {
 	force := convertRange(val, mouseMaxMove)
 	//printForce(force, "before")
 	applyPower(&force)
-	if magnitude >= MaxAccelThreshold {
-		force *= MaxAccelMultiplier
-	}
+	//if magnitude >= MaxAccelRadiusThreshold {
+	//	force *= MaxAccelMultiplier
+	//}
 	//printForce(force, "after")
 	return int32(force)
 }
@@ -108,10 +39,11 @@ func printPair[T Number](_x, _y T, prefix string) {
 }
 
 func calcForces() (int32, int32) {
-	x, y := mouseMovement.getValues()
-	magnitude := calcMagnitude(x, y)
-	xForce := mouseForce(x, magnitude)
-	yForce := -mouseForce(y, magnitude)
+	coordsMetrics := mouseMovement.getMetrics()
+	//coordsMetrics.correctValuesNearRadius()
+
+	xForce := mouseForce(coordsMetrics.x, coordsMetrics.magnitude)
+	yForce := -mouseForce(coordsMetrics.y, coordsMetrics.magnitude)
 
 	//if x != 0.0 || y != 0.0{
 	//	printPair(x, y, "x, y")
@@ -147,16 +79,16 @@ func getDirection(val float64, horizontal bool) int32 {
 	case val == 0.0:
 		return 0
 	case val > 0:
-		return 1
-	case val < 0:
 		return -1
+	case val < 0:
+		return 1
 	}
 	panic("direction error")
 }
 
 func getDirections(x, y float64) (int32, int32) {
 	hDir, vDir := getDirection(x, true), getDirection(y, false)
-	hDir *= -1
+	//hDir *= -1
 
 	if hDir != 0 {
 		vDir = 0
@@ -166,8 +98,8 @@ func getDirections(x, y float64) (int32, int32) {
 
 func RunScrollThread() {
 	for {
-		x, y := scrollMovement.getValues()
-		hDir, vDir := getDirections(x, y)
+		coordsMetrics := scrollMovement.getMetrics()
+		hDir, vDir := getDirections(coordsMetrics.x, coordsMetrics.y)
 
 		if hDir != 0 {
 			osSpecific.ScrollHorizontal(hDir)
@@ -178,9 +110,9 @@ func RunScrollThread() {
 
 		scrollInterval := DefaultWaitInterval
 		if hDir != 0 || vDir != 0 {
-			scrollVal := y
+			scrollVal := coordsMetrics.y
 			if hDir != 0 {
-				scrollVal = x
+				scrollVal = coordsMetrics.x
 			}
 			scrollInterval = calcScrollInterval(scrollVal)
 		}

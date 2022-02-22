@@ -1,19 +1,23 @@
+//games
+GamesModeOn = false
+
 //commands
-TriggerThreshold = 0.15
+TriggerThreshold = 0.1
 holdThreshold = 150
 
 //mouse
 mouseMaxMove = 4
-forcePower = 1.52
+forcePower = 1.5
 deadzone = 0.13
-MaxAccelThreshold = 0.98
+MaxAccelRadiusThreshold = 0.96
+MaxAccelAngleMargin = 10
 MaxAccelMultiplier = 1.5
 
 mouseInterval = 12
 
 //scroll
 scrollFastestInterval = 20
-scrollSlowestInterval = 160
+scrollSlowestInterval = 140
 
 horizontalScrollThreshold = 0.45
 

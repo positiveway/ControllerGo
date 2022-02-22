@@ -2,8 +2,6 @@ package mainLogic
 
 import (
 	"ControllerGo/src/osSpecific"
-	"fmt"
-	"math"
 )
 
 const NeutralZone = "⬤"
@@ -42,21 +40,23 @@ type BoundariesMap = map[int]string
 var boundariesMap BoundariesMap
 
 func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction string) {
+	lowerBound += 360
+	upperBound += 360
 	for angle := lowerBound; angle <= upperBound; angle++ {
-		_boundariesMap[angle] = direction
+		resolvedAngle := resolveAngle(float64(angle))
+		_boundariesMap[resolvedAngle] = direction
 	}
 }
 
 func genBoundariesMap() BoundariesMap {
-	newMapping := map[string]AngleRange{
-		ZoneRight:   {350, 22},
-		ZoneUpRight: {24, 71},
-	}
-	fmt.Println(newMapping)
-	// %360
+	//newMapping := map[string]AngleRange{
+	//	ZoneRight:   {350, 22},
+	//	ZoneUpRight: {24, 71},
+	//}
+	//fmt.Println(newMapping)
 
 	if RightAngleMargin+DiagonalAngleMargin > 45 {
-		panic("With this margin of angle areas will overlap")
+		panic("With this margin of resolvedAngle areas will overlap")
 	}
 
 	mapping := map[string]AngleRange{
@@ -73,13 +73,7 @@ func genBoundariesMap() BoundariesMap {
 	_boundariesMap := BoundariesMap{}
 	for direction, angleRange := range mapping {
 		angle, angleMargin := angleRange[0], angleRange[1]
-
-		genRange(angle, angle+angleMargin, _boundariesMap, direction)
-		if angle == 0 {
-			genRange(360-angleMargin, 360, _boundariesMap, direction)
-		} else {
-			genRange(angle-angleMargin, angle, _boundariesMap, direction)
-		}
+		genRange(angle-angleMargin, angle+angleMargin, _boundariesMap, direction)
 	}
 	return _boundariesMap
 }
@@ -101,23 +95,6 @@ func makeJoystickTyping() JoystickTyping {
 }
 
 var joystickTyping JoystickTyping
-
-func calcAngle(x, y float64) int {
-	val := math.Atan2(y, x) * (180 / math.Pi)
-	angle := int(val)
-	if angle < 0 {
-		angle = 360 + angle
-	}
-	return angle
-}
-
-func calcMagnitude(x, y float64) float64 {
-	magnitude := math.Sqrt(x*x + y*y)
-	if magnitude > 1.0 {
-		magnitude = 1.0
-	}
-	return magnitude
-}
 
 func detectZone(magnitude float64, angle int) string {
 	if magnitude > MagnitudeThreshold {
@@ -146,11 +123,9 @@ func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 }
 
 func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
-	x, y := coords.getValues()
-	angle := calcAngle(x, y)
-	magnitude := calcMagnitude(x, y)
+	coordsMetrics := coords.getMetrics()
 
-	zone := detectZone(magnitude, angle)
+	zone := detectZone(coordsMetrics.magnitude, coordsMetrics.resolvedAngle)
 	canUse := zoneCanBeUsed(zone)
 	changed := jTyping.zoneChanged(zone, prevZone)
 	return canUse, changed

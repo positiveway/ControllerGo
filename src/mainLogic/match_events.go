@@ -6,30 +6,44 @@ func matchEvents(events []Event) {
 	for _, event := range events {
 		switch event.eventType {
 		case EvAxisChanged:
-			switch typingMode.get() {
+			switch GamesModeOn {
 			case false:
-				switch event.btnOrAxis {
-				case AxisLeftStickX:
-					mouseMovement.setX(event.value)
-				case AxisLeftStickY:
-					mouseMovement.setY(event.value)
-				case AxisRightStickX:
-					scrollMovement.setX(event.value)
-				case AxisRightStickY:
-					scrollMovement.setY(event.value)
+				switch typingMode.get() {
+				case false:
+					switch event.btnOrAxis {
+					case AxisLeftStickX:
+						mouseMovement.setX(event.value)
+					case AxisLeftStickY:
+						mouseMovement.setY(event.value)
+					case AxisRightStickX:
+						scrollMovement.setX(event.value)
+					case AxisRightStickY:
+						scrollMovement.setY(event.value)
+					}
+				case true:
+					switch event.btnOrAxis {
+					case AxisLeftStickX:
+						joystickTyping.leftCoords.setX(event.value)
+					case AxisLeftStickY:
+						joystickTyping.leftCoords.setY(event.value)
+					case AxisRightStickX:
+						joystickTyping.rightCoords.setX(event.value)
+					case AxisRightStickY:
+						joystickTyping.rightCoords.setY(event.value)
+					}
+					joystickTyping.updateZones()
 				}
 			case true:
 				switch event.btnOrAxis {
 				case AxisLeftStickX:
-					joystickTyping.leftCoords.setX(event.value)
+					movementCoords.setX(event.value)
 				case AxisLeftStickY:
-					joystickTyping.leftCoords.setY(event.value)
+					movementCoords.setY(event.value)
 				case AxisRightStickX:
-					joystickTyping.rightCoords.setX(event.value)
+					mouseMovement.setX(event.value)
 				case AxisRightStickY:
-					joystickTyping.rightCoords.setY(event.value)
+					mouseMovement.setY(event.value)
 				}
-				joystickTyping.updateZones()
 			}
 
 		case EvButtonChanged:
