@@ -147,13 +147,6 @@ func calcMagnitude(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
-func normalizeEdgeValue(value *float64, magnitude float64) {
-	if magnitude > 1.0 {
-		//value = value * (1.0 / magnitude)
-		*value /= magnitude
-	}
-}
-
 func normalizeIncorrectEdgeValues(x, y *float64) {
 	magnitude := calcMagnitude(*x, *y)
 	if magnitude > 1.0 {
