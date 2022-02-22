@@ -68,16 +68,16 @@ func (coords *Coords) getMetrics() CoordsMetrics {
 		x:               x,
 		y:               y,
 		magnitude:       magnitude,
-		resolvedAngle:   resolvedAngle,
+		angle:           resolvedAngle,
 		oneQuarterAngle: oneQuarterAngle,
 	}
 }
 
 type CoordsMetrics struct {
-	x, y                           float64
-	mappedX, mappedY               float64
-	magnitude                      float64
-	resolvedAngle, oneQuarterAngle int
+	x, y                   float64
+	mappedX, mappedY       float64
+	magnitude              float64
+	angle, oneQuarterAngle int
 }
 
 func setToRadiusValue(val *float64) {

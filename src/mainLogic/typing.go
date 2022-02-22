@@ -56,7 +56,7 @@ func genBoundariesMap() BoundariesMap {
 	//fmt.Println(newMapping)
 
 	if RightAngleMargin+DiagonalAngleMargin > 45 {
-		panic("With this margin of resolvedAngle areas will overlap")
+		panic("With this margin of angle areas will overlap")
 	}
 
 	mapping := map[string]AngleRange{
@@ -125,7 +125,7 @@ func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
 	coordsMetrics := coords.getMetrics()
 
-	zone := detectZone(coordsMetrics.magnitude, coordsMetrics.resolvedAngle)
+	zone := detectZone(coordsMetrics.magnitude, coordsMetrics.angle)
 	canUse := zoneCanBeUsed(zone)
 	changed := jTyping.zoneChanged(zone, prevZone)
 	return canUse, changed
