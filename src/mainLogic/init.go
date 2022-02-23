@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -18,7 +17,6 @@ func InitPath() {
 	} else {
 		BaseDir = osSpecific.DefaultProjectDir
 	}
-	EventServerExecPath = filepath.Join(BaseDir, "build", runtime.GOOS, "ControllerRust")
 	LayoutsDir = filepath.Join(BaseDir, "layouts")
 }
 
@@ -47,11 +45,6 @@ func RunMain() {
 	osSpecific.InitResources()
 
 	SetSelfPriority()
-
-	if RunFromTerminal {
-		StartEventServer()
-		defer KillEventServer()
-	}
 
 	osSpecific.InitInput()
 	defer osSpecific.CloseInputResources()

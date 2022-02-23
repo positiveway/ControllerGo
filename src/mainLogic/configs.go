@@ -7,13 +7,6 @@ import (
 	"time"
 )
 
-//path
-var BaseDir string
-var LayoutsDir string
-var LayoutInUse string
-var EventServerExecPath string
-var Configs = map[string]string{}
-
 func loadConfigs() {
 	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "configs.csv"), 0)
 	for _, parts := range linesParts {
@@ -135,3 +128,9 @@ var DefaultRefreshInterval time.Duration
 //web socket
 const SocketPort int = 1234
 const SocketIP string = "0.0.0.0"
+
+//path
+var BaseDir string
+var LayoutsDir string
+var LayoutInUse string
+var Configs = map[string]string{}
