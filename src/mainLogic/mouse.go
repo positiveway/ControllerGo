@@ -65,7 +65,7 @@ func RunMouseMoveThread() {
 }
 
 func calcScrollInterval(input float64) time.Duration {
-	return calcRefreshInterval(input, scrollIntervalRange, scrollSlowestInterval)
+	return calcRefreshInterval(input, scrollSlowestInterval, scrollFastestInterval)
 }
 
 func getDirection(val float64, horizontal bool) int32 {

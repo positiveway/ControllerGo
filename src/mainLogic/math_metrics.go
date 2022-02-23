@@ -179,9 +179,9 @@ func convertRange(input, outputMax float64) float64 {
 	return output
 }
 
-func calcRefreshInterval(input, intervalRange, slowestInterval float64) time.Duration {
+func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
-	refreshInterval := convertRange(input, intervalRange)
+	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - math.Round(refreshInterval)
 	return time.Duration(refreshInterval) * time.Millisecond
 }

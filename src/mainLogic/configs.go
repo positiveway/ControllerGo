@@ -74,7 +74,6 @@ func setConfigVars() {
 	//scroll
 	scrollFastestInterval = toIntToFloatConfig("scrollFastestInterval")
 	scrollSlowestInterval = toIntToFloatConfig("scrollSlowestInterval")
-	scrollIntervalRange = scrollSlowestInterval - scrollFastestInterval
 
 	horizontalScrollThreshold = toFloatConfig("horizontalScrollThreshold")
 
@@ -113,7 +112,6 @@ var mouseInterval time.Duration
 var scrollFastestInterval float64
 var scrollSlowestInterval float64
 
-var scrollIntervalRange float64
 var horizontalScrollThreshold float64
 
 //typing
