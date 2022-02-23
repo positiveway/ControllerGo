@@ -12,8 +12,8 @@ type TimeSinceLastPress struct {
 }
 
 func (t *TimeSinceLastPress) update() {
-	t.vertical += DefaultRefreshInterval
-	t.horizontal += DefaultRefreshInterval
+	t.vertical += RefreshInterval
+	t.horizontal += RefreshInterval
 }
 
 func runMovementThread() {
@@ -25,6 +25,6 @@ func runMovementThread() {
 	for {
 		timeSinceLastPress.update()
 
-		time.Sleep(DefaultRefreshInterval)
+		time.Sleep(RefreshInterval)
 	}
 }

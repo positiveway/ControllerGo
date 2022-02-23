@@ -47,6 +47,7 @@ func RunMain() {
 
 	osSpecific.InitInput()
 	defer osSpecific.CloseInputResources()
+	defer releaseAll()
 
 	go RunMouseMoveThread()
 	go RunScrollThread()

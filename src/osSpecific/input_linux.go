@@ -10,23 +10,24 @@ var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 
 func CloseInputResources() {
-	mouse.Close()
-	keyboard.Close()
+	if keyboard != nil {
+		keyboard.Close()
+	}
+	if mouse != nil {
+		mouse.Close()
+	}
 }
 
 func InitInput() {
 	var err error
-	// initialize mouse and check for possible errors
-	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
-	CheckErr(err)
-	// always do this after the initialization in order to guarantee that the device will be properly closed
 
 	// initialize keyboard and check for possible errors
 	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("testkeyboard"))
-	if err != nil {
-		return
-	}
-	// always do this after the initialization in order to guarantee that the device will be properly closed
+	CheckErr(err)
+
+	// initialize mouse and check for possible errors
+	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
+	CheckErr(err)
 }
 
 func PressKeyOrMouse(key int) {

@@ -105,7 +105,7 @@ func RunScrollThread() {
 			osSpecific.ScrollVertical(vDir)
 		}
 
-		scrollInterval := DefaultRefreshInterval
+		scrollInterval := RefreshInterval
 		if hDir != 0 || vDir != 0 {
 			scrollVal := coordsMetrics.y
 			if hDir != 0 {

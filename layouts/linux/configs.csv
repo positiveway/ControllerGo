@@ -27,4 +27,4 @@ DiagonalAngleMargin = 24
 magnitudeThresholdPct = 35
 
 //common
-DefaultRefreshInterval = 10
+RefreshInterval = 4

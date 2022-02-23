@@ -122,6 +122,16 @@ func release(btn string) {
 	}
 }
 
+func releaseAll() {
+	var buttonsCopy []string
+	for btn := range buttonsToRelease {
+		buttonsCopy = append(buttonsCopy, btn)
+	}
+	for _, btn := range buttonsCopy {
+		release(btn)
+	}
+}
+
 var triggersPressed = map[string]bool{
 	BtnLeftTrigger2:  false,
 	BtnRightTrigger2: false,
@@ -175,7 +185,7 @@ func RunReleaseHoldThread() {
 		}
 		buttonsMutex.Unlock()
 
-		time.Sleep(DefaultRefreshInterval)
+		time.Sleep(RefreshInterval)
 	}
 }
 
