@@ -1,12 +1,13 @@
 Button : Command
 ------------------------------
-South:         Control, Z
+South:         MiddleMouse
+SouthHold:     Control, Z
 East:          Backspace
-North:         Space
-West:          Enter
 EastHold:      Del
-WestHold:      Control, Alt, L
+North:         Space
 NorthHold:     Control, Alt, B
+West:          Enter
+WestHold:      Control, Alt, L
 LeftTrigger:   SwitchToTyping
 LeftTrigger2:  RightMouse
 RightTrigger:  Rightalt

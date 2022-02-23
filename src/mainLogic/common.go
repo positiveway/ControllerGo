@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,13 +36,6 @@ func ToFloat(value string) float64 {
 	res, err := strconv.ParseFloat(value, 64)
 	CheckErr(err)
 	return res
-}
-
-func AssignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
-	if _, found := m[key]; found {
-		panic("duplicate position")
-	}
-	m[key] = val
 }
 
 func SplitByAnyOf(str string, separators string) []string {
@@ -111,6 +105,19 @@ func CheckErr(err error) {
 	}
 }
 
+func pop[K comparable, V any](m map[K]V, key K) V {
+	value := m[key]
+	delete(m, key)
+	return value
+}
+
+func AssignWithDuplicateCheck[K comparable, V any](m map[K]V, key K, val V) {
+	if _, found := m[key]; found {
+		panic("duplicate position")
+	}
+	m[key] = val
+}
+
 func getOrDefault[K comparable, V any](m map[K]V, key K, defaultVal V) V {
 	if val, found := m[key]; found {
 		return val
@@ -160,6 +167,10 @@ func min[T Number](a, b T) T {
 	}
 }
 
+func isEmpty[T BasicType](seq []T) bool {
+	return len(seq) == 0
+}
+
 func reverse[T BasicType](seq []T) []T {
 	var res []T
 	for _, el := range seq {
@@ -192,4 +203,32 @@ func equal[T BasicType](a, b []T) bool {
 
 func isGreater[T Number](oldValue, newValue T) bool {
 	return math.Abs(float64(newValue)) > math.Abs(float64(oldValue))
+}
+
+type ThreadSafeMap struct {
+	mapping map[string]any
+	mutex   sync.Mutex
+}
+
+func (threadMap *ThreadSafeMap) set(key string, value any) {
+	threadMap.mutex.Lock()
+	defer threadMap.mutex.Unlock()
+
+	threadMap.mapping[key] = value
+}
+
+func (threadMap *ThreadSafeMap) get(key string) any {
+	threadMap.mutex.Lock()
+	defer threadMap.mutex.Unlock()
+
+	return threadMap.mapping[key]
+}
+
+func (threadMap *ThreadSafeMap) pop(key string) any {
+	threadMap.mutex.Lock()
+	defer threadMap.mutex.Unlock()
+
+	value := threadMap.mapping[key]
+	delete(threadMap.mapping, key)
+	return value
 }

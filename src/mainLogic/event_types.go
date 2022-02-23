@@ -3,6 +3,7 @@ package mainLogic
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Event struct {
@@ -63,15 +64,19 @@ var AxisMap = map[string]string{
 
 const HoldSuffix = "Hold"
 
+func addHoldSuffix(btn string) string {
+	return btn + HoldSuffix
+}
+
+func removeHoldSuffix(btn string) string {
+	return strings.TrimSuffix(btn, HoldSuffix)
+}
+
 const (
 	BtnSouth         string = "South"
 	BtnEast                 = "East"
 	BtnNorth                = "North"
 	BtnWest                 = "West"
-	BtnSouthHold            = BtnSouth + HoldSuffix
-	BtnEastHold             = BtnEast + HoldSuffix
-	BtnNorthHold            = BtnNorth + HoldSuffix
-	BtnWestHold             = BtnWest + HoldSuffix
 	BtnC                    = "BtnC"
 	BtnZ                    = "BtnZ"
 	BtnLeftTrigger          = "LB"
@@ -87,31 +92,33 @@ const (
 	BtnDPadDown             = "DPadDown"
 	BtnDPadLeft             = "DPadLeft"
 	BtnDPadRight            = "DPadRight"
-	BtnDPadUpHold           = BtnDPadUp + HoldSuffix
-	BtnDPadDownHold         = BtnDPadDown + HoldSuffix
-	BtnDPadLeftHold         = BtnDPadLeft + HoldSuffix
-	BtnDPadRightHold        = BtnDPadRight + HoldSuffix
 	BtnUnknown              = "BtnUnknown"
 )
 
-var BtnSynonyms = map[string]string{
-	"LeftTrigger":   BtnLeftTrigger,
-	"LeftTrigger2":  BtnLeftTrigger2,
-	"RightTrigger":  BtnRightTrigger,
-	"RightTrigger2": BtnRightTrigger2,
-	"LeftStick":     BtnLeftThumb,
-	"RightStick":    BtnRightThumb,
+type Synonyms = map[string]string
+
+func genBtnSynonyms() Synonyms {
+	synonyms := Synonyms{
+		"LeftTrigger":   BtnLeftTrigger,
+		"LeftTrigger2":  BtnLeftTrigger2,
+		"RightTrigger":  BtnRightTrigger,
+		"RightTrigger2": BtnRightTrigger2,
+		"LeftStick":     BtnLeftThumb,
+		"RightStick":    BtnRightThumb,
+	}
+	for key, val := range synonyms {
+		synonyms[addHoldSuffix(key)] = addHoldSuffix(val)
+	}
+	return synonyms
 }
 
-var AllButtons = []string{
+var BtnSynonyms = genBtnSynonyms()
+
+var AllOriginalButtons = []string{
 	BtnSouth,
 	BtnEast,
 	BtnNorth,
 	BtnWest,
-	BtnSouthHold,
-	BtnEastHold,
-	BtnNorthHold,
-	BtnWestHold,
 	BtnC,
 	BtnZ,
 	BtnLeftTrigger,
@@ -127,11 +134,6 @@ var AllButtons = []string{
 	BtnDPadDown,
 	BtnDPadLeft,
 	BtnDPadRight,
-	BtnDPadUpHold,
-	BtnDPadDownHold,
-	BtnDPadLeftHold,
-	BtnDPadRightHold,
-	BtnUnknown,
 }
 
 var BtnMap = map[string]string{

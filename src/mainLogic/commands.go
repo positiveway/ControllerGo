@@ -41,22 +41,18 @@ var commonCmdMapping = map[string]int{
 	"SwitchToTyping": SwitchToTyping,
 }
 
-var holdTimeMutex = sync.Mutex{}
-var holdStartTime = map[string]time.Time{}
+type HoldStartTime = map[string]time.Time
+type Command = []int
+type ButtonToCommand = map[string]Command
 
-type CommandsLayout = map[string][]int
+var holdStartTime = HoldStartTime{}
+var buttonsMutex = sync.Mutex{}
+var buttonsToRelease = ButtonToCommand{}
 
-func genEmptyCommandsLayout() CommandsLayout {
-	layout := CommandsLayout{}
-	NoActionSlice := []int{NoAction}
-	for _, btn := range AllButtons {
-		layout[btn] = NoActionSlice
-	}
-	return layout
-}
+var commandsLayout ButtonToCommand
 
-func loadCommandsLayout() CommandsLayout {
-	layout := genEmptyCommandsLayout()
+func loadCommandsLayout() ButtonToCommand {
+	layout := ButtonToCommand{}
 	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "commands.csv"), 2)
 	for _, parts := range linesParts {
 		btn := parts[0]
@@ -65,7 +61,7 @@ func loadCommandsLayout() CommandsLayout {
 		if btnSynonym, found := BtnSynonyms[btn]; found {
 			btn = btnSynonym
 		}
-		if _, found := layout[btn]; !found {
+		if !contains(AllOriginalButtons, removeHoldSuffix(btn)) {
 			PanicMisspelled(btn)
 		}
 		var codes []int
@@ -88,27 +84,41 @@ func loadCommandsLayout() CommandsLayout {
 	return layout
 }
 
-var commandsLayout CommandsLayout
+func getCommand(btn string, hold bool) Command {
+	if hold {
+		return commandsLayout[addHoldSuffix(btn)]
+	} else {
+		return commandsLayout[btn]
+	}
+}
 
-func press(seq []int) {
-	if seq[0] == SwitchToTyping {
+func press(btn string, hold bool) {
+	command := getCommand(btn, hold)
+
+	if isEmpty(command) {
+		return
+	}
+	if command[0] == SwitchToTyping {
 		typingMode.switchMode()
 		return
 	}
-	//if len(seq) > 1 && seq[0] == controlKey {
+	buttonsToRelease[btn] = command
+	//if len(command) > 1 && command[0] == controlKey {
 	//	locale := osSpecific.GetLocale()
 	//	println(locale)
 	//}
-	for _, el := range seq {
+	for _, el := range command {
 		osSpecific.PressKeyOrMouse(el)
 	}
 }
 
-func release(seq []int) {
-	if seq[0] == SwitchToTyping {
+func release(btn string) {
+	command := pop(buttonsToRelease, btn)
+	if isEmpty(command) {
 		return
 	}
-	for _, el := range reverse(seq) {
+
+	for _, el := range reverse(command) {
 		osSpecific.ReleaseKeyOrMouse(el)
 	}
 }
@@ -127,14 +137,15 @@ func detectTriggers(event Event) {
 	if !isTriggerBtn(btn) {
 		return
 	}
-	command := commandsLayout[btn]
+	buttonsMutex.Lock()
+	defer buttonsMutex.Unlock()
 
 	if event.value > TriggerThreshold && !triggersPressed[btn] {
 		triggersPressed[btn] = true
-		press(command)
+		press(btn, false)
 	} else if event.value < TriggerThreshold && triggersPressed[btn] {
 		triggersPressed[btn] = false
-		release(command)
+		release(btn)
 	}
 }
 
@@ -142,30 +153,30 @@ func buttonPressed(btn string) {
 	if isTriggerBtn(btn) {
 		return
 	}
-	holdBtn := btn + HoldSuffix
-	if _, found := commandsLayout[holdBtn]; found {
-		holdTimeMutex.Lock()
-		holdStartTime[holdBtn] = time.Now()
-		holdTimeMutex.Unlock()
+	buttonsMutex.Lock()
+	defer buttonsMutex.Unlock()
+
+	if _, found := commandsLayout[addHoldSuffix(btn)]; found {
+		holdStartTime[btn] = time.Now()
 	} else {
-		press(commandsLayout[btn])
+		press(btn, false)
 	}
 }
 
 func RunReleaseHoldThread() {
 	for {
-		holdTimeMutex.Lock()
-		for holdBtn, startTime := range holdStartTime {
+		buttonsMutex.Lock()
+		for btn, startTime := range holdStartTime {
 			holdDuration := time.Now().Sub(startTime)
 			//fmt.Printf("duration: %v\n", holdDuration)
 			if holdDuration > holdThreshold {
-				press(commandsLayout[holdBtn])
-				delete(holdStartTime, holdBtn)
+				press(btn, true)
+				delete(holdStartTime, btn)
 			}
 		}
-		holdTimeMutex.Unlock()
+		buttonsMutex.Unlock()
 
-		time.Sleep(DefaultWaitInterval)
+		time.Sleep(DefaultRefreshInterval)
 	}
 }
 
@@ -173,16 +184,12 @@ func buttonReleased(btn string) {
 	if isTriggerBtn(btn) {
 		return
 	}
-	holdBtn := btn + HoldSuffix
-	if _, found := commandsLayout[holdBtn]; found {
-		holdTimeMutex.Lock()
-		if _, exist := holdStartTime[holdBtn]; exist {
-			press(commandsLayout[btn])
-			delete(holdStartTime, holdBtn)
-		} else {
-			btn = holdBtn
-		}
-		holdTimeMutex.Unlock()
+	buttonsMutex.Lock()
+	defer buttonsMutex.Unlock()
+
+	if _, found := holdStartTime[btn]; found {
+		press(btn, false)
+		delete(holdStartTime, btn)
 	}
-	release(commandsLayout[btn])
+	release(btn)
 }

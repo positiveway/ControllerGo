@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const RunFromTerminal = true
+const RunFromTerminal = false
 
 func InitPath() {
 	if RunFromTerminal {

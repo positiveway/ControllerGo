@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sync"
+	"time"
 )
 
 type Coords struct {
@@ -176,4 +177,11 @@ func convertRange(input, outputMax float64) float64 {
 	output := outputRangeMin + ((outputMax-outputRangeMin)/inputRange)*(input-Deadzone)
 	applySign(sign, &output)
 	return output
+}
+
+func calcRefreshInterval(input, intervalRange, slowestInterval float64) time.Duration {
+	input = math.Abs(input)
+	refreshInterval := convertRange(input, intervalRange)
+	refreshInterval = slowestInterval - math.Round(refreshInterval)
+	return time.Duration(refreshInterval) * time.Millisecond
 }

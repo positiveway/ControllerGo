@@ -64,11 +64,8 @@ func RunMouseMoveThread() {
 	}
 }
 
-func calcScrollInterval(value float64) time.Duration {
-	input := math.Abs(value)
-	scroll := convertRange(input, scrollIntervalRange)
-	scrollInterval := scrollSlowestInterval - math.Round(scroll)
-	return time.Duration(scrollInterval) * time.Millisecond
+func calcScrollInterval(input float64) time.Duration {
+	return calcRefreshInterval(input, scrollIntervalRange, scrollSlowestInterval)
 }
 
 func getDirection(val float64, horizontal bool) int32 {
@@ -108,7 +105,7 @@ func RunScrollThread() {
 			osSpecific.ScrollVertical(vDir)
 		}
 
-		scrollInterval := DefaultWaitInterval
+		scrollInterval := DefaultRefreshInterval
 		if hDir != 0 || vDir != 0 {
 			scrollVal := coordsMetrics.y
 			if hDir != 0 {
