@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -95,7 +96,7 @@ func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 }
 
 func panicMsg(message string, variables ...any) {
-	panicMsg(message, variables)
+	panic(fmt.Sprintf(message, variables))
 }
 
 func PanicMisspelled(str string) {

@@ -48,6 +48,13 @@ func convertLetterToCodeMapping() {
 	}
 }
 
+var EscLetter int
+
+func initCodeMapping() {
+	convertLetterToCodeMapping()
+	EscLetter = getCodeFromLetter("Esc")
+}
+
 const (
 	ZoneRight     string = "Right"
 	ZoneUpRight          = "UpRight"

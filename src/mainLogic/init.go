@@ -33,7 +33,7 @@ func InitSettings() {
 	InitPath()
 	setLayoutDir()
 	setConfigVars()
-	convertLetterToCodeMapping()
+	initCodeMapping()
 	joystickTyping = makeJoystickTyping()
 	commandsLayout = loadCommandsLayout()
 	boundariesMap = genBoundariesMap()

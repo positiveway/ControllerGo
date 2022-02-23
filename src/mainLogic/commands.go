@@ -97,10 +97,14 @@ func press(btn string, hold bool) {
 	if isEmpty(command) {
 		return
 	}
-	if command[0] == SwitchToTyping {
+	switch command[0] {
+	case SwitchToTyping:
 		typingMode.switchMode()
 		return
+	case EscLetter:
+		releaseAll()
 	}
+
 	buttonsToRelease[btn] = command
 	//if len(command) > 1 && command[0] == controlKey {
 	//	locale := osSpecific.GetLocale()
