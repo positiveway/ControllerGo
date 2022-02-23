@@ -51,7 +51,7 @@ func RunWebSocket() {
 	}
 	server, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		panic(fmt.Sprintf("Listen err %v\n", err))
+		panicMsg("Listen err %v\n", err)
 	}
 	fmt.Printf("Listen at %v\n", addr.String())
 

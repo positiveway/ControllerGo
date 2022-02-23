@@ -1,7 +1,6 @@
 package mainLogic
 
 import (
-	"fmt"
 	"path"
 	"strings"
 	"time"
@@ -23,8 +22,9 @@ func getConfig(constName string) string {
 	if constValue, found := Configs[constName]; found {
 		return constValue
 	} else {
-		panic(fmt.Sprintf("No such name in config %s\n", constName))
+		panicMsg("No such name in config %s\n", constName)
 	}
+	return ""
 }
 
 func toBoolConfig(name string) bool {

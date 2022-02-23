@@ -2,7 +2,6 @@ package mainLogic
 
 import (
 	"ControllerGo/src/osSpecific"
-	"fmt"
 	"path"
 	"sync"
 	"time"
@@ -74,7 +73,7 @@ func loadCommandsLayout() ButtonToCommand {
 			}
 		}
 		if len(codes) == 0 {
-			panic(fmt.Sprintf("Empty command mapping for button %s\n", btn))
+			panicMsg("Empty command mapping for button %s\n", btn)
 		}
 		if codes[0] == NoAction {
 			continue

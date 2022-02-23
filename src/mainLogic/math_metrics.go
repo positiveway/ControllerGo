@@ -1,7 +1,6 @@
 package mainLogic
 
 import (
-	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -96,7 +95,7 @@ func (metrics *CoordsMetrics) correctValuesNearRadius() {
 
 func initMaxAccelValues() {
 	if MaxAccelAngleMargin > 45 {
-		panic(fmt.Sprintf("Incorrect value of \"MaxAccelAngleMargin\": %v\n", MaxAccelAngleMargin))
+		panicMsg("Incorrect value of \"MaxAccelAngleMargin\": %v\n", MaxAccelAngleMargin)
 	}
 	MaxAccelMinAngle = 45 - MaxAccelAngleMargin
 	MaxAccelMaxAngle = 45 + MaxAccelAngleMargin
@@ -171,7 +170,7 @@ func convertRange(input, outputMax float64) float64 {
 	}
 
 	if input > 1.0 {
-		panic(fmt.Sprintf("Axis input value is greater than 1.0. Current value: %v\n", input))
+		panicMsg("Axis input value is greater than 1.0. Current value: %v\n", input)
 	}
 
 	output := outputRangeMin + ((outputMax-outputRangeMin)/inputRange)*(input-Deadzone)

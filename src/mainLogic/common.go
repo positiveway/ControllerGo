@@ -1,7 +1,6 @@
 package mainLogic
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -95,8 +94,12 @@ func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	return linesParts
 }
 
+func panicMsg(message string, variables ...any) {
+	panicMsg(message, variables)
+}
+
 func PanicMisspelled(str string) {
-	panic(fmt.Sprintf("Probably misspelled: %s\n", str))
+	panicMsg("Probably misspelled: %s\n", str)
 }
 
 func CheckErr(err error) {

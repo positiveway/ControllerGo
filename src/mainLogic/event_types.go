@@ -1,7 +1,6 @@
 package mainLogic
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -20,7 +19,7 @@ func makeEvent(id, eventType, btnOrAxis, value string) Event {
 	CheckErr(err)
 	eventType, ok := EventTypeMap[eventType]
 	if !ok {
-		panic(fmt.Sprintf("no element %v\n", eventType))
+		panicMsg("no element %v\n", eventType)
 	}
 	if contains(ButtonEvents, eventType) {
 		btnOrAxis = BtnMap[btnOrAxis]

@@ -2,7 +2,6 @@ package mainLogic
 
 import (
 	"ControllerGo/src/osSpecific"
-	"fmt"
 	"strings"
 )
 
@@ -11,8 +10,9 @@ func getCodeFromLetter(letter string) int {
 	if code, found := osSpecific.LetterToCodes[letter]; found {
 		return code
 	} else {
-		panic(fmt.Sprintf("No such letter in mapping %s\n", letter))
+		panicMsg("No such letter in mapping %s\n", letter)
 	}
+	return 0
 }
 
 func toLowerMap[V any](m map[string]V) {
