@@ -6,6 +6,19 @@ import (
 	"time"
 )
 
+type TimePassed struct {
+	value time.Duration
+}
+
+func (t *TimePassed) passedInterval(interval time.Duration) bool {
+	t.value += RefreshInterval
+	if t.value >= interval {
+		t.value = 0
+		return true
+	}
+	return false
+}
+
 type Coords struct {
 	_x, _y float64
 	mu     sync.Mutex
@@ -49,13 +62,18 @@ func normalizeValues(x, y *float64) {
 	normalizeIncorrectEdgeValues(x, y)
 }
 
-func (coords *Coords) getMetrics() CoordsMetrics {
+func (coords *Coords) getValues() (float64, float64) {
 	x, y := coords.getRawValues()
 	normalizeValues(&x, &y)
+	return x, y
+}
+
+func (coords *Coords) getMetrics() CoordsMetrics {
+	x, y := coords.getValues()
 
 	magnitude := calcMagnitude(x, y)
 	resolvedAngle := calcResolvedAngle(x, y)
-	oneQuarterAngle := calcOneQuarterAngle(resolvedAngle)
+	//oneQuarterAngle := calcOneQuarterAngle(resolvedAngle)
 
 	//mappedX, mappedY := mapCircleToSquare(x, y)
 
@@ -64,33 +82,34 @@ func (coords *Coords) getMetrics() CoordsMetrics {
 	}
 
 	return CoordsMetrics{
-		x:               x,
-		y:               y,
-		magnitude:       magnitude,
-		angle:           resolvedAngle,
-		oneQuarterAngle: oneQuarterAngle,
+		x:         x,
+		y:         y,
+		magnitude: magnitude,
+		angle:     resolvedAngle,
+		//oneQuarterAngle: oneQuarterAngle,
 	}
 }
 
 type CoordsMetrics struct {
-	x, y                   float64
-	mappedX, mappedY       float64
-	magnitude              float64
-	angle, oneQuarterAngle int
+	x, y             float64
+	mappedX, mappedY float64
+	magnitude        float64
+	angle            int
+	//oneQuarterAngle int
 }
 
-func setToRadiusValue(val *float64) {
-	*val = math.Copysign(1.0, *val)
-}
+//func setToRadiusValue(val *float64) {
+//	*val = math.Copysign(1.0, *val)
+//}
 
-func (metrics *CoordsMetrics) correctValuesNearRadius() {
-	if metrics.magnitude > MaxAccelRadiusThreshold {
-		if MaxAccelMinAngle < metrics.oneQuarterAngle && metrics.oneQuarterAngle < MaxAccelMaxAngle {
-			setToRadiusValue(&metrics.x)
-			setToRadiusValue(&metrics.y)
-		}
-	}
-}
+//func (metrics *CoordsMetrics) correctValuesNearRadius() {
+//	if metrics.magnitude > MaxAccelRadiusThreshold {
+//		if MaxAccelMinAngle < metrics.oneQuarterAngle && metrics.oneQuarterAngle < MaxAccelMaxAngle {
+//			setToRadiusValue(&metrics.x)
+//			setToRadiusValue(&metrics.y)
+//		}
+//	}
+//}
 
 func initMaxAccelValues() {
 	if MaxAccelAngleMargin > 45 {

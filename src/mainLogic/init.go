@@ -47,9 +47,14 @@ func RunMain() {
 	defer osSpecific.CloseInputResources()
 	defer releaseAll()
 
-	go RunMouseMoveThread()
-	go RunScrollThread()
-	go RunReleaseHoldThread()
+	const RunMulti = false
+	if RunMulti {
+		go RunMultiPurposeThread()
+	} else {
+		go RunMouseMoveThread()
+		go RunScrollThread()
+		go RunReleaseHoldThread()
+	}
 
 	RunWebSocket()
 }

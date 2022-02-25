@@ -39,11 +39,13 @@ func printPair[T Number](_x, _y T, prefix string) {
 }
 
 func calcForces() (int32, int32) {
-	coordsMetrics := mouseMovement.getMetrics()
+	//coordsMetrics := mouseMovement.getMetrics()
 	//coordsMetrics.correctValuesNearRadius()
+	x, y := mouseMovement.getValues()
+	magnitude := calcMagnitude(x, y)
 
-	xForce := mouseForce(coordsMetrics.x, coordsMetrics.magnitude)
-	yForce := -mouseForce(coordsMetrics.y, coordsMetrics.magnitude)
+	xForce := mouseForce(x, magnitude)
+	yForce := -mouseForce(y, magnitude)
 
 	//if x != 0.0 || y != 0.0{
 	//	printPair(x, y, "x, y")
@@ -53,6 +55,28 @@ func calcForces() (int32, int32) {
 	return xForce, yForce
 }
 
+var mouseTimePassed TimePassed
+
+func RunMouseMove() {
+	if !mouseTimePassed.passedInterval(mouseInterval) {
+		return
+	}
+	xForce, yForce := calcForces()
+	if (xForce != 0) || (yForce != 0) {
+		//fmt.Printf("%v %v\n", xForce, yForce)
+		osSpecific.MoveMouse(xForce, yForce)
+	}
+}
+
+func RunMultiPurposeThread() {
+	for {
+		RunMouseMove()
+		RunScroll()
+		RunReleaseHold()
+		time.Sleep(RefreshInterval)
+	}
+}
+
 func RunMouseMoveThread() {
 	for {
 		xForce, yForce := calcForces()
@@ -60,6 +84,7 @@ func RunMouseMoveThread() {
 			//fmt.Printf("%v %v\n", xForce, yForce)
 			osSpecific.MoveMouse(xForce, yForce)
 		}
+
 		time.Sleep(mouseInterval)
 	}
 }
@@ -93,25 +118,48 @@ func getDirections(x, y float64) (int32, int32) {
 	return hDir, vDir
 }
 
+var scrollTimePassed TimePassed
+
+func RunScroll() {
+	x, y := scrollMovement.getValues()
+	hDir, vDir := getDirections(x, y)
+
+	scrollVal := y
+	if hDir != 0 {
+		scrollVal = x
+	}
+	scrollInterval := calcScrollInterval(scrollVal)
+
+	if !scrollTimePassed.passedInterval(scrollInterval) {
+		return
+	}
+	if hDir != 0 {
+		osSpecific.ScrollHorizontal(hDir)
+	}
+	if vDir != 0 {
+		osSpecific.ScrollVertical(vDir)
+	}
+}
+
 func RunScrollThread() {
 	for {
-		coordsMetrics := scrollMovement.getMetrics()
-		hDir, vDir := getDirections(coordsMetrics.x, coordsMetrics.y)
+		x, y := scrollMovement.getValues()
+		hDir, vDir := getDirections(x, y)
+
+		scrollInterval := time.Duration(scrollFastestInterval) * time.Millisecond
+		if hDir != 0 || vDir != 0 {
+			scrollVal := y
+			if hDir != 0 {
+				scrollVal = x
+			}
+			scrollInterval = calcScrollInterval(scrollVal)
+		}
 
 		if hDir != 0 {
 			osSpecific.ScrollHorizontal(hDir)
 		}
 		if vDir != 0 {
 			osSpecific.ScrollVertical(vDir)
-		}
-
-		scrollInterval := RefreshInterval
-		if hDir != 0 || vDir != 0 {
-			scrollVal := coordsMetrics.y
-			if hDir != 0 {
-				scrollVal = coordsMetrics.x
-			}
-			scrollInterval = calcScrollInterval(scrollVal)
 		}
 
 		time.Sleep(scrollInterval)
