@@ -1,2 +1,2 @@
 cd ./build/linux
-sudo ./controllerGo
+sudo nice -n -20 ./controllerGo
