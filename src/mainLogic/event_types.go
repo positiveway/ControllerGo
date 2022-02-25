@@ -12,6 +12,8 @@ type Event struct {
 	value     float64
 }
 
+type Events = []Event
+
 func makeEvent(id, eventType, btnOrAxis, value string) Event {
 	deviceId, err := strconv.Atoi(id)
 	CheckErr(err)

@@ -30,10 +30,11 @@ func (coords *Coords) setY(y float64) {
 	coords._y = y
 }
 
-func (coords *Coords) setValues(x, y float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
+func (coords *Coords) setDirectlyX(x float64) {
 	coords._x = x
+}
+
+func (coords *Coords) setDirectlyY(y float64) {
 	coords._y = y
 }
 
@@ -43,17 +44,15 @@ func (coords *Coords) getRawValues() (float64, float64) {
 	return coords._x, coords._y
 }
 
-func (coords *Coords) getNormalizedValues() (float64, float64) {
-	x, y := coords.getRawValues()
-
-	applyDeadzones(&x, &y)
-	normalizeIncorrectEdgeValues(&x, &y)
-
-	return x, y
+func normalizeValues(x, y *float64) {
+	applyDeadzones(x, y)
+	normalizeIncorrectEdgeValues(x, y)
 }
 
 func (coords *Coords) getMetrics() CoordsMetrics {
-	x, y := coords.getNormalizedValues()
+	x, y := coords.getRawValues()
+	normalizeValues(&x, &y)
+
 	magnitude := calcMagnitude(x, y)
 	resolvedAngle := calcResolvedAngle(x, y)
 	oneQuarterAngle := calcOneQuarterAngle(resolvedAngle)
@@ -153,11 +152,6 @@ func normalizeIncorrectEdgeValues(x, y *float64) {
 		*x /= magnitude
 		*y /= magnitude
 	}
-}
-
-func normalizeCoords(x, y *float64, magnitude float64) {
-	*x *= magnitude
-	*y *= magnitude
 }
 
 const outputRangeMin float64 = 1.0

@@ -2,7 +2,34 @@ package mainLogic
 
 import "fmt"
 
-func matchEvents(events []Event) {
+func compressEvents(events Events) Events {
+	lastEvents := map[string]*Event{}
+
+	var compressedEvents Events
+
+	for _, event := range events {
+		switch event.eventType {
+		case EvAxisChanged:
+			switch event.btnOrAxis {
+			case
+				AxisLeftStickX,
+				AxisLeftStickY,
+				AxisRightStickX,
+				AxisRightStickY:
+				lastEvents[event.btnOrAxis] = &event
+				continue
+			}
+		}
+		compressedEvents = append(compressedEvents, event)
+	}
+	for _, event := range lastEvents {
+		compressedEvents = append(Events{*event}, compressedEvents...)
+	}
+	return compressedEvents
+}
+
+func matchEvents(events Events) {
+	//events = compressEvents(events)
 	for _, event := range events {
 		switch event.eventType {
 		case EvAxisChanged:
@@ -23,13 +50,13 @@ func matchEvents(events []Event) {
 				case true:
 					switch event.btnOrAxis {
 					case AxisLeftStickX:
-						joystickTyping.leftCoords.setX(event.value)
+						joystickTyping.leftCoords.setDirectlyX(event.value)
 					case AxisLeftStickY:
-						joystickTyping.leftCoords.setY(event.value)
+						joystickTyping.leftCoords.setDirectlyY(event.value)
 					case AxisRightStickX:
-						joystickTyping.rightCoords.setX(event.value)
+						joystickTyping.rightCoords.setDirectlyX(event.value)
 					case AxisRightStickY:
-						joystickTyping.rightCoords.setY(event.value)
+						joystickTyping.rightCoords.setDirectlyY(event.value)
 					}
 					joystickTyping.updateZones()
 				}

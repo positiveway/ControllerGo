@@ -29,8 +29,8 @@ func printEvents(events []Event, bytesAmount int, raddr *net.UDPAddr) {
 	fmt.Printf("Bytes: %v; Event: %s Host: %v\n", bytesAmount, batchStr, raddr)
 }
 
-func convertToEvents(rawEvents []string) []Event {
-	var events []Event
+func convertToEvents(rawEvents []string) Events {
+	var events Events
 
 	rawEvents = rawEvents[1:]
 	for _, rawEvent := range rawEvents {
