@@ -43,8 +43,6 @@ func RunMain() {
 	InitSettings()
 	osSpecific.InitResources()
 
-	//SetSelfPriority()
-
 	osSpecific.InitInput()
 	defer osSpecific.CloseInputResources()
 	defer releaseAll()
