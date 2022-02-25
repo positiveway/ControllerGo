@@ -1,2 +1,2 @@
 cd ./build/linux
-sudo ./ControllerGo
+sudo ./controllerGo
