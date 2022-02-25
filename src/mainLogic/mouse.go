@@ -55,28 +55,6 @@ func calcForces() (int32, int32) {
 	return xForce, yForce
 }
 
-var mouseTimePassed TimePassed
-
-func RunMouseMove() {
-	if !mouseTimePassed.passedInterval(mouseInterval) {
-		return
-	}
-	xForce, yForce := calcForces()
-	if (xForce != 0) || (yForce != 0) {
-		//fmt.Printf("%v %v\n", xForce, yForce)
-		osSpecific.MoveMouse(xForce, yForce)
-	}
-}
-
-func RunMultiPurposeThread() {
-	for {
-		RunMouseMove()
-		RunScroll()
-		RunReleaseHold()
-		time.Sleep(RefreshInterval)
-	}
-}
-
 func RunMouseMoveThread() {
 	for {
 		xForce, yForce := calcForces()
@@ -116,29 +94,6 @@ func getDirections(x, y float64) (int32, int32) {
 		vDir = 0
 	}
 	return hDir, vDir
-}
-
-var scrollTimePassed TimePassed
-
-func RunScroll() {
-	x, y := scrollMovement.getValues()
-	hDir, vDir := getDirections(x, y)
-
-	scrollVal := y
-	if hDir != 0 {
-		scrollVal = x
-	}
-	scrollInterval := calcScrollInterval(scrollVal)
-
-	if !scrollTimePassed.passedInterval(scrollInterval) {
-		return
-	}
-	if hDir != 0 {
-		osSpecific.ScrollHorizontal(hDir)
-	}
-	if vDir != 0 {
-		osSpecific.ScrollVertical(vDir)
-	}
 }
 
 func RunScrollThread() {

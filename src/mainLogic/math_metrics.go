@@ -11,7 +11,7 @@ type TimePassed struct {
 }
 
 func (t *TimePassed) passedInterval(interval time.Duration) bool {
-	t.value += RefreshInterval
+	t.value += DefaultRefreshInterval
 	if t.value >= interval {
 		t.value = 0
 		return true

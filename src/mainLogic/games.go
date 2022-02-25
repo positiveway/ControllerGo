@@ -13,6 +13,6 @@ func runMovementThread() {
 
 	for {
 
-		time.Sleep(RefreshInterval)
+		time.Sleep(DefaultRefreshInterval)
 	}
 }

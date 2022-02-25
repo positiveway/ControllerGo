@@ -84,7 +84,7 @@ func setConfigVars() {
 	MagnitudeThreshold = magnitudeThresholdPct / 100
 
 	//common
-	RefreshInterval = toMillisecondsConfig("RefreshInterval")
+	DefaultRefreshInterval = toMillisecondsConfig("DefaultRefreshInterval")
 }
 
 //games
@@ -121,7 +121,7 @@ var magnitudeThresholdPct float64
 var MagnitudeThreshold float64
 
 //common
-var RefreshInterval time.Duration
+var DefaultRefreshInterval time.Duration
 
 //web socket
 const SocketPort int = 1234

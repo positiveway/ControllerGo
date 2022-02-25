@@ -176,25 +176,7 @@ func buttonPressed(btn string) {
 	}
 }
 
-var holdTimePassed TimePassed
-
 const holdRefreshInterval = 15 * time.Millisecond
-
-func RunReleaseHold() {
-	if !holdTimePassed.passedInterval(holdRefreshInterval) {
-		return
-	}
-	buttonsMutex.Lock()
-	for btn, startTime := range holdStartTime {
-		holdDuration := time.Now().Sub(startTime)
-		//fmt.Printf("duration: %v\n", holdDuration)
-		if holdDuration > holdThreshold {
-			press(btn, true)
-			delete(holdStartTime, btn)
-		}
-	}
-	buttonsMutex.Unlock()
-}
 
 func RunReleaseHoldThread() {
 	for {
