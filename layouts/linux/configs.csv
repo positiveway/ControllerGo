@@ -2,13 +2,13 @@
 GamesModeOn = false
 
 //commands
-TriggerThreshold = 0.1
+TriggerThreshold = 0.05
 holdThreshold = 150
 
 //mouse
 mouseMaxMove = 4
 forcePower = 1.5
-deadzone = 0.13
+deadzone = 0.12
 MaxAccelRadiusThreshold = 0.96
 MaxAccelAngleMargin = 10
 MaxAccelMultiplier = 1.5
