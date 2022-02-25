@@ -99,15 +99,12 @@ func getDirections(x, y float64) (int32, int32) {
 func RunScrollThread() {
 	for {
 		x, y := scrollMovement.getValues()
+		magnitude := calcMagnitude(x, y)
 		hDir, vDir := getDirections(x, y)
 
 		scrollInterval := time.Duration(scrollFastestInterval) * time.Millisecond
-		if hDir != 0 || vDir != 0 {
-			scrollVal := y
-			if hDir != 0 {
-				scrollVal = x
-			}
-			scrollInterval = calcScrollInterval(scrollVal)
+		if magnitude != 0 {
+			scrollInterval = calcScrollInterval(magnitude)
 		}
 
 		if hDir != 0 {
