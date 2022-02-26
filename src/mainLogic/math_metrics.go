@@ -91,10 +91,10 @@ func (coords *Coords) getMetrics() CoordsMetrics {
 }
 
 type CoordsMetrics struct {
-	x, y             float64
-	mappedX, mappedY float64
-	magnitude        float64
-	angle            int
+	x, y float64
+	//mappedX, mappedY float64
+	magnitude float64
+	angle     int
 	//oneQuarterAngle int
 }
 
