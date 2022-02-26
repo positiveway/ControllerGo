@@ -13,6 +13,7 @@ func RunMovementThread() {
 
 	for {
 		//metrics := movementCoords.getMetrics()
+
 		time.Sleep(DefaultRefreshInterval)
 	}
 }

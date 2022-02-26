@@ -51,5 +51,9 @@ func RunMain() {
 	go RunScrollThread()
 	go RunReleaseHoldThread()
 
+	if GamesModeOn {
+		RunMovementThread()
+	}
+
 	RunWebSocket()
 }
