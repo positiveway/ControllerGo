@@ -16,7 +16,7 @@ func applyPower(force *float64) {
 	applySign(sign, force)
 }
 
-func mouseForce(val float64, magnitude float64) int32 {
+func mouseForce(val float64) int32 {
 	force := convertRange(val, mouseMaxMove)
 	//printForce(force, "before")
 	applyPower(&force)
@@ -24,7 +24,7 @@ func mouseForce(val float64, magnitude float64) int32 {
 	//	force *= MaxAccelMultiplier
 	//}
 	//printForce(force, "after")
-	return int32(force)
+	return floatToInt32(force)
 }
 
 func printForce(force float64, prefix string) {
@@ -42,10 +42,9 @@ func calcForces() (int32, int32) {
 	//coordsMetrics := mouseMovement.getMetrics()
 	//coordsMetrics.correctValuesNearRadius()
 	x, y := mouseMovement.getValues()
-	magnitude := calcMagnitude(x, y)
 
-	xForce := mouseForce(x, magnitude)
-	yForce := -mouseForce(y, magnitude)
+	xForce := mouseForce(x)
+	yForce := -mouseForce(y)
 
 	//if x != 0.0 || y != 0.0{
 	//	printPair(x, y, "x, y")
@@ -76,7 +75,7 @@ func getDirection(val float64, horizontal bool) int32 {
 		return 0
 	}
 	switch {
-	case val == 0.0:
+	case val == 0:
 		return 0
 	case val > 0:
 		return -1

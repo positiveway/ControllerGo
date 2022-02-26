@@ -77,9 +77,9 @@ func (coords *Coords) getMetrics() CoordsMetrics {
 
 	//mappedX, mappedY := mapCircleToSquare(x, y)
 
-	if magnitude != 0 {
-		//fmt.Printf("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f\n", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
-	}
+	//if magnitude != 0 {
+	//fmt.Printf("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f\n", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
+	//}
 
 	return CoordsMetrics{
 		x:         x,
@@ -146,12 +146,12 @@ func mapCircleToSquare(u, v float64) (float64, float64) {
 }
 
 func calcOneQuarterAngle(resolvedAngle int) int {
-	return int(math.Mod(float64(resolvedAngle), 90))
+	return floatToInt(math.Mod(float64(resolvedAngle), 90))
 }
 
 func resolveAngle(angle float64) int {
 	angle = math.Mod(angle+360, 360)
-	return int(angle)
+	return floatToInt(angle)
 }
 
 const radiansMultiplier float64 = 180 / math.Pi
@@ -198,6 +198,6 @@ func convertRange(input, outputMax float64) float64 {
 func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
 	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
-	refreshInterval = slowestInterval - math.Round(refreshInterval)
-	return time.Duration(refreshInterval) * time.Millisecond
+	refreshInterval = slowestInterval - refreshInterval
+	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
 }

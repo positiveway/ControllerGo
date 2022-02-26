@@ -130,8 +130,12 @@ func getOrDefault[K comparable, V any](m map[K]V, key K, defaultVal V) V {
 	}
 }
 
+type Int interface {
+	int | int32 | int64
+}
+
 type Number interface {
-	int64 | float64 | int | int32 | float32
+	Int | float64 | float32
 }
 
 type BasicType interface {
@@ -148,6 +152,18 @@ func getSignMakeAbs(val *float64) bool {
 	sign := math.Signbit(*val)
 	*val = math.Abs(*val)
 	return sign
+}
+
+func floatToInt(value float64) int {
+	return int(math.Round(value))
+}
+
+func floatToInt32(value float64) int32 {
+	return int32(math.Round(value))
+}
+
+func floatToInt64(value float64) int64 {
+	return int64(math.Round(value))
 }
 
 func trunc(number *float64, precision int) {

@@ -9,20 +9,15 @@ import (
 
 type CommandsMode struct {
 	_mode bool
-	mu    sync.Mutex
 }
 
 func (c *CommandsMode) switchMode() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	c._mode = !c._mode
 	mouseMovement.reset()
 	scrollMovement.reset()
 }
 
 func (c *CommandsMode) get() bool {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	return c._mode
 }
 
