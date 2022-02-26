@@ -6,37 +6,27 @@ import (
 )
 
 type Event struct {
-	deviceID  int
 	eventType string
 	btnOrAxis string
 	value     float64
 }
 
-type Events = []Event
-
-func makeEvent(id, eventType, btnOrAxis, value string) Event {
-	deviceId, err := strconv.Atoi(id)
-	CheckErr(err)
+func makeEvent(eventType, btnOrAxis, value string) Event {
 	valueFloat, err := strconv.ParseFloat(value, 32)
 	CheckErr(err)
-	eventType, ok := EventTypeMap[eventType]
-	if !ok {
-		panicMsg("no element %v\n", eventType)
-	}
-	if contains(ButtonEvents, eventType) {
-		btnOrAxis = BtnMap[btnOrAxis]
-	} else if eventType == EvAxisChanged {
+
+	eventType = EventTypeMap[eventType]
+
+	if eventType == EvAxisChanged {
 		btnOrAxis = AxisMap[btnOrAxis]
-	} else if btnOrAxis == "No" {
-		btnOrAxis = "None"
+	} else if contains(ButtonEvents, eventType) {
+		btnOrAxis = BtnMap[btnOrAxis]
 	}
-	event := Event{
-		deviceID:  deviceId,
+	return Event{
 		value:     valueFloat,
 		eventType: eventType,
 		btnOrAxis: btnOrAxis,
 	}
-	return event
 }
 
 const (
