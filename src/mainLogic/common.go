@@ -150,9 +150,14 @@ func getSignMakeAbs(val *float64) bool {
 	return sign
 }
 
-func round(number float64, precision int) float64 {
+func trunc(number *float64, precision int) {
 	multiplier := math.Pow(10, float64(precision))
-	return math.Round(number*multiplier) / multiplier
+	*number = math.Trunc(*number*multiplier) / multiplier
+}
+
+func round(number *float64, precision int) {
+	multiplier := math.Pow(10, float64(precision))
+	*number = math.Round(*number*multiplier) / multiplier
 }
 
 func max[T Number](a, b T) T {

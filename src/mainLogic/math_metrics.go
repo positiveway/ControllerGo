@@ -165,12 +165,16 @@ func calcMagnitude(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
+const FloatPrecision int = 4
+
 func normalizeIncorrectEdgeValues(x, y *float64) {
 	magnitude := calcMagnitude(*x, *y)
 	if magnitude > 1.0 {
 		*x /= magnitude
 		*y /= magnitude
 	}
+	trunc(x, FloatPrecision)
+	trunc(y, FloatPrecision)
 }
 
 const outputRangeMin float64 = 1.0

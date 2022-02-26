@@ -24,14 +24,17 @@ func matchEvents(events Events) {
 					switch event.btnOrAxis {
 					case AxisLeftStickX:
 						joystickTyping.leftCoords.setDirectlyX(event.value)
+						joystickTyping.updateLeftZone()
 					case AxisLeftStickY:
 						joystickTyping.leftCoords.setDirectlyY(event.value)
+						joystickTyping.updateLeftZone()
 					case AxisRightStickX:
 						joystickTyping.rightCoords.setDirectlyX(event.value)
+						joystickTyping.updateRightZone()
 					case AxisRightStickY:
 						joystickTyping.rightCoords.setDirectlyY(event.value)
+						joystickTyping.updateRightZone()
 					}
-					joystickTyping.updateZones()
 				}
 			case true:
 				switch event.btnOrAxis {

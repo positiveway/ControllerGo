@@ -83,6 +83,8 @@ type JoystickTyping struct {
 	leftStickZone, rightStickZone string
 	awaitingNeutralPos            bool
 	leftCoords, rightCoords       Coords
+	leftCanUse, leftChanged       bool
+	rightCanUse, rightChanged     bool
 }
 
 func makeJoystickTyping() JoystickTyping {
@@ -131,16 +133,22 @@ func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bo
 	return canUse, changed
 }
 
-func (jTyping *JoystickTyping) updateZones() {
-	leftCanUse, leftChanged := jTyping.calcNewZone(&jTyping.leftStickZone, &jTyping.leftCoords)
-	rightCanUse, rightChanged := jTyping.calcNewZone(&jTyping.rightStickZone, &jTyping.rightCoords)
+func (jTyping *JoystickTyping) updateLeftZone() {
+	jTyping.leftCanUse, jTyping.leftChanged = jTyping.calcNewZone(&jTyping.leftStickZone, &jTyping.leftCoords)
+	jTyping.typeLetter()
+}
+func (jTyping *JoystickTyping) updateRightZone() {
+	jTyping.rightCanUse, jTyping.rightChanged = jTyping.calcNewZone(&jTyping.rightStickZone, &jTyping.rightCoords)
+	jTyping.typeLetter()
+}
 
-	if leftCanUse && rightCanUse {
+func (jTyping *JoystickTyping) typeLetter() {
+	if jTyping.leftCanUse && jTyping.rightCanUse {
 		//fmt.Printf("%s %s\n", jTyping.leftStickZone, jTyping.rightStickZone)
 		//fmt.Printf("%v %v\n", leftCanUse, rightCanUse)
 		//fmt.Printf("%v %v\n", leftChanged, rightChanged)
 
-		if leftChanged || rightChanged {
+		if jTyping.leftChanged || jTyping.rightChanged {
 			if !jTyping.awaitingNeutralPos {
 				jTyping.awaitingNeutralPos = true
 				position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
