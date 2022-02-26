@@ -21,3 +21,7 @@ DPadUp:        Up
 DPadDown:      Down
 DPadLeft:      Left
 DPadRight:     Right
+DPadUpHold:        VolumeUp
+DPadDownHold:      VolumeDown
+DPadLeftHold:      Alt, Shift, Left
+DPadRightHold:     Alt, Shift, Right

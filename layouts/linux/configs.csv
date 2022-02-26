@@ -3,7 +3,7 @@ GamesModeOn = false
 
 //commands
 TriggerThreshold = 0.05
-holdThreshold = 150
+holdThreshold = 200
 
 //mouse
 mouseMaxMove = 4

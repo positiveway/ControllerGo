@@ -34,6 +34,9 @@ var LetterToCodes = map[string]int{
 	"Down":         uinput.KeyDown,
 	"Left":         uinput.KeyLeft,
 	"Right":        uinput.KeyRight,
+	"VolumeUp":     uinput.KeyVolumeup,
+	"VolumeDown":   uinput.KeyVolumedown,
+	"Mute":         uinput.KeyMute,
 
 	"A": uinput.KeyA,
 	"B": uinput.KeyB,
