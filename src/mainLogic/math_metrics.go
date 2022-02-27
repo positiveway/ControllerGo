@@ -165,7 +165,7 @@ func calcMagnitude(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
-const FloatPrecision int = 4
+const FloatPrecision int = 8
 
 func normalizeIncorrectEdgeValues(x, y *float64) {
 	magnitude := calcMagnitude(*x, *y)
