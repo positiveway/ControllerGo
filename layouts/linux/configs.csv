@@ -6,14 +6,14 @@ TriggerThreshold = 0.05
 holdThreshold = 200
 
 //mouse
-mouseMaxMove = 4
-forcePower = 1.5
+mouseMaxMove = 6
+forcePower = 1.4
 deadzone = 0.12
 MaxAccelRadiusThreshold = 0.96
 MaxAccelAngleMargin = 10
 MaxAccelMultiplier = 1.5
 
-mouseInterval = 12
+mouseInterval = 18
 
 //scroll
 scrollFastestInterval = 20
