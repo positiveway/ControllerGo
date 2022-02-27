@@ -8,17 +8,13 @@ import (
 )
 
 type CommandsMode struct {
-	_mode bool
+	mode bool
 }
 
 func (c *CommandsMode) switchMode() {
-	c._mode = !c._mode
+	c.mode = !c.mode
 	mouseMovement.reset()
 	scrollMovement.reset()
-}
-
-func (c *CommandsMode) get() bool {
-	return c._mode
 }
 
 var typingMode = CommandsMode{}

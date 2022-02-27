@@ -7,7 +7,7 @@ func matchEvent(event *Event) {
 	case EvAxisChanged:
 		switch GamesModeOn {
 		case false:
-			switch typingMode.get() {
+			switch typingMode.mode {
 			case false:
 				switch event.btnOrAxis {
 				case AxisLeftStickX:
