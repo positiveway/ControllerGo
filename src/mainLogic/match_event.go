@@ -2,7 +2,7 @@ package mainLogic
 
 import "fmt"
 
-func matchEvent(event Event) {
+func matchEvent(event *Event) {
 	switch event.eventType {
 	case EvAxisChanged:
 		switch GamesModeOn {
@@ -58,5 +58,7 @@ func matchEvent(event Event) {
 		fmt.Printf("Gamepad disconnected\n")
 	case EvConnected:
 		fmt.Printf("Gamepad connected\n")
+	case EvDropped:
+		panicMsg("Event dropped\n")
 	}
 }

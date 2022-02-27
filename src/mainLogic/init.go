@@ -5,6 +5,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
+	"runtime/debug"
 	"strings"
 )
 
@@ -39,6 +41,9 @@ func InitSettings() {
 	boundariesMap = genBoundariesMap()
 }
 
+var found bool
+var err error
+
 func RunMain() {
 	InitSettings()
 	osSpecific.InitResources()
@@ -54,6 +59,9 @@ func RunMain() {
 	if GamesModeOn {
 		RunMovementThread()
 	}
+
+	runtime.GC()
+	debug.SetGCPercent(-1)
 
 	RunWebSocket()
 }

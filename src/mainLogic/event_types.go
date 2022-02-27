@@ -11,21 +11,20 @@ type Event struct {
 	value     float64
 }
 
-func makeEvent(eventType, btnOrAxis, value string) Event {
-	valueFloat, err := strconv.ParseFloat(value, 32)
-	CheckErr(err)
-
-	eventType = EventTypeMap[eventType]
-
-	if eventType == EvAxisChanged {
-		btnOrAxis = AxisMap[btnOrAxis]
-	} else if contains(ButtonEvents, eventType) {
-		btnOrAxis = BtnMap[btnOrAxis]
+func (event *Event) update(msg string) {
+	event.eventType, found = EventTypeMap[msg[0]]
+	if !found {
+		PanicMisspelled(string(msg[0]))
 	}
-	return Event{
-		value:     valueFloat,
-		eventType: eventType,
-		btnOrAxis: btnOrAxis,
+	if event.eventType != EvConnected && event.eventType != EvDisconnected && event.eventType != EvDropped {
+		event.btnOrAxis, found = BtnAxisMap[msg[1]]
+		if !found {
+			PanicMisspelled(string(msg[1]))
+		}
+		if event.eventType == EvAxisChanged || event.eventType == EvButtonChanged {
+			event.value, err = strconv.ParseFloat(msg[2:], 32)
+			CheckErr(err)
+		}
 	}
 }
 
@@ -41,16 +40,16 @@ const (
 	AxisUnknown            = "AxisUnknown"
 )
 
-var AxisMap = map[string]string{
-	"LX": AxisLeftStickX,
-	"LY": AxisLeftStickY,
-	"LZ": AxisLeftZ,
-	"RX": AxisRightStickX,
-	"RY": AxisRightStickY,
-	"RZ": AxisRightZ,
-	"DX": AxisDPadX,
-	"DY": AxisDPadY,
-	"U":  AxisUnknown,
+var _AxisMap = map[uint8]string{
+	'u': AxisLeftStickX,
+	'v': AxisLeftStickY,
+	'w': AxisLeftZ,
+	'x': AxisRightStickX,
+	'y': AxisRightStickY,
+	'z': AxisRightZ,
+	'0': AxisDPadX,
+	'1': AxisDPadY,
+	'2': AxisUnknown,
 }
 
 const HoldSuffix = "Hold"
@@ -127,27 +126,27 @@ var AllOriginalButtons = []string{
 	BtnDPadRight,
 }
 
-var BtnMap = map[string]string{
-	"S":  BtnSouth,
-	"E":  BtnEast,
-	"N":  BtnNorth,
-	"W":  BtnWest,
-	"C":  BtnC,
-	"Z":  BtnZ,
-	"L":  BtnLeftTrigger,
-	"L2": BtnLeftTrigger2,
-	"R":  BtnRightTrigger,
-	"R2": BtnRightTrigger2,
-	"Se": BtnSelect,
-	"St": BtnStart,
-	"M":  BtnMode,
-	"LT": BtnLeftThumb,
-	"RT": BtnRightThumb,
-	"DU": BtnDPadUp,
-	"DD": BtnDPadDown,
-	"DL": BtnDPadLeft,
-	"DR": BtnDPadRight,
-	"U":  BtnUnknown,
+var _BtnMap = map[uint8]string{
+	'a': BtnSouth,
+	'b': BtnEast,
+	'c': BtnNorth,
+	'd': BtnWest,
+	'e': BtnC,
+	'f': BtnZ,
+	'g': BtnLeftTrigger,
+	'h': BtnLeftTrigger2,
+	'i': BtnRightTrigger,
+	'j': BtnRightTrigger2,
+	'k': BtnSelect,
+	'l': BtnStart,
+	'm': BtnMode,
+	'n': BtnLeftThumb,
+	'o': BtnRightThumb,
+	'p': BtnDPadUp,
+	'q': BtnDPadDown,
+	'r': BtnDPadLeft,
+	's': BtnDPadRight,
+	't': BtnUnknown,
 }
 
 const (
@@ -163,13 +162,26 @@ const (
 
 var ButtonEvents = []string{EvButtonChanged, EvButtonReleased, EvButtonPressed, EvButtonRepeated}
 
-var EventTypeMap = map[string]string{
-	"A":  EvAxisChanged,
-	"B":  EvButtonChanged,
-	"Rl": EvButtonReleased,
-	"P":  EvButtonPressed,
-	"Rp": EvButtonRepeated,
-	"C":  EvConnected,
-	"D":  EvDisconnected,
-	"Dr": EvDropped,
+var EventTypeMap = map[uint8]string{
+	'a': EvAxisChanged,
+	'b': EvButtonChanged,
+	'c': EvButtonReleased,
+	'd': EvButtonPressed,
+	'e': EvButtonRepeated,
+	'f': EvConnected,
+	'g': EvDisconnected,
+	'h': EvDropped,
 }
+
+func genBtnAxisMap() map[uint8]string {
+	mapping := map[uint8]string{}
+	for k, v := range _AxisMap {
+		AssignWithDuplicateCheck(mapping, k, v)
+	}
+	for k, v := range _BtnMap {
+		AssignWithDuplicateCheck(mapping, k, v)
+	}
+	return mapping
+}
+
+var BtnAxisMap = genBtnAxisMap()
