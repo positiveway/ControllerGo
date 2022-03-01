@@ -1,1 +1,1 @@
-linux_dualshock
+linux_steam

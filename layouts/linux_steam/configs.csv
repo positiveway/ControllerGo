@@ -10,7 +10,7 @@ holdThreshold = 200
 //mouse
 mouseMaxMove = 6
 forcePower = 1.4
-deadzone = 0.12
+deadzone = 0.0
 MaxAccelRadiusThreshold = 0.96
 MaxAccelAngleMargin = 10
 MaxAccelMultiplier = 1.5

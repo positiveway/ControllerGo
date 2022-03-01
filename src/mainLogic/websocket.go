@@ -31,7 +31,6 @@ func RunWebSocket() {
 		//print(string(p[:nn]))
 
 		event.update(string(p[:nn]))
-		event.print()
 		matchEvent(&event)
 	}
 }
