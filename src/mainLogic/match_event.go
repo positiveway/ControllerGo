@@ -11,40 +11,44 @@ func matchEvent(event *Event) {
 			case false:
 				switch event.btnOrAxis {
 				case AxisLeftStickX:
-					mouseMovement.setX(&event.value)
+					scrollMovement.setX(event.value)
+					//mouseMovement.setX(event.value)
 				case AxisLeftStickY:
-					mouseMovement.setY(&event.value)
+					scrollMovement.setY(event.value)
+					//mouseMovement.setY(event.value)
 				case AxisRightStickX:
-					scrollMovement.setX(&event.value)
+					mouseMovement.setX(event.value)
+					//scrollMovement.setX(event.value)
 				case AxisRightStickY:
-					scrollMovement.setY(&event.value)
+					mouseMovement.setY(event.value)
+					//scrollMovement.setY(event.value)
 				}
 			case true:
 				switch event.btnOrAxis {
 				case AxisLeftStickX:
-					joystickTyping.leftCoords.setDirectlyX(&event.value)
+					joystickTyping.leftCoords.setDirectlyX(event.value)
 					joystickTyping.updateLeftZone()
 				case AxisLeftStickY:
-					joystickTyping.leftCoords.setDirectlyY(&event.value)
+					joystickTyping.leftCoords.setDirectlyY(event.value)
 					joystickTyping.updateLeftZone()
 				case AxisRightStickX:
-					joystickTyping.rightCoords.setDirectlyX(&event.value)
+					joystickTyping.rightCoords.setDirectlyX(event.value)
 					joystickTyping.updateRightZone()
 				case AxisRightStickY:
-					joystickTyping.rightCoords.setDirectlyY(&event.value)
+					joystickTyping.rightCoords.setDirectlyY(event.value)
 					joystickTyping.updateRightZone()
 				}
 			}
 		case true:
 			switch event.btnOrAxis {
 			case AxisLeftStickX:
-				movementCoords.setX(&event.value)
+				movementCoords.setX(event.value)
 			case AxisLeftStickY:
-				movementCoords.setY(&event.value)
+				movementCoords.setY(event.value)
 			case AxisRightStickX:
-				mouseMovement.setX(&event.value)
+				mouseMovement.setX(event.value)
 			case AxisRightStickY:
-				mouseMovement.setY(&event.value)
+				mouseMovement.setY(event.value)
 			}
 		}
 

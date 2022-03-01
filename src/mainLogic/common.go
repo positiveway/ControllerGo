@@ -142,38 +142,39 @@ type BasicType interface {
 	Number | string | bool | rune
 }
 
-func applySign(sign *bool, val *float64) {
-	if *sign {
-		*val *= -1
+func applySign(sign bool, val float64) float64 {
+	if sign {
+		val *= -1
 	}
+	return val
 }
 
-func getSignMakeAbs(val *float64) bool {
-	sign := math.Signbit(*val)
-	*val = math.Abs(*val)
-	return sign
+func getSignAndAbs(val float64) (bool, float64) {
+	sign := math.Signbit(val)
+	val = math.Abs(val)
+	return sign, val
 }
 
-func floatToInt(value *float64) int {
-	return int(math.Round(*value))
+func floatToInt(value float64) int {
+	return int(math.Round(value))
 }
 
-func floatToInt32(value *float64) int32 {
-	return int32(math.Round(*value))
+func floatToInt32(value float64) int32 {
+	return int32(math.Round(value))
 }
 
-func floatToInt64(value *float64) int64 {
-	return int64(math.Round(*value))
+func floatToInt64(value float64) int64 {
+	return int64(math.Round(value))
 }
 
-func trunc(number *float64, precision int) {
+func trunc(number float64, precision int) float64 {
 	multiplier := math.Pow(10, float64(precision))
-	*number = math.Trunc(*number*multiplier) / multiplier
+	return math.Trunc(number*multiplier) / multiplier
 }
 
-func round(number *float64, precision int) {
+func round(number float64, precision int) float64 {
 	multiplier := math.Pow(10, float64(precision))
-	*number = math.Round(*number*multiplier) / multiplier
+	return math.Round(number*multiplier) / multiplier
 }
 
 func max[T Number](a, b T) T {
