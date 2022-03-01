@@ -1,6 +1,6 @@
 package mainLogic
 
-func eventChangedDS(event *Event) {
+func eventChangedDS() {
 	switch GamesModeOn {
 	case false:
 		switch typingMode.mode {

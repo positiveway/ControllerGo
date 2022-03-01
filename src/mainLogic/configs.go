@@ -65,7 +65,11 @@ func setConfigVars() {
 
 	MaxAccelMultiplier = toFloatConfig("MaxAccelMultiplier")
 	MaxAccelRadiusThreshold = toFloatConfig("MaxAccelRadiusThreshold")
-	MaxAccelAngleMargin = toIntConfig("MaxAccelAngleMargin")
+
+	switch SteamController {
+	case false:
+		MaxAccelAngleMargin = toIntConfig("MaxAccelAngleMargin")
+	}
 
 	Deadzone = toFloatConfig("Deadzone")
 	inputRange = 1.0 - Deadzone

@@ -136,7 +136,7 @@ func isTriggerBtn(btn string) bool {
 	return btn == BtnLeftTrigger2 || btn == BtnRightTrigger2
 }
 
-func detectTriggers(event *Event) {
+func detectTriggers() {
 	btn := event.btnOrAxis
 	if !isTriggerBtn(btn) {
 		return

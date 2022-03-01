@@ -1,18 +1,18 @@
 package mainLogic
 
-func matchEvent(event *Event) {
+func matchEvent() {
 	//event.print()
 
 	switch event.eventType {
 	case EvAxisChanged:
 		switch SteamController {
 		case true:
-			eventChangedSteam(event)
+			eventChangedSteam()
 		case false:
-			eventChangedDS(event)
+			eventChangedDS()
 		}
 	case EvButtonChanged:
-		detectTriggers(event)
+		detectTriggers()
 	case EvButtonPressed:
 		buttonPressed(event.btnOrAxis)
 	case EvButtonReleased:
