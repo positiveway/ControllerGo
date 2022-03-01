@@ -10,7 +10,7 @@ func getCodeFromLetter(letter string) int {
 	if code, found := osSpecific.LetterToCodes[letter]; found {
 		return code
 	} else {
-		panicMsg("No such letter in mapping %s\n", letter)
+		panicMsg("No such letter in mapping %s", letter)
 	}
 	return 0
 }

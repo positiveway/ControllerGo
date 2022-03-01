@@ -59,6 +59,6 @@ func matchEvent(event *Event) {
 	case EvConnected:
 		fmt.Printf("Gamepad connected\n")
 	case EvDropped:
-		panicMsg("Event dropped\n")
+		panicMsg("Event dropped")
 	}
 }

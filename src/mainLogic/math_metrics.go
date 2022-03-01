@@ -71,14 +71,6 @@ func (coords *Coords) updateAngle() {
 	coords.angle = calcResolvedAngle(coords.x, coords.y)
 }
 
-func initMaxAccelValues() {
-	if MaxAccelAngleMargin > 45 {
-		panicMsg("Incorrect value of \"MaxAccelAngleMargin\": %v\n", MaxAccelAngleMargin)
-	}
-	MaxAccelMinAngle = 45 - MaxAccelAngleMargin
-	MaxAccelMaxAngle = 45 + MaxAccelAngleMargin
-}
-
 func applyDeadzone(value float64) float64 {
 	if math.Abs(value) < Deadzone {
 		value = 0.0
@@ -126,7 +118,7 @@ func convertRange(input float64, outputMax float64) float64 {
 	}
 
 	if input > 1.0 {
-		panicMsg("Axis input value is greater than 1.0. Current value: %v\n", input)
+		panicMsg("Axis input value is greater than 1.0. Current value: %v", input)
 	}
 
 	output := outputRangeMin + ((outputMax-outputRangeMin)/inputRange)*(input-Deadzone)
@@ -139,6 +131,18 @@ func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.D
 	refreshInterval = slowestInterval - refreshInterval
 	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
 }
+
+func calcOneQuarterAngle(resolvedAngle int) int {
+	return floatToInt(math.Mod(float64(resolvedAngle), 90))
+}
+
+//func initMaxAccelValues() {
+//	if MaxAccelAngleMargin > 45 {
+//		panicMsg("Incorrect value of \"MaxAccelAngleMargin\": %v", MaxAccelAngleMargin)
+//	}
+//	MaxAccelMinAngle = 45 - MaxAccelAngleMargin
+//	MaxAccelMaxAngle = 45 + MaxAccelAngleMargin
+//}
 
 //func (coords *Coords) oldGetMetrics() Metrics {
 //x, y := coords.getValues()
@@ -196,8 +200,4 @@ func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.D
 //	y := 0.5 * (math.Sqrt(subtermy+v) - math.Sqrt(subtermy-v))
 //	normalizeIncorrectEdgeValues(&x, &y)
 //	return x, y
-//}
-
-//func calcOneQuarterAngle(resolvedAngle int) int {
-//	return floatToInt(math.Mod(float64(resolvedAngle), 90))
 //}

@@ -96,11 +96,14 @@ func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 }
 
 func panicMsg(message string, variables ...any) {
+	if !strings.HasSuffix(message, "\n") {
+		message += "\n"
+	}
 	panic(fmt.Sprintf(message, variables))
 }
 
 func PanicMisspelled(str string) {
-	panicMsg("Probably misspelled: %s\n", str)
+	panicMsg("Probably misspelled: %s", str)
 }
 
 func CheckErr(err error) {

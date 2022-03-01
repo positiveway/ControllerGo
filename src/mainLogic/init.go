@@ -27,7 +27,7 @@ func setLayoutDir() {
 
 	curLayoutDir := path.Join(LayoutsDir, LayoutInUse)
 	if _, err := os.Stat(curLayoutDir); os.IsNotExist(err) {
-		panicMsg("Layout folder with such name doesn't exist: %s\n", LayoutInUse)
+		panicMsg("Layout folder with such name doesn't exist: %s", LayoutInUse)
 	}
 }
 

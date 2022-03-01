@@ -64,7 +64,7 @@ func loadCommandsLayout() ButtonToCommand {
 			}
 		}
 		if len(codes) == 0 {
-			panicMsg("Empty command mapping for button %s\n", btn)
+			panicMsg("Empty command mapping for button %s", btn)
 		}
 		if codes[0] == NoAction {
 			continue

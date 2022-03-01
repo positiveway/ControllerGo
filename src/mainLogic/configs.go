@@ -22,7 +22,7 @@ func getConfig(constName string) string {
 	if constValue, found := Configs[constName]; found {
 		return constValue
 	} else {
-		panicMsg("No such name in config %s\n", constName)
+		panicMsg("No such name in config %s", constName)
 	}
 	return ""
 }
@@ -50,6 +50,8 @@ func toIntToFloatConfig(name string) float64 {
 func setConfigVars() {
 	loadConfigs()
 
+	SteamController = toBoolConfig("SteamController")
+
 	//games
 	GamesModeOn = toBoolConfig("GamesModeOn")
 
@@ -64,7 +66,6 @@ func setConfigVars() {
 	MaxAccelMultiplier = toFloatConfig("MaxAccelMultiplier")
 	MaxAccelRadiusThreshold = toFloatConfig("MaxAccelRadiusThreshold")
 	MaxAccelAngleMargin = toIntConfig("MaxAccelAngleMargin")
-	initMaxAccelValues()
 
 	Deadzone = toFloatConfig("Deadzone")
 	inputRange = 1.0 - Deadzone
@@ -87,6 +88,8 @@ func setConfigVars() {
 	DefaultRefreshInterval = toMillisecondsConfig("DefaultRefreshInterval")
 }
 
+var SteamController bool
+
 //games
 var GamesModeOn bool
 
@@ -101,11 +104,10 @@ var Deadzone float64
 var inputRange float64
 var MaxAccelRadiusThreshold float64
 var MaxAccelAngleMargin int
-var MaxAccelMinAngle, MaxAccelMaxAngle int
 var MaxAccelMultiplier float64
 
 //var mouseScaleFactor float64 = 3
-//var mouseIntervalInt int = int(math.Round(mouseMaxMove*mouseScaleFactor))
+//var mouseIntervalInt  = ToMilliseconds(fmt.Sprint(math.Round(mouseMaxMove*mouseScaleFactor)))
 var mouseInterval time.Duration
 
 //scroll
