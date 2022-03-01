@@ -12,16 +12,12 @@ func matchEvent(event *Event) {
 				switch event.btnOrAxis {
 				case AxisLeftStickX:
 					scrollMovement.setX(event.value)
-					//mouseMovement.setX(event.value)
 				case AxisLeftStickY:
 					scrollMovement.setY(event.value)
-					//mouseMovement.setY(event.value)
 				case AxisRightStickX:
 					mouseMovement.setX(event.value)
-					//scrollMovement.setX(event.value)
 				case AxisRightStickY:
 					mouseMovement.setY(event.value)
-					//scrollMovement.setY(event.value)
 				}
 			case true:
 				switch event.btnOrAxis {
