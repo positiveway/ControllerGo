@@ -53,7 +53,7 @@ func matchEvent(event *Event) {
 	case EvButtonReleased:
 		buttonReleased(event.btnOrAxis)
 	case EvDisconnected:
-		print("Gamepad disconnected")
+		panicMsg("Gamepad disconnected")
 	case EvConnected:
 		print("Gamepad connected")
 	case EvDropped:
