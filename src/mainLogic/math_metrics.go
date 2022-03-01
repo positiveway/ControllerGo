@@ -28,24 +28,24 @@ type Coords struct {
 	mu          sync.Mutex
 }
 
-func (coords *Coords) setDirectlyX(x float64) {
-	coords._x = x
+func (coords *Coords) setDirectlyX(x *float64) {
+	coords._x = *x
 }
 
-func (coords *Coords) setDirectlyY(y float64) {
-	coords._y = y
+func (coords *Coords) setDirectlyY(y *float64) {
+	coords._y = *y
 }
 
-func (coords *Coords) setX(x float64) {
+func (coords *Coords) setX(x *float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords._x = x
+	coords._x = *x
 }
 
-func (coords *Coords) setY(y float64) {
+func (coords *Coords) setY(y *float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords._y = y
+	coords._y = *y
 }
 
 func (coords *Coords) reset() {
