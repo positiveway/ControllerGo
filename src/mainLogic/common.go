@@ -142,8 +142,8 @@ type BasicType interface {
 	Number | string | bool | rune
 }
 
-func applySign(sign bool, val *float64) {
-	if sign {
+func applySign(sign *bool, val *float64) {
+	if *sign {
 		*val *= -1
 	}
 }
@@ -154,16 +154,16 @@ func getSignMakeAbs(val *float64) bool {
 	return sign
 }
 
-func floatToInt(value float64) int {
-	return int(math.Round(value))
+func floatToInt(value *float64) int {
+	return int(math.Round(*value))
 }
 
-func floatToInt32(value float64) int32 {
-	return int32(math.Round(value))
+func floatToInt32(value *float64) int32 {
+	return int32(math.Round(*value))
 }
 
-func floatToInt64(value float64) int64 {
-	return int64(math.Round(value))
+func floatToInt64(value *float64) int64 {
+	return int64(math.Round(*value))
 }
 
 func trunc(number *float64, precision int) {

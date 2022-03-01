@@ -56,18 +56,18 @@ func ReleaseKeyOrMouse(key int) {
 	}
 }
 
-func TypeKey(key int) {
-	keyboard.KeyPress(key)
+func TypeKey(key *int) {
+	keyboard.KeyPress(*key)
 }
 
-func MoveMouse(x, y int32) {
-	mouse.Move(x, y)
+func MoveMouse(x, y *int32) {
+	mouse.Move(*x, *y)
 }
 
-func ScrollHorizontal(direction int32) {
-	mouse.Wheel(true, direction)
+func ScrollHorizontal(direction *int32) {
+	mouse.Wheel(true, *direction)
 }
 
-func ScrollVertical(direction int32) {
-	mouse.Wheel(false, direction)
+func ScrollVertical(direction *int32) {
+	mouse.Wheel(false, *direction)
 }

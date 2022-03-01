@@ -20,95 +20,86 @@ func (t *TimePassed) passedInterval(interval time.Duration) bool {
 }
 
 type Coords struct {
-	x, y           float64
-	forceX, forceY float64
-	magnitude      float64
-	mu             sync.Mutex
+	_x, _y      float64
+	x, y        float64
+	magnitude   float64
+	angle       int
+	_angleFloat float64
+	mu          sync.Mutex
 }
 
 func (coords *Coords) setDirectlyX(x float64) {
-	coords.x = x
+	coords._x = x
 }
 
 func (coords *Coords) setDirectlyY(y float64) {
-	coords.y = y
+	coords._y = y
 }
 
 func (coords *Coords) setX(x float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords.x = x
+	coords._x = x
 }
 
 func (coords *Coords) setY(y float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords.y = y
+	coords._y = y
 }
 
 func (coords *Coords) reset() {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords.x = 0
-	coords.y = 0
+	coords._x = 0
+	coords._y = 0
 }
 
-func (coords *Coords) normalizeValues() {
+func (coords *Coords) updateValues() {
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+
+	coords.x = coords._x
+	coords.y = coords._y
 	applyDeadzone(&coords.x)
 	applyDeadzone(&coords.y)
+
 	normalizeIncorrectEdgeValues(&coords.x, &coords.y, &coords.magnitude)
 }
 
-func (coords *Coords) getValues() (float64, float64, float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-
-	coords.normalizeValues()
-	return coords.x, coords.y, coords.magnitude
+func (coords *Coords) updateAngle() {
+	calcResolvedAngle(&coords.x, &coords.y, &coords._angleFloat, &coords.angle)
 }
 
-func (coords *Coords) getMetrics() Metrics {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
+//func (coords *Coords) oldGetMetrics() Metrics {
+//x, y := coords.getValues()
+//
+//magnitude := calcMagnitude(x, y)
+//resolvedAngle := calcResolvedAngle(x, y)
+//oneQuarterAngle := calcOneQuarterAngle(resolvedAngle)
 
-	coords.normalizeValues()
-	return Metrics{
-		x:         coords.x,
-		y:         coords.y,
-		magnitude: coords.magnitude,
-		angle:     calcResolvedAngle(coords.x, coords.y),
-	}
-}
+//mappedX, mappedY := mapCircleToSquare(x, y)
 
-func (coords *Coords) oldGetMetrics() Metrics {
-	//x, y := coords.getValues()
-	//
-	//magnitude := calcMagnitude(x, y)
-	//resolvedAngle := calcResolvedAngle(x, y)
-	//oneQuarterAngle := calcOneQuarterAngle(resolvedAngle)
+//if magnitude != 0 {
+//fmt.Printf("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f\n", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
+//}
 
-	//mappedX, mappedY := mapCircleToSquare(x, y)
+//return Metrics{
+//x:         x,
+//y:         y,
+//magnitude: magnitude,
+//angle:     resolvedAngle,
+//oneQuarterAngle: oneQuarterAngle,
+//}
+//}
 
-	//if magnitude != 0 {
-	//fmt.Printf("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f\n", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
-	//}
-
-	return Metrics{
-		//x:         x,
-		//y:         y,
-		//magnitude: magnitude,
-		//angle:     resolvedAngle,
-		//oneQuarterAngle: oneQuarterAngle,
-	}
-}
-
-type Metrics struct {
-	x, y float64
-	//mappedX, mappedY float64
-	magnitude float64
-	angle     int
-	//oneQuarterAngle int
-}
+//type Metrics struct {
+//	x, y float64
+//	mappedX, mappedY float64
+//	magnitude float64
+//	angle     int
+//	oneQuarterAngle int
+//}
 
 //func setToRadiusValue(val *float64) {
 //	*val = math.Copysign(1.0, *val)
@@ -137,7 +128,7 @@ func applyDeadzone(value *float64) {
 	}
 }
 
-const twoSqrt2 float64 = 2.0 * math.Sqrt2
+//const twoSqrt2 float64 = 2.0 * math.Sqrt2
 
 //func mapCircleToSquare(u, v float64) (float64, float64) {
 //	u2 := u * u
@@ -152,20 +143,20 @@ const twoSqrt2 float64 = 2.0 * math.Sqrt2
 //	return x, y
 //}
 
-func calcOneQuarterAngle(resolvedAngle int) int {
-	return floatToInt(math.Mod(float64(resolvedAngle), 90))
-}
+//func calcOneQuarterAngle(resolvedAngle int) int {
+//	return floatToInt(math.Mod(float64(resolvedAngle), 90))
+//}
 
-func resolveAngle(angle float64) int {
-	angle = math.Mod(angle+360, 360)
-	return floatToInt(angle)
+func resolveAngle(angleFloat *float64, angleInt *int) {
+	*angleFloat = math.Mod(*angleFloat+360, 360)
+	*angleInt = floatToInt(angleFloat)
 }
 
 const radiansMultiplier float64 = 180 / math.Pi
 
-func calcResolvedAngle(x, y float64) int {
-	degrees := math.Atan2(y, x) * radiansMultiplier
-	return resolveAngle(degrees)
+func calcResolvedAngle(x, y, angleFloat *float64, angleInt *int) {
+	*angleFloat = math.Atan2(*y, *x) * radiansMultiplier
+	resolveAngle(angleFloat, angleInt)
 }
 
 func calcMagnitude(x, y float64) float64 {
@@ -187,25 +178,26 @@ func normalizeIncorrectEdgeValues(x, y, magnitude *float64) {
 
 const outputRangeMin float64 = 1.0
 
-func convertRange(input, outputMax float64) float64 {
-	sign := getSignMakeAbs(&input)
+func convertRange(input *float64, outputMax float64, output *float64) {
+	sign := getSignMakeAbs(input)
 
-	if input == 0.0 {
-		return 0.0
+	if *input == 0.0 {
+		*output = 0.0
+		return
 	}
 
-	if input > 1.0 {
+	if *input > 1.0 {
 		panicMsg("Axis input value is greater than 1.0. Current value: %v\n", input)
 	}
 
-	output := outputRangeMin + ((outputMax-outputRangeMin)/inputRange)*(input-Deadzone)
-	applySign(sign, &output)
-	return output
+	*output = outputRangeMin + ((outputMax-outputRangeMin)/inputRange)*(*input-Deadzone)
+	applySign(&sign, output)
 }
 
-func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
-	input = math.Abs(input)
-	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
-	refreshInterval = slowestInterval - refreshInterval
-	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
+func calcRefreshInterval(input, slowestInterval, fastestInterval *float64) time.Duration {
+	*input = math.Abs(*input)
+	var refreshInterval float64
+	convertRange(input, *slowestInterval-*fastestInterval, &refreshInterval)
+	refreshInterval = *slowestInterval - refreshInterval
+	return time.Duration(floatToInt64(&refreshInterval)) * time.Millisecond
 }

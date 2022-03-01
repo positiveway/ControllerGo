@@ -42,8 +42,13 @@ var boundariesMap BoundariesMap
 func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction string) {
 	lowerBound += 360
 	upperBound += 360
+
+	var resolvedAngle int
+	var angleFloat float64
+
 	for angle := lowerBound; angle <= upperBound; angle++ {
-		resolvedAngle := resolveAngle(float64(angle))
+		angleFloat = float64(angle)
+		resolveAngle(&angleFloat, &resolvedAngle)
 		_boundariesMap[resolvedAngle] = direction
 	}
 }
@@ -98,24 +103,24 @@ func makeJoystickTyping() JoystickTyping {
 
 var joystickTyping JoystickTyping
 
-func detectZone(magnitude float64, angle int) string {
-	if magnitude > MagnitudeThreshold {
+func detectZone(magnitude *float64, angle *int) string {
+	if *magnitude > MagnitudeThreshold {
 		//fmt.Printf("%v\n", angle)
-		return getOrDefault(boundariesMap, angle, EdgeZone)
+		return getOrDefault(boundariesMap, *angle, EdgeZone)
 	} else {
 		return NeutralZone
 	}
 }
 
-func zoneCanBeUsed(zone string) bool {
-	return zone != EdgeZone && zone != NeutralZone
+func zoneCanBeUsed(zone *string) bool {
+	return *zone != EdgeZone && *zone != NeutralZone
 }
 
-func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
-	if zone != EdgeZone {
-		if *prevZone != zone {
-			*prevZone = zone
-			if zone == NeutralZone {
+func (jTyping *JoystickTyping) zoneChanged(zone *string, prevZone *string) bool {
+	if *zone != EdgeZone {
+		if *prevZone != *zone {
+			*prevZone = *zone
+			if *zone == NeutralZone {
 				jTyping.awaitingNeutralPos = false
 			}
 			return true
@@ -125,11 +130,12 @@ func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 }
 
 func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
-	coordsMetrics := coords.getMetrics()
+	coords.updateValues()
+	coords.updateAngle()
 
-	zone := detectZone(coordsMetrics.magnitude, coordsMetrics.angle)
-	canUse := zoneCanBeUsed(zone)
-	changed := jTyping.zoneChanged(zone, prevZone)
+	zone := detectZone(&coords.magnitude, &coords.angle)
+	canUse := zoneCanBeUsed(&zone)
+	changed := jTyping.zoneChanged(&zone, prevZone)
 	return canUse, changed
 }
 
@@ -153,7 +159,7 @@ func (jTyping *JoystickTyping) typeLetter() {
 				jTyping.awaitingNeutralPos = true
 				position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
 				if code, found := jTyping.layout[position]; found {
-					osSpecific.TypeKey(code)
+					osSpecific.TypeKey(&code)
 				}
 			}
 		}
