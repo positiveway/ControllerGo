@@ -54,7 +54,7 @@ func genBoundariesMap() BoundariesMap {
 	//	ZoneRight:   {350, 22},
 	//	ZoneUpRight: {24, 71},
 	//}
-	//fmt.Println(newMapping)
+	//print(newMapping)
 
 	if RightAngleMargin+DiagonalAngleMargin > 45 {
 		panic("With this margin of angle areas will overlap")
@@ -101,7 +101,7 @@ var joystickTyping JoystickTyping
 
 func detectZone(magnitude float64, angle int) string {
 	if magnitude > MagnitudeThreshold {
-		//fmt.Printf("%v\n", angle)
+		//print("%v", angle)
 		return getOrDefault(boundariesMap, angle, EdgeZone)
 	} else {
 		return NeutralZone
@@ -146,9 +146,9 @@ func (jTyping *JoystickTyping) updateRightZone() {
 
 func (jTyping *JoystickTyping) typeLetter() {
 	if jTyping.leftCanUse && jTyping.rightCanUse {
-		//fmt.Printf("%s %s\n", jTyping.leftStickZone, jTyping.rightStickZone)
-		//fmt.Printf("%v %v\n", leftCanUse, rightCanUse)
-		//fmt.Printf("%v %v\n", leftChanged, rightChanged)
+		//print("%s %s", jTyping.leftStickZone, jTyping.rightStickZone)
+		//print("%v %v", leftCanUse, rightCanUse)
+		//print("%v %v", leftChanged, rightChanged)
 
 		if jTyping.leftChanged || jTyping.rightChanged {
 			if !jTyping.awaitingNeutralPos {

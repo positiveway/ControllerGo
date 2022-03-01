@@ -95,11 +95,19 @@ func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	return linesParts
 }
 
-func panicMsg(message string, variables ...any) {
+func sPrint(message string, variables ...any) string {
 	if !strings.HasSuffix(message, "\n") {
 		message += "\n"
 	}
-	panic(fmt.Sprintf(message, variables))
+	return fmt.Sprintf(message, variables...)
+}
+
+func print(message string, variables ...any) {
+	fmt.Print(sPrint(message, variables...))
+}
+
+func panicMsg(message string, variables ...any) {
+	panic(sPrint(message, variables...))
 }
 
 func PanicMisspelled(str string) {

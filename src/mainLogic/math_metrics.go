@@ -154,7 +154,7 @@ func calcOneQuarterAngle(resolvedAngle int) int {
 //mappedX, mappedY := mapCircleToSquare(x, y)
 
 //if magnitude != 0 {
-//fmt.Printf("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f\n", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
+//print("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
 //}
 
 //return Metrics{

@@ -1,7 +1,6 @@
 package mainLogic
 
 import (
-	"fmt"
 	"net"
 )
 
@@ -16,7 +15,7 @@ func RunWebSocket() {
 	if err != nil {
 		panicMsg("Listen err %v", err)
 	}
-	fmt.Printf("Listen at %v\n", addr.String())
+	print("Listen at %v", addr.String())
 
 	p := make([]byte, 32)
 	event := Event{}
@@ -24,12 +23,12 @@ func RunWebSocket() {
 	for {
 		nn, _, err := server.ReadFromUDP(p)
 		if err != nil {
-			fmt.Printf("Read err  %v", err)
+			print("Read err  %v", err)
 			continue
 		}
 
-		//fmt.Println(nn)
-		//fmt.Println(string(p[:nn]))
+		//print(nn)
+		//print(string(p[:nn]))
 
 		event.update(string(p[:nn]))
 		matchEvent(&event)

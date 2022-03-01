@@ -99,7 +99,7 @@ func press(btn string, hold bool) {
 	buttonsToRelease[btn] = command
 	//if len(command) > 1 && command[0] == controlKey {
 	//	locale := osSpecific.GetLocale()
-	//	println(locale)
+	//	print(locale)
 	//}
 	for _, el := range command {
 		osSpecific.PressKeyOrMouse(el)
@@ -175,7 +175,7 @@ func RunReleaseHoldThread() {
 		buttonsMutex.Lock()
 		for btn, startTime := range holdStartTime {
 			holdDuration = time.Now().Sub(startTime)
-			//fmt.Printf("duration: %v\n", holdDuration)
+			//print("duration: %v", holdDuration)
 			if holdDuration > holdThreshold {
 				press(btn, true)
 				delete(holdStartTime, btn)

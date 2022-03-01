@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const LeftMouse = -3
@@ -18,10 +19,21 @@ func CheckErr(err error) {
 	}
 }
 
+func sPrint(message string, variables ...any) string {
+	if !strings.HasSuffix(message, "\n") {
+		message += "\n"
+	}
+	return fmt.Sprintf(message, variables...)
+}
+
+func print(message string, variables ...any) {
+	fmt.Print(sPrint(message, variables...))
+}
+
 func GetCurFileDir() string {
 	ex, err := os.Executable()
 	CheckErr(err)
 	exPath := filepath.Dir(ex)
-	fmt.Printf("Exec path: %s\n", exPath)
+	print("Exec path: %s", exPath)
 	return exPath
 }

@@ -2,7 +2,6 @@ package mainLogic
 
 import (
 	"ControllerGo/src/osSpecific"
-	"fmt"
 	"math"
 	"time"
 )
@@ -29,13 +28,13 @@ func mouseForce(input float64) int32 {
 
 func printForce(force float64, prefix string) {
 	if force != 0.0 {
-		fmt.Printf("%s: %0.3f\n", prefix, force)
+		print("%s: %0.3f", prefix, force)
 	}
 }
 
 func printPair[T Number](_x, _y T, prefix string) {
 	x, y := float64(_x), float64(_y)
-	fmt.Printf("%s: %0.2f %0.2f\n", prefix, x, y)
+	print("%s: %0.2f %0.2f", prefix, x, y)
 }
 
 func RunMouseMoveThread() {
@@ -55,7 +54,7 @@ func RunMouseMoveThread() {
 		//}
 
 		if xForce != 0 || yForce != 0 {
-			//fmt.Printf("%v %v\n", xForce, yForce)
+			//print("%v %v", xForce, yForce)
 			osSpecific.MoveMouse(xForce, yForce)
 		}
 

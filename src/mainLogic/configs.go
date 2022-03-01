@@ -107,7 +107,7 @@ var MaxAccelAngleMargin int
 var MaxAccelMultiplier float64
 
 //var mouseScaleFactor float64 = 3
-//var mouseIntervalInt  = ToMilliseconds(fmt.Sprint(math.Round(mouseMaxMove*mouseScaleFactor)))
+//var mouseIntervalInt  = ToMilliseconds(sPrint(math.Round(mouseMaxMove*mouseScaleFactor)))
 var mouseInterval time.Duration
 
 //scroll
