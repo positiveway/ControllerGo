@@ -111,8 +111,8 @@ func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 		y /= magnitude
 		magnitude = 1.0
 	}
-	x = trunc(x, FloatPrecision)
-	y = trunc(y, FloatPrecision)
+	//x = trunc(x, FloatPrecision)
+	//y = trunc(y, FloatPrecision)
 	return x, y, magnitude
 }
 
