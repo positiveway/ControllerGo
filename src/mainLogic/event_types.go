@@ -28,6 +28,13 @@ func (event *Event) update(msg string) {
 	}
 }
 
+func (event *Event) print() {
+	print("%s %s %v",
+		strings.TrimPrefix(event.eventType, "Ev"),
+		strings.TrimPrefix(strings.TrimPrefix(event.btnOrAxis, "Btn"), "Axis"),
+		event.value)
+}
+
 const (
 	AxisLeftStickX  string = "AxisLeftStickX"
 	AxisLeftStickY         = "AxisLeftStickY"
