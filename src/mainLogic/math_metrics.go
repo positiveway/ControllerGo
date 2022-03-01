@@ -175,10 +175,11 @@ func calcMagnitude(x, y float64) float64 {
 const FloatPrecision int = 8
 
 func normalizeIncorrectEdgeValues(x, y, magnitude *float64) {
-	*magnitude = calcMagnitude(*x, *y)
+	*magnitude = math.Hypot(*x, *y)
 	if *magnitude > 1.0 {
 		*x /= *magnitude
 		*y /= *magnitude
+		*magnitude = 1.0
 	}
 	trunc(x, FloatPrecision)
 	trunc(y, FloatPrecision)
