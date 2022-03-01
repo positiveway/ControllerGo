@@ -41,7 +41,7 @@ func printPair[T Number](_x, _y T, prefix string) {
 func calcForces() (int32, int32) {
 	//coordsMetrics := mouseMovement.getMetrics()
 	//coordsMetrics.correctValuesNearRadius()
-	x, y := mouseMovement.getValues()
+	x, y, _ := mouseMovement.getValues()
 
 	xForce := mouseForce(x)
 	yForce := -mouseForce(y)
@@ -97,8 +97,7 @@ func getDirections(x, y float64) (int32, int32) {
 
 func RunScrollThread() {
 	for {
-		x, y := scrollMovement.getValues()
-		magnitude := calcMagnitude(x, y)
+		x, y, magnitude := scrollMovement.getValues()
 		hDir, vDir := getDirections(x, y)
 
 		scrollInterval := time.Duration(scrollFastestInterval) * time.Millisecond
