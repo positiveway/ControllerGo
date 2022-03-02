@@ -1,6 +1,6 @@
 //go:build windows
 
-package osSpecific
+package platformSpecific
 
 import (
 	"github.com/go-vgo/robotgo"

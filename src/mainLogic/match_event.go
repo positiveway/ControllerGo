@@ -1,15 +1,15 @@
 package mainLogic
 
 func matchEvent() {
-	//event.print()
+	event.print()
 
 	switch event.eventType {
 	case EvAxisChanged:
 		switch SteamController {
 		case true:
-			eventChangedSteam()
+			SteamEventChanged()
 		case false:
-			eventChangedDS()
+			DsEventChanged()
 		}
 	case EvButtonChanged:
 		detectTriggers()

@@ -1,4 +1,4 @@
-package osSpecific
+package platformSpecific
 
 import (
 	"fmt"

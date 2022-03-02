@@ -1,7 +1,7 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpecific"
+	"ControllerGo/src/platformSpecific"
 	"math"
 	"time"
 )
@@ -55,7 +55,7 @@ func RunMouseMoveThread() {
 
 		if xForce != 0 || yForce != 0 {
 			//print("%v %v", xForce, yForce)
-			osSpecific.MoveMouse(xForce, yForce)
+			platformSpecific.MoveMouse(xForce, yForce)
 		}
 
 		time.Sleep(mouseInterval)
@@ -104,10 +104,10 @@ func RunScrollThread() {
 		}
 
 		if hDir != 0 {
-			osSpecific.ScrollHorizontal(hDir)
+			platformSpecific.ScrollHorizontal(hDir)
 		}
 		if vDir != 0 {
-			osSpecific.ScrollVertical(vDir)
+			platformSpecific.ScrollVertical(vDir)
 		}
 
 		time.Sleep(scrollInterval)

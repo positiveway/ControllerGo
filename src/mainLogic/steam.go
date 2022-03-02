@@ -4,7 +4,7 @@ func detectDPadButton() {
 
 }
 
-func eventChangedSteam() {
+func SteamEventChanged() {
 	switch GamesModeOn {
 	case false:
 		switch typingMode.mode {

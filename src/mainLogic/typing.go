@@ -1,8 +1,6 @@
 package mainLogic
 
-import (
-	"ControllerGo/src/osSpecific"
-)
+import "ControllerGo/src/platformSpecific"
 
 const NeutralZone = "⬤"
 const EdgeZone = "❌"
@@ -155,7 +153,7 @@ func (jTyping *JoystickTyping) typeLetter() {
 				jTyping.awaitingNeutralPos = true
 				position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
 				if code, found := jTyping.layout[position]; found {
-					osSpecific.TypeKey(code)
+					platformSpecific.TypeKey(code)
 				}
 			}
 		}

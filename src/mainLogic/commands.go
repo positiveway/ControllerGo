@@ -1,7 +1,7 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpecific"
+	"ControllerGo/src/platformSpecific"
 	"path"
 	"sync"
 	"time"
@@ -25,9 +25,9 @@ const SwitchToTyping = -2
 
 var commonCmdMapping = map[string]int{
 	"NoAction":       NoAction,
-	"LeftMouse":      osSpecific.LeftMouse,
-	"RightMouse":     osSpecific.RightMouse,
-	"MiddleMouse":    osSpecific.MiddleMouse,
+	"LeftMouse":      platformSpecific.LeftMouse,
+	"RightMouse":     platformSpecific.RightMouse,
+	"MiddleMouse":    platformSpecific.MiddleMouse,
 	"SwitchToTyping": SwitchToTyping,
 }
 
@@ -102,7 +102,7 @@ func press(btn string, hold bool) {
 	//	print(locale)
 	//}
 	for _, el := range command {
-		osSpecific.PressKeyOrMouse(el)
+		platformSpecific.PressKeyOrMouse(el)
 	}
 }
 
@@ -113,7 +113,7 @@ func release(btn string) {
 	}
 
 	for _, el := range reverse(command) {
-		osSpecific.ReleaseKeyOrMouse(el)
+		platformSpecific.ReleaseKeyOrMouse(el)
 	}
 }
 
