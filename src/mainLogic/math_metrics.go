@@ -108,9 +108,7 @@ func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 	return x, y, magnitude
 }
 
-const outputRangeMin float64 = 1.0
-
-func convertRange(input float64, outputMax float64) float64 {
+func convertRange(input, outputMin, outputMax float64) float64 {
 	sign, input := getSignAndAbs(input)
 
 	if input == 0.0 {
@@ -121,13 +119,13 @@ func convertRange(input float64, outputMax float64) float64 {
 		panicMsg("Axis input value is greater than 1.0. Current value: %v", input)
 	}
 
-	output := outputRangeMin + ((outputMax-outputRangeMin)/inputRange)*(input-Deadzone)
+	output := outputMin + ((outputMax-outputMin)/inputRange)*(input-Deadzone)
 	return applySign(sign, output)
 }
 
 func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
-	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
+	refreshInterval := convertRange(input, 1.0, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - refreshInterval
 	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
 }

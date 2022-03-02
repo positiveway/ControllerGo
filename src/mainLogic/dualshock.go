@@ -60,7 +60,7 @@ func applyPower(force float64) float64 {
 }
 
 func mouseForce(input float64) int32 {
-	force := convertRange(input, mouseMaxMove)
+	force := convertRange(input, 1.0, mouseMaxMove)
 	//printForce(force, "before")
 	force = applyPower(force)
 	//if magnitude >= MaxAccelRadiusThreshold {

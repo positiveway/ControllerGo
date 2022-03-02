@@ -18,8 +18,8 @@ MaxAccelMultiplier = 1.5
 mouseInterval = 18
 
 //scroll
-scrollFastestInterval = 20
-scrollSlowestInterval = 140
+scrollFastestInterval = 40
+scrollSlowestInterval = 280
 
 horizontalScrollThreshold = 0.45
 
