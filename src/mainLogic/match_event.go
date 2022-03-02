@@ -1,7 +1,7 @@
 package mainLogic
 
 func matchEvent() {
-	event.print()
+	//event.print()
 
 	switch event.eventType {
 	case EvAxisChanged:

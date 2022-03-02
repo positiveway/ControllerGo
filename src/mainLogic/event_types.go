@@ -29,7 +29,7 @@ func (event *Event) update(msg string) {
 }
 
 func (event *Event) print() {
-	print("%s %s %v",
+	print("%s %s %0.2f",
 		strings.TrimPrefix(event.eventType, "Ev"),
 		strings.TrimPrefix(strings.TrimPrefix(event.btnOrAxis, "Btn"), "Axis"),
 		event.value)

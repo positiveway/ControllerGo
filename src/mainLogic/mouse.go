@@ -6,60 +6,11 @@ import (
 	"time"
 )
 
-var mouseMovement = Coords{}
 var scrollMovement = Coords{}
-
-func applyPower(force float64) float64 {
-	sign, force := getSignAndAbs(force)
-	force = math.Pow(force, forcePower)
-	return applySign(sign, force)
-}
-
-func mouseForce(input float64) int32 {
-	force := convertRange(input, mouseMaxMove)
-	//printForce(force, "before")
-	force = applyPower(force)
-	//if magnitude >= MaxAccelRadiusThreshold {
-	//	force *= MaxAccelMultiplier
-	//}
-	//printForce(force, "after")
-	return floatToInt32(force)
-}
-
-func printForce(force float64, prefix string) {
-	if force != 0.0 {
-		print("%s: %0.3f", prefix, force)
-	}
-}
 
 func printPair[T Number](_x, _y T, prefix string) {
 	x, y := float64(_x), float64(_y)
 	print("%s: %0.2f %0.2f", prefix, x, y)
-}
-
-func RunMouseMoveThread() {
-	var xForce, yForce int32
-	for {
-		//coordsMetrics := mouseMovement.getMetrics()
-		//coordsMetrics.correctValuesNearRadius()
-		mouseMovement.updateValues()
-
-		xForce = mouseForce(mouseMovement.x)
-		yForce = -mouseForce(mouseMovement.y)
-
-		//if x != 0.0 || y != 0.0{
-		//	printPair(x, y, "x, y")
-		//	printPair(xForce, yForce, "force")
-		//	fmt.Println()
-		//}
-
-		if xForce != 0 || yForce != 0 {
-			//print("%v %v", xForce, yForce)
-			platformSpecific.MoveMouse(xForce, yForce)
-		}
-
-		time.Sleep(mouseInterval)
-	}
 }
 
 func calcScrollInterval(input float64) time.Duration {
