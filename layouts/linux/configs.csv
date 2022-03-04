@@ -1,5 +1,3 @@
-SteamController = true
-
 //games
 GamesModeOn = false
 
@@ -8,11 +6,10 @@ TriggerThreshold = 0.05
 holdThreshold = 200
 
 //mouse
-mouseMaxMove = 6
+mouseMaxMove = 300
 forcePower = 1.4
 deadzone = 0.0
 MaxAccelRadiusThreshold = 0.96
-MaxAccelAngleMargin = 10
 MaxAccelMultiplier = 1.5
 
 mouseInterval = 18

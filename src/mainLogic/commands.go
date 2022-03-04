@@ -13,7 +13,7 @@ type CommandsMode struct {
 
 func (c *CommandsMode) switchMode() {
 	c.mode = !c.mode
-	mouseMovement.reset()
+	movementCoords.reset()
 	scrollMovement.reset()
 }
 

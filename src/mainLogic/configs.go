@@ -50,8 +50,6 @@ func toIntToFloatConfig(name string) float64 {
 func setConfigVars() {
 	loadConfigs()
 
-	SteamController = toBoolConfig("SteamController")
-
 	//games
 	GamesModeOn = toBoolConfig("GamesModeOn")
 
@@ -65,11 +63,6 @@ func setConfigVars() {
 
 	MaxAccelMultiplier = toFloatConfig("MaxAccelMultiplier")
 	MaxAccelRadiusThreshold = toFloatConfig("MaxAccelRadiusThreshold")
-
-	switch SteamController {
-	case false:
-		MaxAccelAngleMargin = toIntConfig("MaxAccelAngleMargin")
-	}
 
 	Deadzone = toFloatConfig("Deadzone")
 	inputRange = 1.0 - Deadzone
@@ -92,8 +85,6 @@ func setConfigVars() {
 	DefaultRefreshInterval = toMillisecondsConfig("DefaultRefreshInterval")
 }
 
-var SteamController bool
-
 //games
 var GamesModeOn bool
 
@@ -107,7 +98,6 @@ var forcePower float64
 var Deadzone float64
 var inputRange float64
 var MaxAccelRadiusThreshold float64
-var MaxAccelAngleMargin int
 var MaxAccelMultiplier float64
 
 //var mouseScaleFactor float64 = 3

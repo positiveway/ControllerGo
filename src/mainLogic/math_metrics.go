@@ -6,19 +6,6 @@ import (
 	"time"
 )
 
-type TimePassed struct {
-	value time.Duration
-}
-
-func (t *TimePassed) passedInterval(interval time.Duration) bool {
-	t.value += DefaultRefreshInterval
-	if t.value >= interval {
-		t.value = 0
-		return true
-	}
-	return false
-}
-
 type Coords struct {
 	_x, _y    float64
 	x, y      float64
@@ -45,6 +32,10 @@ func (coords *Coords) setY(y float64) {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
 	coords._y = y
+}
+
+func (coords *Coords) printCurState() {
+	printPair(coords._x, coords._y, "(x, y): ")
 }
 
 func (coords *Coords) reset() {
@@ -94,8 +85,6 @@ func calcMagnitude(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
-const FloatPrecision int = 8
-
 func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 	magnitude := calcMagnitude(x, y)
 	if magnitude > 1.0 {
@@ -103,12 +92,12 @@ func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 		y /= magnitude
 		magnitude = 1.0
 	}
-	//x = trunc(x, FloatPrecision)
-	//y = trunc(y, FloatPrecision)
 	return x, y, magnitude
 }
 
-func convertRange(input, outputMin, outputMax float64) float64 {
+const outputMin float64 = 0.0
+
+func convertRange(input, outputMax float64) float64 {
 	sign, input := getSignAndAbs(input)
 
 	if input == 0.0 {
@@ -125,64 +114,24 @@ func convertRange(input, outputMin, outputMax float64) float64 {
 
 func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
-	refreshInterval := convertRange(input, 1.0, slowestInterval-fastestInterval)
+	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - refreshInterval
 	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
 }
 
-func calcOneQuarterAngle(resolvedAngle int) int {
-	return floatToInt(math.Mod(float64(resolvedAngle), 90))
+func applyPower(force float64) float64 {
+	sign, force := getSignAndAbs(force)
+	force = math.Pow(force, forcePower)
+	return applySign(sign, force)
 }
 
-//func initMaxAccelValues() {
-//	if MaxAccelAngleMargin > 45 {
-//		panicMsg("Incorrect value of \"MaxAccelAngleMargin\": %v", MaxAccelAngleMargin)
-//	}
-//	MaxAccelMinAngle = 45 - MaxAccelAngleMargin
-//	MaxAccelMaxAngle = 45 + MaxAccelAngleMargin
-//}
+func printPair[T Number](_x, _y T, prefix string) {
+	x, y := float64(_x), float64(_y)
+	print("%s: %0.2f %0.2f", prefix, x, y)
+}
 
-//func (coords *Coords) oldGetMetrics() Metrics {
-//x, y := coords.getValues()
-//
-//magnitude := calcMagnitude(x, y)
-//resolvedAngle := calcResolvedAngle(x, y)
-//oneQuarterAngle := calcOneQuarterAngle(resolvedAngle)
-
-//mappedX, mappedY := mapCircleToSquare(x, y)
-
-//if magnitude != 0 {
-//print("x: %0.2f, y: %0.2f, mappedX: %0.2f, mappedY: %0.2f, magn: %0.2f", coordsMetrics.x, coordsMetrics.y, coordsMetrics.mappedX, coordsMetrics.mappedY, coordsMetrics.magnitude)
-//}
-
-//return Metrics{
-//x:         x,
-//y:         y,
-//magnitude: magnitude,
-//angle:     resolvedAngle,
-//oneQuarterAngle: oneQuarterAngle,
-//}
-//}
-
-//type Metrics struct {
-//	x, y float64
-//	mappedX, mappedY float64
-//	magnitude float64
-//	angle     int
-//	oneQuarterAngle int
-//}
-
-//func setToRadiusValue(val *float64) {
-//	*val = math.Copysign(1.0, *val)
-//}
-
-//func (metrics *Metrics) correctValuesNearRadius() {
-//	if metrics.magnitude > MaxAccelRadiusThreshold {
-//		if MaxAccelMinAngle < metrics.oneQuarterAngle && metrics.oneQuarterAngle < MaxAccelMaxAngle {
-//			setToRadiusValue(&metrics.x)
-//			setToRadiusValue(&metrics.y)
-//		}
-//	}
+//func calcOneQuarterAngle(resolvedAngle int) int {
+//	return floatToInt(math.Mod(float64(resolvedAngle), 90))
 //}
 
 //const twoSqrt2 float64 = 2.0 * math.Sqrt2

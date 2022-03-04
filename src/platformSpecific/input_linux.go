@@ -61,7 +61,7 @@ func TypeKey(key int) {
 }
 
 func MoveMouse(x, y int32) {
-	mouse.Move(x, y)
+	mouse.Move(x, -y)
 }
 
 func ScrollHorizontal(direction int32) {

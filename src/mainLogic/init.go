@@ -52,7 +52,6 @@ func RunMain() {
 	defer platformSpecific.CloseInputResources()
 	defer releaseAll()
 
-	go RunMouseMoveThread()
 	go RunScrollThread()
 	go RunReleaseHoldThread()
 
@@ -61,7 +60,7 @@ func RunMain() {
 	}
 
 	runtime.GC()
-	debug.SetGCPercent(-1)
+	debug.SetGCPercent(1000)
 
 	RunWebSocket()
 }
