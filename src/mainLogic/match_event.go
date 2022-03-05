@@ -49,8 +49,6 @@ func eventChanged() {
 }
 
 func matchEvent() {
-	event.print()
-
 	switch event.eventType {
 	case EvAxisChanged:
 		eventChanged()

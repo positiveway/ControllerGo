@@ -42,29 +42,26 @@ type Event struct {
 	code      int
 }
 
-func convertToAxisChanged() {
-	switch event.eventType {
-	case EvButtonPressed:
-		event.codeType = CTPadPressed
-	case EvButtonReleased:
-		event.codeType = CTPadReleased
-	default:
-		return
-	}
-	event.eventType = EvAxisChanged
-	event.value = 0
-	event.code = 0
-}
-
-func resolveUnknownButton() {
+func (event *Event) convertToAxisChanged() {
 	if event.btnOrAxis == BtnUnknown && event.codeType == CTAbs {
 		if btn, found := CodeToAxisMap[event.code]; found {
+			switch event.eventType {
+			case EvButtonPressed:
+				event.codeType = CTPadPressed
+			case EvButtonReleased:
+				event.codeType = CTPadReleased
+			default:
+				return
+			}
 			event.btnOrAxis = btn
+			event.eventType = EvAxisChanged
+			event.value = 0
+			event.code = 0
 		}
 	}
 }
 
-func filterEvents() {
+func (event *Event) filterEvents() {
 	if event.eventType == EvAxisChanged {
 		if adjustment, found := AxesAdjustments[event.btnOrAxis]; found {
 			if event.value == 0.0 {
@@ -83,8 +80,13 @@ func filterEvents() {
 		}
 	}
 
-	resolveUnknownButton()
-	convertToAxisChanged()
+	//fmt.Printf("Before: ")
+	//event.print()
+
+	event.convertToAxisChanged()
+
+	//fmt.Printf("After: ")
+	//event.print()
 
 	matchEvent()
 }
@@ -117,7 +119,7 @@ func (event *Event) update(msg string) {
 			CheckErr(err)
 		}
 	}
-	filterEvents()
+	event.filterEvents()
 }
 
 func (event *Event) print() {
