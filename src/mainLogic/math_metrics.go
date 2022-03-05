@@ -23,7 +23,10 @@ func (coords *Coords) setDirectlyY() {
 }
 
 func (coords *Coords) set(receiver *float64) {
-	if event.codeType == PadTouchedCodeType && event.value == AxisReleased {
+	switch event.codeType {
+	case CTPadPressed:
+		return
+	case EvButtonReleased:
 		coords.reset()
 		return
 	}

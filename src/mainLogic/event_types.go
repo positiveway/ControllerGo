@@ -5,12 +5,83 @@ import (
 	"strings"
 )
 
+var NoneEvent = Event{
+	eventType: EvConnected,
+}
+
+const BufferLen = 5
+
+type EventBuffer = [BufferLen]Event
+
+var eventBuffer = EventBuffer{
+	NoneEvent,
+	NoneEvent,
+	NoneEvent,
+	NoneEvent,
+	NoneEvent,
+}
+
+//func initBuffer() EventBuffer {
+//	buf := EventBuffer{}
+//	for  i := 1; i < BufferLen; i++{
+//		buf = append(buf, NoneEvent)
+//	}
+//}
+
+func updateBuffer() {
+	eventBuffer = EventBuffer{
+		eventBuffer[1],
+		eventBuffer[2],
+		eventBuffer[3],
+		eventBuffer[4],
+		event,
+	}
+}
+
 type Event struct {
 	eventType string
 	btnOrAxis string
 	value     float64
 	codeType  string
 	code      int
+}
+
+var BtnStateEvents = []string{EvButtonPressed, EvButtonReleased}
+
+func convertToAxisChanged() {
+	if !contains(BtnStateEvents, event.eventType) {
+		return
+	}
+	switch event.eventType {
+	case EvButtonPressed:
+		event.codeType = CTPadPressed
+	case EvButtonReleased:
+		event.codeType = CTPadReleased
+	default:
+		return
+	}
+	event.eventType = EvAxisChanged
+	event.value = 0
+	event.code = 0
+}
+
+func resolveUnknownButton() {
+	if event.btnOrAxis == BtnUnknown && event.codeType == CTAbs {
+		if btn, found := CodeToAxisMap[event.code]; found {
+			event.btnOrAxis = btn
+		}
+	}
+}
+
+func filterEvents() {
+	if event.eventType == EvAxisChanged && event.value == 0.0 {
+		return
+	}
+
+	resolveUnknownButton()
+	convertToAxisChanged()
+
+	matchEvent()
 }
 
 func (event *Event) update(msg string) {
@@ -30,10 +101,6 @@ func (event *Event) update(msg string) {
 			event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
 			CheckErr(err)
 
-			if event.value == 0.0 {
-				return
-			}
-
 			if strings.HasSuffix(msg, ";") {
 				return
 			}
@@ -45,7 +112,7 @@ func (event *Event) update(msg string) {
 			CheckErr(err)
 		}
 	}
-	matchEvent()
+	filterEvents()
 }
 
 func (event *Event) print() {
@@ -58,11 +125,11 @@ func (event *Event) print() {
 }
 
 const (
-	CodeTypeAbs string = "ABS"
-	CodeTypeKey        = "KEY"
+	CTAbs         string = "ABS"
+	CTKey                = "KEY"
+	CTPadPressed         = "PadPressed"
+	CTPadReleased        = "PadReleased"
 )
-
-const PadTouchedCodeType = "T0uched"
 
 const (
 	CodeLeftPadX  int = 16
@@ -77,11 +144,6 @@ var CodeToAxisMap = map[int]string{
 	CodeRightPadX: AxisRightStickX,
 	CodeRightPadY: AxisRightStickY,
 }
-
-const (
-	AxisPressed  float64 = 3
-	AxisReleased         = 4
-)
 
 const (
 	AxisLeftStickX  string = "AxisLeftStickX"

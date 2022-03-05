@@ -23,14 +23,14 @@ func makeTouchPosition() TouchPadPosition {
 }
 
 func (pad *TouchPadPosition) setX() {
-	if pixels := pad.calcPixels(event.value, &pad.prevX); pixels != 0 {
+	if pixels := pad.calcPixels(&pad.prevX); pixels != 0 {
 		//print("x: %v", pixels)
 		platformSpecific.MoveMouse(pixels, 0)
 	}
 }
 
 func (pad *TouchPadPosition) setY() {
-	if pixels := pad.calcPixels(event.value, &pad.prevY); pixels != 0 {
+	if pixels := pad.calcPixels(&pad.prevY); pixels != 0 {
 		//print("y: %v", pixels)
 		platformSpecific.MoveMouse(0, pixels)
 	}
@@ -45,12 +45,14 @@ func (pad *TouchPadPosition) reset() {
 const changeThreshold float64 = 0.01
 const pixelsThreshold = 2
 
-func (pad *TouchPadPosition) calcPixels(curValue float64, prevValue *float64) int32 {
-	switch curValue {
-	case AxisPressed:
+func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
+	curValue := event.value
+
+	switch event.codeType {
+	case CTPadPressed:
 		pad.touchHappen = true
 		return 0
-	case AxisReleased:
+	case CTPadReleased:
 		pad.reset()
 		return 0
 	}
