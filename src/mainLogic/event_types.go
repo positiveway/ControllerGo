@@ -15,7 +15,7 @@ var AxesAdjustments = map[string]Adjustment{
 	AxisDPadY:       {0.02, 0.15},
 }
 
-var adjustmentThreshold float64 = 0.8
+var adjustmentThreshold float64 = 0.65
 
 func checkAdj(value float64) {
 	if value < 0 {
@@ -86,7 +86,7 @@ func (event *Event) filterEvents() {
 	event.convertToAxisChanged()
 
 	//fmt.Printf("After: ")
-	//event.print()
+	event.print()
 
 	matchEvent()
 }
