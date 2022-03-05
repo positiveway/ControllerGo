@@ -9,6 +9,8 @@ type Event struct {
 	eventType string
 	btnOrAxis string
 	value     float64
+	codeType  string
+	code      int
 }
 
 func (event *Event) update(msg string) {
@@ -22,18 +24,64 @@ func (event *Event) update(msg string) {
 			PanicMisspelled(string(msg[1]))
 		}
 		if event.eventType == EvAxisChanged || event.eventType == EvButtonChanged {
-			event.value, err = strconv.ParseFloat(msg[2:], 32)
+			msg = msg[2:]
+			valueAndCode := strings.Split(msg, ";")
+
+			event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
+			CheckErr(err)
+
+			if event.value == 0.0 {
+				return
+			}
+
+			if strings.HasSuffix(msg, ";") {
+				return
+			}
+			typeAndCode := strings.Split(valueAndCode[1], "(")
+			event.codeType = typeAndCode[0]
+
+			code := typeAndCode[1]
+			event.code, err = strconv.Atoi(code[:len(code)-1])
 			CheckErr(err)
 		}
 	}
+	matchEvent()
 }
 
 func (event *Event) print() {
-	print("%s %s %0.2f",
+	print("%s %s %s %v %0.2f",
 		strings.TrimPrefix(event.eventType, "Ev"),
 		strings.TrimPrefix(strings.TrimPrefix(event.btnOrAxis, "Btn"), "Axis"),
+		event.codeType,
+		event.code,
 		event.value)
 }
+
+const (
+	CodeTypeAbs string = "ABS"
+	CodeTypeKey        = "KEY"
+)
+
+const PadTouchedCodeType = "T0uched"
+
+const (
+	CodeLeftPadX  int = 16
+	CodeLeftPadY      = 17
+	CodeRightPadX     = 3
+	CodeRightPadY     = 4
+)
+
+var CodeToAxisMap = map[int]string{
+	CodeLeftPadX:  AxisDPadX,
+	CodeLeftPadY:  AxisDPadY,
+	CodeRightPadX: AxisRightStickX,
+	CodeRightPadY: AxisRightStickY,
+}
+
+const (
+	AxisPressed  float64 = 3
+	AxisReleased         = 4
+)
 
 const (
 	AxisLeftStickX  string = "AxisLeftStickX"

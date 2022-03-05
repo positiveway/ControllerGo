@@ -14,24 +14,30 @@ type Coords struct {
 	mu        sync.Mutex
 }
 
-func (coords *Coords) setDirectlyX(x float64) {
-	coords._x = x
+func (coords *Coords) setDirectlyX() {
+	coords._x = event.value
 }
 
-func (coords *Coords) setDirectlyY(y float64) {
-	coords._y = y
+func (coords *Coords) setDirectlyY() {
+	coords._y = event.value
 }
 
-func (coords *Coords) setX(x float64) {
+func (coords *Coords) set(receiver *float64) {
+	if event.codeType == PadTouchedCodeType && event.value == AxisReleased {
+		coords.reset()
+		return
+	}
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords._x = x
+	*receiver = event.value
 }
 
-func (coords *Coords) setY(y float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	coords._y = y
+func (coords *Coords) setX() {
+	coords.set(&coords._x)
+}
+
+func (coords *Coords) setY() {
+	coords.set(&coords._y)
 }
 
 func (coords *Coords) printCurState() {
@@ -52,21 +58,11 @@ func (coords *Coords) updateValues() {
 	coords.x = coords._x
 	coords.y = coords._y
 
-	coords.x = applyDeadzone(coords.x)
-	coords.y = applyDeadzone(coords.y)
-
 	coords.x, coords.y, coords.magnitude = normalizeIncorrectEdgeValues(coords.x, coords.y)
 }
 
 func (coords *Coords) updateAngle() {
 	coords.angle = calcResolvedAngle(coords.x, coords.y)
-}
-
-func applyDeadzone(value float64) float64 {
-	if math.Abs(value) < Deadzone {
-		value = 0.0
-	}
-	return value
 }
 
 func resolveAngle(angle float64) int {
@@ -123,6 +119,13 @@ func applyPower(force float64) float64 {
 	sign, force := getSignAndAbs(force)
 	force = math.Pow(force, forcePower)
 	return applySign(sign, force)
+}
+
+func applyDeadzone(value float64) float64 {
+	if math.Abs(value) < Deadzone {
+		value = 0.0
+	}
+	return value
 }
 
 func printPair[T Number](_x, _y T, prefix string) {

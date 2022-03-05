@@ -6,7 +6,7 @@ TriggerThreshold = 0.05
 holdThreshold = 200
 
 //mouse
-mouseMaxMove = 300
+mouseMaxMove = 200
 forcePower = 1.4
 deadzone = 0.0
 MaxAccelRadiusThreshold = 0.96

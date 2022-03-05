@@ -153,8 +153,37 @@ func detectTriggers() {
 	}
 }
 
-func buttonPressed(btn string) {
+func isPadTouchedEvent() bool {
+	return event.eventType == PadTouchedCodeType
+}
+
+func setToAxisChanged(isPressed bool) bool {
+	if event.codeType != CodeTypeAbs {
+		return false
+	}
+	if event.btnOrAxis, found = CodeToAxisMap[event.code]; !found {
+		return false
+	}
+	switch isPressed {
+	case true:
+		event.value = AxisPressed
+	case false:
+		event.value = AxisReleased
+	}
+	event.eventType = EvAxisChanged
+	event.codeType = PadTouchedCodeType
+	event.code = 0
+
+	matchEvent()
+	return true
+}
+
+func buttonPressed() {
+	btn := event.btnOrAxis
 	if isTriggerBtn(btn) {
+		return
+	}
+	if setToAxisChanged(true) {
 		return
 	}
 	buttonsMutex.Lock()
@@ -187,8 +216,12 @@ func RunReleaseHoldThread() {
 	}
 }
 
-func buttonReleased(btn string) {
+func buttonReleased() {
+	btn := event.btnOrAxis
 	if isTriggerBtn(btn) {
+		return
+	}
+	if setToAxisChanged(false) {
 		return
 	}
 	buttonsMutex.Lock()

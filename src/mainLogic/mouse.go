@@ -7,66 +7,78 @@ import (
 )
 
 var scrollMovement = Coords{}
+var mousePad = makeTouchPosition()
 
-const maxRightY float64 = 0.97
-const maxRightX float64 = 0.97
+const NotInitialized = -10000
 
 type TouchPadPosition struct {
-	x, y         float64
 	prevX, prevY float64
+	touchHappen  bool
 }
 
-func (pad *TouchPadPosition) distance() float64 {
-	return distance(pad.prevX, pad.prevY, pad.x, pad.y)
+func makeTouchPosition() TouchPadPosition {
+	pad := TouchPadPosition{}
+	pad.reset()
+	return pad
 }
 
-func (pad *TouchPadPosition) difX() float64 {
-	return pad.x - pad.prevX
+func (pad *TouchPadPosition) setX() {
+	if pixels := pad.calcPixels(event.value, &pad.prevX); pixels != 0 {
+		//print("x: %v", pixels)
+		platformSpecific.MoveMouse(pixels, 0)
+	}
 }
 
-func (pad *TouchPadPosition) difY() float64 {
-	return pad.y - pad.prevY
+func (pad *TouchPadPosition) setY() {
+	if pixels := pad.calcPixels(event.value, &pad.prevY); pixels != 0 {
+		//print("y: %v", pixels)
+		platformSpecific.MoveMouse(0, pixels)
+	}
 }
 
-func (pad *TouchPadPosition) update() {
-	pad.prevX = pad.x
-	pad.prevY = pad.y
-}
-
-var mousePad = TouchPadPosition{}
-
-func distance(x1, y1, x2, y2 float64) float64 {
-	return math.Hypot(x2-x1, y2-y1)
+func (pad *TouchPadPosition) reset() {
+	pad.prevX = NotInitialized
+	pad.prevY = NotInitialized
+	pad.touchHappen = false
 }
 
 const changeThreshold float64 = 0.01
+const pixelsThreshold = 2
 
-func calcPixels(curValue, prevValue float64) int32 {
-
-	if prevValue == 0 || curValue == 0 {
-		mousePad.update()
+func (pad *TouchPadPosition) calcPixels(curValue float64, prevValue *float64) int32 {
+	switch curValue {
+	case AxisPressed:
+		pad.touchHappen = true
+		return 0
+	case AxisReleased:
+		pad.reset()
 		return 0
 	}
 
-	diff := curValue - prevValue
+	if !pad.touchHappen {
+		return 0
+	} else {
+		if *prevValue == NotInitialized {
+			*prevValue = curValue
+			return 0
+		}
+	}
+
+	diff := curValue - *prevValue
 	if math.Abs(diff) <= changeThreshold {
 		return 0
 	}
 
 	pixels := floatToInt32(diff * mouseMaxMove)
-	if pixels != 0 {
-		mousePad.update()
-	}
+	//if math.Abs(float64(pixels)) < pixelsThreshold {
+	//	return 0
+	//}
+	*prevValue = curValue
 	return pixels
 }
 
-func moveMouse() {
-	if pixels := calcPixels(mousePad.x, mousePad.prevX); pixels != 0 {
-		platformSpecific.MoveMouse(pixels, 0)
-	}
-	if pixels := calcPixels(mousePad.y, mousePad.prevY); pixels != 0 {
-		platformSpecific.MoveMouse(0, pixels)
-	}
+func distance(x1, y1, x2, y2 float64) float64 {
+	return math.Hypot(x2-x1, y2-y1)
 }
 
 func calcScrollInterval(input float64) time.Duration {

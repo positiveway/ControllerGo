@@ -7,53 +7,49 @@ func eventChanged() {
 		case false:
 			switch event.btnOrAxis {
 			case AxisDPadX:
-				scrollMovement.setX(event.value)
+				scrollMovement.setX()
 			case AxisDPadY:
-				scrollMovement.setY(event.value)
+				scrollMovement.setY()
 			case AxisRightStickX:
 				//print("x: %v", event.value)
-				mousePad.x = event.value
-				moveMouse()
+				mousePad.setX()
 			case AxisRightStickY:
 				//print("y: %v", event.value)
-				mousePad.y = event.value
-				moveMouse()
+				mousePad.setY()
 			}
 			//scrollMovement.printCurState()
 		case true:
 			switch event.btnOrAxis {
 			case AxisDPadX:
-				joystickTyping.leftCoords.setDirectlyX(event.value)
+				joystickTyping.leftCoords.setDirectlyX()
 				joystickTyping.updateLeftZone()
 			case AxisDPadY:
-				joystickTyping.leftCoords.setDirectlyY(event.value)
+				joystickTyping.leftCoords.setDirectlyY()
 				joystickTyping.updateLeftZone()
 			case AxisRightStickX:
-				joystickTyping.rightCoords.setDirectlyX(event.value)
+				joystickTyping.rightCoords.setDirectlyX()
 				joystickTyping.updateRightZone()
 			case AxisRightStickY:
-				joystickTyping.rightCoords.setDirectlyY(event.value)
+				joystickTyping.rightCoords.setDirectlyY()
 				joystickTyping.updateRightZone()
 			}
 		}
 	case true:
 		switch event.btnOrAxis {
-		case AxisDPadX:
-			movementCoords.setX(event.value)
-		case AxisDPadY:
-			movementCoords.setY(event.value)
 		case AxisRightStickX:
-			mousePad.x = event.value
-			moveMouse()
+			movementCoords.setX()
 		case AxisRightStickY:
-			mousePad.y = event.value
-			moveMouse()
+			movementCoords.setY()
+		case AxisDPadX:
+			mousePad.setX()
+		case AxisDPadY:
+			mousePad.setY()
 		}
 	}
 }
 
 func matchEvent() {
-	//event.print()
+	event.print()
 
 	switch event.eventType {
 	case EvAxisChanged:
@@ -61,9 +57,9 @@ func matchEvent() {
 	case EvButtonChanged:
 		detectTriggers()
 	case EvButtonPressed:
-		buttonPressed(event.btnOrAxis)
+		buttonPressed()
 	case EvButtonReleased:
-		buttonReleased(event.btnOrAxis)
+		buttonReleased()
 	case EvDisconnected:
 		panicMsg("Gamepad disconnected")
 	case EvConnected:
