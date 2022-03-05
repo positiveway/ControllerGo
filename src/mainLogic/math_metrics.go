@@ -118,12 +118,6 @@ func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.D
 	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
 }
 
-func applyPower(force float64) float64 {
-	sign, force := getSignAndAbs(force)
-	force = math.Pow(force, forcePower)
-	return applySign(sign, force)
-}
-
 func applyDeadzone(value float64) float64 {
 	if math.Abs(value) < Deadzone {
 		value = 0.0
