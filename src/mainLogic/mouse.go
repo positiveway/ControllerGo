@@ -13,7 +13,6 @@ const NotInitialized = -10000
 
 type TouchPadPosition struct {
 	prevX, prevY float64
-	touchHappen  bool
 }
 
 func makeTouchPosition() TouchPadPosition {
@@ -39,7 +38,6 @@ func (pad *TouchPadPosition) setY() {
 func (pad *TouchPadPosition) reset() {
 	pad.prevX = NotInitialized
 	pad.prevY = NotInitialized
-	pad.touchHappen = false
 }
 
 const changeThreshold float64 = 0.01
@@ -50,20 +48,15 @@ func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
 
 	switch event.codeType {
 	case CTPadPressed:
-		pad.touchHappen = true
 		return 0
 	case CTPadReleased:
 		pad.reset()
 		return 0
 	}
 
-	if !pad.touchHappen {
+	if *prevValue == NotInitialized {
+		*prevValue = curValue
 		return 0
-	} else {
-		if *prevValue == NotInitialized {
-			*prevValue = curValue
-			return 0
-		}
 	}
 
 	diff := curValue - *prevValue

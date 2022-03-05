@@ -1,40 +1,34 @@
 package mainLogic
 
 import (
+	"math"
 	"strconv"
 	"strings"
 )
 
-var NoneEvent = Event{
-	eventType: EvConnected,
+type Adjustment = [2]float64
+
+var AxesAdjustments = map[string]Adjustment{
+	AxisRightStickX: {0.04, 0.13},
+	AxisRightStickY: {0.02, 0.11},
+	AxisDPadX:       {0.04, 0.13},
+	AxisDPadY:       {0.02, 0.15},
 }
 
-const BufferLen = 5
-
-type EventBuffer = [BufferLen]Event
-
-var eventBuffer = EventBuffer{
-	NoneEvent,
-	NoneEvent,
-	NoneEvent,
-	NoneEvent,
-	NoneEvent,
+func checkAdj(value float64) {
+	if value < 0 {
+		panicMsg("Adjustment value can't be negative")
+	}
+	if math.Abs(value) >= 0.2 {
+		panicMsg("Adjustment value is too high")
+	}
 }
 
-//func initBuffer() EventBuffer {
-//	buf := EventBuffer{}
-//	for  i := 1; i < BufferLen; i++{
-//		buf = append(buf, NoneEvent)
-//	}
-//}
-
-func updateBuffer() {
-	eventBuffer = EventBuffer{
-		eventBuffer[1],
-		eventBuffer[2],
-		eventBuffer[3],
-		eventBuffer[4],
-		event,
+func checkAdjustments() {
+	for _, adjustment := range AxesAdjustments {
+		negAdj, posAdj := adjustment[0], adjustment[1]
+		checkAdj(negAdj)
+		checkAdj(posAdj)
 	}
 }
 
@@ -46,12 +40,7 @@ type Event struct {
 	code      int
 }
 
-var BtnStateEvents = []string{EvButtonPressed, EvButtonReleased}
-
 func convertToAxisChanged() {
-	if !contains(BtnStateEvents, event.eventType) {
-		return
-	}
 	switch event.eventType {
 	case EvButtonPressed:
 		event.codeType = CTPadPressed
@@ -74,8 +63,18 @@ func resolveUnknownButton() {
 }
 
 func filterEvents() {
-	if event.eventType == EvAxisChanged && event.value == 0.0 {
-		return
+	if event.eventType == EvAxisChanged {
+		if adjustment, found := AxesAdjustments[event.btnOrAxis]; found {
+			negAdj, posAdj := adjustment[0], adjustment[1]
+			switch true {
+			case event.value == 0.0:
+				return
+			case event.value > 0:
+				event.value = math.Min(event.value+posAdj, 1.0)
+			case event.value < 0:
+				event.value = -math.Min(math.Abs(event.value-negAdj), 1.0)
+			}
+		}
 	}
 
 	resolveUnknownButton()
@@ -144,6 +143,13 @@ var CodeToAxisMap = map[int]string{
 	CodeRightPadX: AxisRightStickX,
 	CodeRightPadY: AxisRightStickY,
 }
+
+//var PadAxes = []string{
+//	AxisRightStickX,
+//	AxisRightStickY,
+//	AxisDPadX,
+//	AxisDPadY,
+//}
 
 const (
 	AxisLeftStickX  string = "AxisLeftStickX"

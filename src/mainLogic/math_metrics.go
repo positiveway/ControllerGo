@@ -26,7 +26,7 @@ func (coords *Coords) set(receiver *float64) {
 	switch event.codeType {
 	case CTPadPressed:
 		return
-	case EvButtonReleased:
+	case CTPadReleased:
 		coords.reset()
 		return
 	}

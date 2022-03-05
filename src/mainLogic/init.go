@@ -39,6 +39,7 @@ func InitSettings() {
 	joystickTyping = makeJoystickTyping()
 	commandsLayout = loadCommandsLayout()
 	boundariesMap = genBoundariesMap()
+	checkAdjustments()
 }
 
 var found bool
