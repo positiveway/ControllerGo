@@ -15,6 +15,8 @@ var AxesAdjustments = map[string]Adjustment{
 	AxisDPadY:       {0.02, 0.15},
 }
 
+var adjustmentThreshold float64 = 0.8
+
 func checkAdj(value float64) {
 	if value < 0 {
 		panicMsg("Adjustment value can't be negative")
@@ -65,14 +67,18 @@ func resolveUnknownButton() {
 func filterEvents() {
 	if event.eventType == EvAxisChanged {
 		if adjustment, found := AxesAdjustments[event.btnOrAxis]; found {
-			negAdj, posAdj := adjustment[0], adjustment[1]
-			switch true {
-			case event.value == 0.0:
+			if event.value == 0.0 {
 				return
-			case event.value > 0:
-				event.value = math.Min(event.value+posAdj, 1.0)
-			case event.value < 0:
-				event.value = -math.Min(math.Abs(event.value-negAdj), 1.0)
+			}
+			if math.Abs(event.value) > adjustmentThreshold {
+				negAdj, posAdj := adjustment[0], adjustment[1]
+
+				switch true {
+				case event.value > 0:
+					event.value = math.Min(event.value+posAdj, 1.0)
+				case event.value < 0:
+					event.value = -math.Min(math.Abs(event.value-negAdj), 1.0)
+				}
 			}
 		}
 	}
