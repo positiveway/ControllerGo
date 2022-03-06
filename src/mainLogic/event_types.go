@@ -187,15 +187,11 @@ var _AxisMap = map[uint8]BtnOrAxisT{
 
 const HoldSuffix = "Hold"
 
-type StrBtnAxisT interface {
-	BtnOrAxisT | string
-}
-
-func addHoldSuffix[T StrBtnAxisT](btn T) BtnOrAxisT {
+func addHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 	return BtnOrAxisT(string(btn) + HoldSuffix)
 }
 
-func removeHoldSuffix[T StrBtnAxisT](btn T) BtnOrAxisT {
+func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 	return BtnOrAxisT(strings.TrimSuffix(string(btn), HoldSuffix))
 }
 
@@ -222,7 +218,7 @@ const (
 	BtnUnknown       BtnOrAxisT = "BtnUnknown"
 )
 
-type Synonyms map[string]BtnOrAxisT
+type Synonyms map[BtnOrAxisT]BtnOrAxisT
 
 func genBtnSynonyms() Synonyms {
 	synonyms := Synonyms{
@@ -234,7 +230,7 @@ func genBtnSynonyms() Synonyms {
 		"RightStick":    BtnRightThumb,
 	}
 	for key, val := range synonyms {
-		synonyms[string(addHoldSuffix(key))] = addHoldSuffix(val)
+		synonyms[addHoldSuffix(key)] = addHoldSuffix(val)
 	}
 	return synonyms
 }

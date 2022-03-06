@@ -45,11 +45,11 @@ func loadCommandsLayout() ButtonToCommand {
 	layout := ButtonToCommand{}
 	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "commands.csv"), 2)
 	for _, parts := range linesParts {
-		btn := parts[0]
+		btn := BtnOrAxisT(parts[0])
 		keys := parts[1:]
 
 		if btnSynonym, found := BtnSynonyms[btn]; found {
-			btn = string(btnSynonym)
+			btn = btnSynonym
 		}
 		if !contains(AllOriginalButtons, removeHoldSuffix(btn)) {
 			PanicMisspelled(btn)
@@ -69,7 +69,7 @@ func loadCommandsLayout() ButtonToCommand {
 		if codes[0] == NoAction {
 			continue
 		}
-		layout[BtnOrAxisT(btn)] = codes
+		layout[btn] = codes
 	}
 	return layout
 }
