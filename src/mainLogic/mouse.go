@@ -9,9 +9,9 @@ import (
 var scrollMovement = Coords{}
 var mousePad = makeTouchPosition()
 
-const NotInitialized = -10000
+const CoordNotInitialized = -10000
 
-var NoneTime = time.Now().Add(time.Hour)
+var TimeNotInitialized = time.Now().Add(time.Hour)
 
 var AccelIntervalNum float64 = 16
 var AccelInterval = numberToMillis(AccelIntervalNum)
@@ -46,12 +46,12 @@ func (pad *TouchPadPosition) setY() {
 }
 
 func (pad *TouchPadPosition) resetAccel() {
-	pad.updateAccelValues(NotInitialized, NotInitialized, 0, NoneTime)
+	pad.updateAccelValues(CoordNotInitialized, CoordNotInitialized, 0, TimeNotInitialized)
 }
 
 func (pad *TouchPadPosition) reset() {
-	pad.prevX = NotInitialized
-	pad.prevY = NotInitialized
+	pad.prevX = CoordNotInitialized
+	pad.prevY = CoordNotInitialized
 
 	pad.resetAccel()
 }
@@ -60,13 +60,13 @@ const changeThreshold float64 = 0.005
 const pixelsThreshold = 2
 
 func diffIgnoreNotInit(curValue, prevValue float64) float64 {
-	if curValue == NotInitialized || prevValue == NotInitialized {
+	if curValue == CoordNotInitialized || prevValue == CoordNotInitialized {
 		return 0
 	}
 	return curValue - prevValue
 }
 func diffCheckInit(curValue, prevValue float64) float64 {
-	if curValue == NotInitialized || prevValue == NotInitialized {
+	if curValue == CoordNotInitialized || prevValue == CoordNotInitialized {
 		panicMsg("Value for diff is not initialized")
 	}
 	return curValue - prevValue
@@ -85,7 +85,7 @@ func (pad *TouchPadPosition) initAccelTime(startTime time.Time) {
 
 func (pad *TouchPadPosition) updateAccel(x, y float64) {
 	timeNow := time.Now()
-	if pad.accelTimeStart == NoneTime {
+	if pad.accelTimeStart == TimeNotInitialized {
 		pad.initAccelTime(timeNow)
 		return
 	}
@@ -120,7 +120,7 @@ func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
 		return 0
 	}
 
-	if *prevValue == NotInitialized {
+	if *prevValue == CoordNotInitialized {
 		*prevValue = curValue
 		return 0
 	}
