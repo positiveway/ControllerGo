@@ -40,7 +40,7 @@ func (pad *TouchPadPosition) reset() {
 	pad.prevY = NotInitialized
 }
 
-const changeThreshold float64 = 0.01
+const changeThreshold float64 = 0.005
 const pixelsThreshold = 2
 
 func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
@@ -60,6 +60,7 @@ func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
 	}
 
 	diff := curValue - *prevValue
+	*prevValue = curValue
 	if math.Abs(diff) <= changeThreshold {
 		return 0
 	}
@@ -68,7 +69,6 @@ func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
 	//if math.Abs(float64(pixels)) < pixelsThreshold {
 	//	return 0
 	//}
-	*prevValue = curValue
 	return pixels
 }
 
