@@ -46,7 +46,7 @@ type Event struct {
 	code      CodeT
 }
 
-func (event *Event) convertToAxisChanged() {
+func (event *Event) transformToPadEvent() {
 	if event.btnOrAxis == BtnUnknown && event.codeType == CTAbs {
 		if axis, found := CodeToAxisMap[event.code]; found {
 			switch event.eventType {
@@ -65,7 +65,7 @@ func (event *Event) convertToAxisChanged() {
 	}
 }
 
-func (event *Event) filterEvents() {
+func (event *Event) transformAndFilter() {
 	if event.eventType == EvAxisChanged {
 		if adjustment, found := AxesAdjustments[event.btnOrAxis]; found {
 			if event.value == 0.0 {
@@ -87,7 +87,7 @@ func (event *Event) filterEvents() {
 	//fmt.Printf("Before: ")
 	//event.print()
 
-	event.convertToAxisChanged()
+	event.transformToPadEvent()
 
 	//fmt.Printf("After: ")
 	event.print()
@@ -124,7 +124,7 @@ func (event *Event) update(msg string) {
 			event.code = CodeT(codeNum)
 		}
 	}
-	event.filterEvents()
+	event.transformAndFilter()
 }
 
 func (event *Event) print() {
