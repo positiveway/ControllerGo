@@ -128,8 +128,8 @@ func panicMsg(message string, variables ...any) {
 	panic(sPrint(message, variables...))
 }
 
-func PanicMisspelled(str string) {
-	panicMsg("Probably misspelled: %s", str)
+func PanicMisspelled(str any) {
+	panicMsg("Probably misspelled: %v", str)
 }
 
 func CheckErr(err error) {

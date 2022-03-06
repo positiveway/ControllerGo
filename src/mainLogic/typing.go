@@ -2,12 +2,12 @@ package mainLogic
 
 import "ControllerGo/src/platformSpecific"
 
-const NeutralZone = "⬤"
-const EdgeZone = "❌"
+const NeutralZone ZoneT = "⬤"
+const EdgeZone ZoneT = "❌"
 
 const NoneStr = "None"
 
-type SticksPosition [2]string
+type SticksPosition [2]ZoneT
 type TypingLayout map[SticksPosition]int
 type AngleRange [2]int
 
@@ -16,7 +16,7 @@ func loadTypingLayout() TypingLayout {
 
 	layout := TypingLayout{}
 	for _, parts := range linesParts {
-		leftStick, rightStick, letter := parts[0], parts[1], parts[2]
+		leftStick, rightStick, letter := ZoneT(parts[0]), ZoneT(parts[1]), parts[2]
 		if !contains(AllZones, leftStick) {
 			PanicMisspelled(leftStick)
 		}
@@ -33,11 +33,11 @@ func loadTypingLayout() TypingLayout {
 	return layout
 }
 
-type BoundariesMap map[int]string
+type BoundariesMap map[int]ZoneT
 
 var boundariesMap BoundariesMap
 
-func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction string) {
+func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction ZoneT) {
 	lowerBound += 360
 	upperBound += 360
 
@@ -58,7 +58,7 @@ func genBoundariesMap() BoundariesMap {
 		panic("With this margin of angle areas will overlap")
 	}
 
-	mapping := map[string]AngleRange{
+	mapping := map[ZoneT]AngleRange{
 		ZoneRight:     {0, RightAngleMargin},
 		ZoneUpRight:   {45, DiagonalAngleMargin},
 		ZoneUp:        {90, RightAngleMargin},
@@ -79,7 +79,7 @@ func genBoundariesMap() BoundariesMap {
 
 type JoystickTyping struct {
 	layout                        TypingLayout
-	leftStickZone, rightStickZone string
+	leftStickZone, rightStickZone ZoneT
 	awaitingNeutralPos            bool
 	leftCoords, rightCoords       Coords
 	leftCanUse, leftChanged       bool
@@ -97,7 +97,7 @@ func makeJoystickTyping() JoystickTyping {
 
 var joystickTyping JoystickTyping
 
-func detectZone(magnitude float64, angle int) string {
+func detectZone(magnitude float64, angle int) ZoneT {
 	if magnitude > MagnitudeThreshold {
 		//print("%v", angle)
 		return getOrDefault(boundariesMap, angle, EdgeZone)
@@ -106,11 +106,11 @@ func detectZone(magnitude float64, angle int) string {
 	}
 }
 
-func zoneCanBeUsed(zone string) bool {
+func zoneCanBeUsed(zone ZoneT) bool {
 	return zone != EdgeZone && zone != NeutralZone
 }
 
-func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
+func (jTyping *JoystickTyping) zoneChanged(zone ZoneT, prevZone *ZoneT) bool {
 	if zone != EdgeZone {
 		if *prevZone != zone {
 			*prevZone = zone
@@ -123,7 +123,7 @@ func (jTyping *JoystickTyping) zoneChanged(zone string, prevZone *string) bool {
 	return false
 }
 
-func (jTyping *JoystickTyping) calcNewZone(prevZone *string, coords *Coords) (bool, bool) {
+func (jTyping *JoystickTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, bool) {
 	coords.updateValues()
 	coords.updateAngle()
 
