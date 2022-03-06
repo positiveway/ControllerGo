@@ -8,10 +8,6 @@ holdThreshold = 200
 //mouse
 mouseMaxMove = 200
 deadzone = 0.0
-MaxAccelRadiusThreshold = 0.96
-MaxAccelMultiplier = 1.5
-
-mouseInterval = 18
 
 //scroll
 scrollFastestInterval = 40

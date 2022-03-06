@@ -80,12 +80,16 @@ func calcResolvedAngle(x, y float64) int {
 	return resolveAngle(angle)
 }
 
-func calcMagnitude(x, y float64) float64 {
+func coordsDiffDistance(x1, y1, x2, y2 float64) float64 {
+	return math.Hypot(x2-x1, y2-y1)
+}
+
+func calcDistance(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
 func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
-	magnitude := calcMagnitude(x, y)
+	magnitude := calcDistance(x, y)
 	if magnitude > 1.0 {
 		x /= magnitude
 		y /= magnitude

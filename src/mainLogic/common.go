@@ -11,28 +11,28 @@ import (
 	"time"
 )
 
-func ToBool(value string) bool {
+func StrToBool(value string) bool {
 	res, err := strconv.ParseBool(value)
 	CheckErr(err)
 	return res
 }
 
-func ToInt(value string) int {
+func StrToInt(value string) int {
 	res, err := strconv.Atoi(value)
 	CheckErr(err)
 	return res
 }
 
-func ToMilliseconds(value string) time.Duration {
-	valInt := ToInt(value)
-	return time.Duration(valInt) * time.Millisecond
+func StrToMillis(value string) time.Duration {
+	number := StrToFloat(value)
+	return numberToMillis(number)
 }
 
-func ToIntToFloat(value string) float64 {
-	return float64(ToInt(value))
+func StrToIntToFloat(value string) float64 {
+	return float64(StrToInt(value))
 }
 
-func ToFloat(value string) float64 {
+func StrToFloat(value string) float64 {
 	res, err := strconv.ParseFloat(value, 64)
 	CheckErr(err)
 	return res
@@ -176,6 +176,10 @@ func floatToInt32(value float64) int32 {
 
 func floatToInt64(value float64) int64 {
 	return int64(math.Round(value))
+}
+
+func numberToMillis[T Number](value T) time.Duration {
+	return time.Duration(float64(value)*1000) * time.Microsecond
 }
 
 func trunc(number float64, precision int) float64 {

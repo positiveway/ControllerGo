@@ -28,23 +28,23 @@ func getConfig(constName string) string {
 }
 
 func toBoolConfig(name string) bool {
-	return ToBool(getConfig(name))
+	return StrToBool(getConfig(name))
 }
 
 func toIntConfig(name string) int {
-	return ToInt(getConfig(name))
+	return StrToInt(getConfig(name))
 }
 
-func toMillisecondsConfig(name string) time.Duration {
-	return ToMilliseconds(getConfig(name))
+func toMillisConfig(name string) time.Duration {
+	return StrToMillis(getConfig(name))
 }
 
 func toFloatConfig(name string) float64 {
-	return ToFloat(getConfig(name))
+	return StrToFloat(getConfig(name))
 }
 
 func toIntToFloatConfig(name string) float64 {
-	return ToIntToFloat(getConfig(name))
+	return StrToIntToFloat(getConfig(name))
 }
 
 func setConfigVars() {
@@ -55,18 +55,13 @@ func setConfigVars() {
 
 	//commands
 	TriggerThreshold = toFloatConfig("TriggerThreshold")
-	holdThreshold = toMillisecondsConfig("holdThreshold")
+	holdThreshold = toMillisConfig("holdThreshold")
 
 	//mouse
 	mouseMaxMove = toIntToFloatConfig("mouseMaxMove")
 
-	MaxAccelMultiplier = toFloatConfig("MaxAccelMultiplier")
-	MaxAccelRadiusThreshold = toFloatConfig("MaxAccelRadiusThreshold")
-
 	Deadzone = toFloatConfig("Deadzone")
 	inputRange = 1.0 - Deadzone
-
-	mouseInterval = toMillisecondsConfig("mouseInterval")
 
 	//scroll
 	scrollFastestInterval = toIntToFloatConfig("scrollFastestInterval")
@@ -81,7 +76,7 @@ func setConfigVars() {
 	MagnitudeThreshold = magnitudeThresholdPct / 100
 
 	//common
-	DefaultRefreshInterval = toMillisecondsConfig("DefaultRefreshInterval")
+	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
 }
 
 //games
@@ -95,12 +90,6 @@ var holdThreshold time.Duration
 var mouseMaxMove float64
 var Deadzone float64
 var inputRange float64
-var MaxAccelRadiusThreshold float64
-var MaxAccelMultiplier float64
-
-//var mouseScaleFactor float64 = 3
-//var mouseIntervalInt  = ToMilliseconds(sPrint(math.Round(mouseMaxMove*mouseScaleFactor)))
-var mouseInterval time.Duration
 
 //scroll
 var scrollFastestInterval float64
