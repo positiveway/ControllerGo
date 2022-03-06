@@ -55,13 +55,31 @@ func SplitByAnyOf(str string, separators string) []string {
 	return res
 }
 
-func StartsWithAnyOf(str string, prefixes []string) bool {
+func StartsWithAnyOf(str string, prefixes ...string) bool {
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(str, prefix) {
 			return true
 		}
 	}
 	return false
+}
+
+func EndsWithAnyOf(str string, suffixes ...string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(str, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
+func TrimAnyPrefix(str string, prefixes ...string) string {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(str, prefix) {
+			return strings.TrimPrefix(str, prefix)
+		}
+	}
+	return str
 }
 
 func ReadFile(file string) string {
@@ -83,7 +101,7 @@ func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	var linesParts [][]string
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if line == "" || StartsWithAnyOf(line, []string{";", "//"}) {
+		if line == "" || StartsWithAnyOf(line, ";", "//") {
 			continue
 		}
 		parts := SplitByAnyOf(line, "&|>:,=")

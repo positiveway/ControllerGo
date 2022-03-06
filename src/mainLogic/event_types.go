@@ -129,8 +129,8 @@ func (event *Event) update(msg string) {
 
 func (event *Event) print() {
 	print("%s %s %s %v %0.2f",
-		strings.TrimPrefix(string(event.eventType), "Ev"),
-		strings.TrimPrefix(strings.TrimPrefix(string(event.btnOrAxis), "Btn"), "Axis"),
+		TrimAnyPrefix(string(event.eventType), "Ev"),
+		TrimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
 		event.codeType,
 		event.code,
 		event.value)
