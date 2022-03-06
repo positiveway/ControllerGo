@@ -113,14 +113,6 @@ func (pad *TouchPadPosition) updateAccelY() {
 func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
 	curValue := event.value
 
-	switch event.codeType {
-	case CTPadPressed:
-		return 0
-	case CTPadReleased:
-		pad.reset()
-		return 0
-	}
-
 	if *prevValue == CoordNotInitialized {
 		*prevValue = curValue
 		return 0

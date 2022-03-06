@@ -23,13 +23,6 @@ func (coords *Coords) setDirectlyY() {
 }
 
 func (coords *Coords) set(receiver *float64) {
-	switch event.codeType {
-	case CTPadPressed:
-		return
-	case CTPadReleased:
-		coords.reset()
-		return
-	}
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
 	*receiver = event.value

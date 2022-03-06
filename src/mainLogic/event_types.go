@@ -11,10 +11,10 @@ type Adjustment = [2]float64
 const adjMult = 0.08
 
 var AxesAdjustments = map[string]Adjustment{
-	AxisRightStickX: {adjMult, adjMult},
-	AxisRightStickY: {0.0, adjMult},
-	AxisDPadX:       {adjMult, adjMult},
-	AxisDPadY:       {0.0, adjMult},
+	AxisRightPadX: {adjMult, adjMult},
+	AxisRightPadY: {0.0, adjMult},
+	AxisLeftPadX:  {adjMult, adjMult},
+	AxisLeftPadY:  {0.0, adjMult},
 }
 
 var adjustmentThreshold float64 = 0.8
@@ -48,19 +48,19 @@ type Event struct {
 
 func (event *Event) convertToAxisChanged() {
 	if event.btnOrAxis == BtnUnknown && event.codeType == CTAbs {
-		if btn, found := CodeToAxisMap[event.code]; found {
+		if axis, found := CodeToAxisMap[event.code]; found {
 			switch event.eventType {
 			case EvButtonPressed:
-				event.codeType = CTPadPressed
+				event.eventType = EvPadFirstTouched
 			case EvButtonReleased:
-				event.codeType = CTPadReleased
+				event.eventType = EvPadReleased
 			default:
 				return
 			}
-			event.btnOrAxis = btn
-			event.eventType = EvAxisChanged
+			event.btnOrAxis = axis
 			event.value = 0
 			event.code = 0
+			event.codeType = ""
 		}
 	}
 }
@@ -136,10 +136,8 @@ func (event *Event) print() {
 }
 
 const (
-	CTAbs         string = "ABS"
-	CTKey                = "KEY"
-	CTPadPressed         = "PadPressed"
-	CTPadReleased        = "PadReleased"
+	CTAbs string = "ABS"
+	CTKey        = "KEY"
 )
 
 const (
@@ -150,40 +148,33 @@ const (
 )
 
 var CodeToAxisMap = map[int]string{
-	CodeLeftPadX:  AxisDPadX,
-	CodeLeftPadY:  AxisDPadY,
-	CodeRightPadX: AxisRightStickX,
-	CodeRightPadY: AxisRightStickY,
+	CodeLeftPadX:  AxisLeftPadX,
+	CodeLeftPadY:  AxisLeftPadY,
+	CodeRightPadX: AxisRightPadX,
+	CodeRightPadY: AxisRightPadY,
 }
 
-//var PadAxes = []string{
-//	AxisRightStickX,
-//	AxisRightStickY,
-//	AxisDPadX,
-//	AxisDPadY,
-//}
-
 const (
-	AxisLeftStickX  string = "AxisLeftStickX"
-	AxisLeftStickY         = "AxisLeftStickY"
-	AxisLeftZ              = "AxisLeftZ"
-	AxisRightStickX        = "AxisRightStickX"
-	AxisRightStickY        = "AxisRightStickY"
-	AxisRightZ             = "AxisRightZ"
-	AxisDPadX              = "AxisDPadX"
-	AxisDPadY              = "AxisDPadY"
-	AxisUnknown            = "AxisUnknown"
+	AxisLeftStickX string = "AxisLeftStickX"
+	AxisLeftStickY        = "AxisLeftStickY"
+	AxisLeftZ             = "AxisLeftZ"
+	AxisRightPadX         = "AxisRightPadX"
+	AxisRightPadY         = "AxisRightPadY"
+	AxisRightZ            = "AxisRightZ"
+	AxisLeftPadX          = "AxisLeftPadX"
+	AxisLeftPadY          = "AxisLeftPadY"
+	AxisUnknown           = "AxisUnknown"
 )
 
 var _AxisMap = map[uint8]string{
 	'u': AxisLeftStickX,
 	'v': AxisLeftStickY,
 	'w': AxisLeftZ,
-	'x': AxisRightStickX,
-	'y': AxisRightStickY,
+	'x': AxisRightPadX,
+	'y': AxisRightPadY,
 	'z': AxisRightZ,
-	'0': AxisDPadX,
-	'1': AxisDPadY,
+	'0': AxisLeftPadX,
+	'1': AxisLeftPadY,
 	'2': AxisUnknown,
 }
 
@@ -285,14 +276,16 @@ var _BtnMap = map[uint8]string{
 }
 
 const (
-	EvAxisChanged    string = "EvAxisChanged"
-	EvButtonChanged         = "EvButtonChanged"
-	EvButtonReleased        = "EvButtonReleased"
-	EvButtonPressed         = "EvButtonPressed"
-	EvButtonRepeated        = "EvButtonRepeated"
-	EvConnected             = "EvConnected"
-	EvDisconnected          = "EvDisconnected"
-	EvDropped               = "EvDropped"
+	EvAxisChanged     string = "EvAxisChanged"
+	EvButtonChanged          = "EvButtonChanged"
+	EvButtonReleased         = "EvButtonReleased"
+	EvButtonPressed          = "EvButtonPressed"
+	EvButtonRepeated         = "EvButtonRepeated"
+	EvConnected              = "EvConnected"
+	EvDisconnected           = "EvDisconnected"
+	EvDropped                = "EvDropped"
+	EvPadFirstTouched        = "EvPadFirstTouched"
+	EvPadReleased            = "EvPadReleased"
 )
 
 var ButtonEvents = []string{EvButtonChanged, EvButtonReleased, EvButtonPressed, EvButtonRepeated}
