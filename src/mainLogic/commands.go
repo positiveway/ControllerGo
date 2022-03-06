@@ -31,9 +31,9 @@ var commonCmdMapping = map[string]int{
 	"SwitchToTyping": SwitchToTyping,
 }
 
-type HoldStartTime = map[string]time.Time
-type Command = []int
-type ButtonToCommand = map[string]Command
+type HoldStartTime map[string]time.Time
+type Command []int
+type ButtonToCommand map[string]Command
 
 var holdStartTime = HoldStartTime{}
 var buttonsMutex = sync.Mutex{}

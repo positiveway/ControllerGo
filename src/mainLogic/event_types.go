@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type Adjustment = [2]float64
+type Adjustment [2]float64
 
 const adjMult = 0.08
 
@@ -135,6 +135,8 @@ func (event *Event) print() {
 		event.value)
 }
 
+type CodeType string
+
 const (
 	CTAbs string = "ABS"
 	CTKey        = "KEY"
@@ -211,7 +213,7 @@ const (
 	BtnUnknown              = "BtnUnknown"
 )
 
-type Synonyms = map[string]string
+type Synonyms map[string]string
 
 func genBtnSynonyms() Synonyms {
 	synonyms := Synonyms{

@@ -7,9 +7,9 @@ const EdgeZone = "❌"
 
 const NoneStr = "None"
 
-type SticksPosition = [2]string
-type TypingLayout = map[SticksPosition]int
-type AngleRange = [2]int
+type SticksPosition [2]string
+type TypingLayout map[SticksPosition]int
+type AngleRange [2]int
 
 func loadTypingLayout() TypingLayout {
 	linesParts := ReadLayoutFile("typing.csv", 2)
@@ -33,7 +33,7 @@ func loadTypingLayout() TypingLayout {
 	return layout
 }
 
-type BoundariesMap = map[int]string
+type BoundariesMap map[int]string
 
 var boundariesMap BoundariesMap
 
