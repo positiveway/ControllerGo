@@ -71,14 +71,16 @@ func (event *Event) transformAndFilter() {
 			if event.value == 0.0 {
 				return
 			}
-			if math.Abs(event.value) > adjustmentThreshold {
-				negAdj, posAdj := adjustment[0], adjustment[1]
+			if !typingMode.mode {
+				if math.Abs(event.value) > adjustmentThreshold {
+					negAdj, posAdj := adjustment[0], adjustment[1]
 
-				switch true {
-				case event.value > 0:
-					event.value = math.Min(event.value*posAdj, 1.0)
-				case event.value < 0:
-					event.value = math.Max(event.value*negAdj, -1.0)
+					switch true {
+					case event.value > 0:
+						event.value = math.Min(event.value*posAdj, 1.0)
+					case event.value < 0:
+						event.value = math.Max(event.value*negAdj, -1.0)
+					}
 				}
 			}
 		}

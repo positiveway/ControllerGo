@@ -15,6 +15,7 @@ func (c *CommandsMode) switchMode() {
 	c.mode = !c.mode
 	movementCoords.reset()
 	scrollMovement.reset()
+	mousePad.reset()
 }
 
 var typingMode = CommandsMode{}
