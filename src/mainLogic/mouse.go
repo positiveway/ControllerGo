@@ -60,11 +60,10 @@ func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
 	}
 
 	diff := curValue - *prevValue
-	*prevValue = curValue
 	if math.Abs(diff) <= changeThreshold {
 		return 0
 	}
-
+	*prevValue = curValue
 	pixels := floatToInt32(diff * mouseMaxMove)
 	//if math.Abs(float64(pixels)) < pixelsThreshold {
 	//	return 0
