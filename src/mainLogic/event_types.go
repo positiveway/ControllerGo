@@ -140,16 +140,16 @@ type CodeTypeT string
 
 const (
 	CTAbs CodeTypeT = "ABS"
-	CTKey           = "KEY"
+	CTKey CodeTypeT = "KEY"
 )
 
 type CodeT int
 
 const (
 	CodeLeftPadX  CodeT = 16
-	CodeLeftPadY        = 17
-	CodeRightPadX       = 3
-	CodeRightPadY       = 4
+	CodeLeftPadY  CodeT = 17
+	CodeRightPadX CodeT = 3
+	CodeRightPadY CodeT = 4
 )
 
 var CodeToAxisMap = map[CodeT]BtnOrAxisT{
@@ -163,14 +163,14 @@ type BtnOrAxisT string
 
 const (
 	AxisLeftStickX BtnOrAxisT = "AxisLeftStickX"
-	AxisLeftStickY            = "AxisLeftStickY"
-	AxisLeftZ                 = "AxisLeftZ"
-	AxisRightPadX             = "AxisRightPadX"
-	AxisRightPadY             = "AxisRightPadY"
-	AxisRightZ                = "AxisRightZ"
-	AxisLeftPadX              = "AxisLeftPadX"
-	AxisLeftPadY              = "AxisLeftPadY"
-	AxisUnknown               = "AxisUnknown"
+	AxisLeftStickY BtnOrAxisT = "AxisLeftStickY"
+	AxisLeftZ      BtnOrAxisT = "AxisLeftZ"
+	AxisRightPadX  BtnOrAxisT = "AxisRightPadX"
+	AxisRightPadY  BtnOrAxisT = "AxisRightPadY"
+	AxisRightZ     BtnOrAxisT = "AxisRightZ"
+	AxisLeftPadX   BtnOrAxisT = "AxisLeftPadX"
+	AxisLeftPadY   BtnOrAxisT = "AxisLeftPadY"
+	AxisUnknown    BtnOrAxisT = "AxisUnknown"
 )
 
 var _AxisMap = map[uint8]BtnOrAxisT{
@@ -201,25 +201,25 @@ func removeHoldSuffix[T StrBtnAxisT](btn T) BtnOrAxisT {
 
 const (
 	BtnSouth         BtnOrAxisT = "South"
-	BtnEast                     = "East"
-	BtnNorth                    = "North"
-	BtnWest                     = "West"
-	BtnC                        = "BtnC"
-	BtnZ                        = "BtnZ"
-	BtnLeftTrigger              = "LB"
-	BtnLeftTrigger2             = "LT"
-	BtnRightTrigger             = "RB"
-	BtnRightTrigger2            = "RT"
-	BtnSelect                   = "Select"
-	BtnStart                    = "Start"
-	BtnMode                     = "Mode"
-	BtnLeftThumb                = "LeftThumb"
-	BtnRightThumb               = "RightThumb"
-	BtnDPadUp                   = "DPadUp"
-	BtnDPadDown                 = "DPadDown"
-	BtnDPadLeft                 = "DPadLeft"
-	BtnDPadRight                = "DPadRight"
-	BtnUnknown                  = "BtnUnknown"
+	BtnEast          BtnOrAxisT = "East"
+	BtnNorth         BtnOrAxisT = "North"
+	BtnWest          BtnOrAxisT = "West"
+	BtnC             BtnOrAxisT = "BtnC"
+	BtnZ             BtnOrAxisT = "BtnZ"
+	BtnLeftTrigger   BtnOrAxisT = "LB"
+	BtnLeftTrigger2  BtnOrAxisT = "LT"
+	BtnRightTrigger  BtnOrAxisT = "RB"
+	BtnRightTrigger2 BtnOrAxisT = "RT"
+	BtnSelect        BtnOrAxisT = "Select"
+	BtnStart         BtnOrAxisT = "Start"
+	BtnMode          BtnOrAxisT = "Mode"
+	BtnLeftThumb     BtnOrAxisT = "LeftThumb"
+	BtnRightThumb    BtnOrAxisT = "RightThumb"
+	BtnDPadUp        BtnOrAxisT = "DPadUp"
+	BtnDPadDown      BtnOrAxisT = "DPadDown"
+	BtnDPadLeft      BtnOrAxisT = "DPadLeft"
+	BtnDPadRight     BtnOrAxisT = "DPadRight"
+	BtnUnknown       BtnOrAxisT = "BtnUnknown"
 )
 
 type Synonyms map[string]BtnOrAxisT
@@ -290,15 +290,15 @@ type EventTypeT string
 
 const (
 	EvAxisChanged     EventTypeT = "EvAxisChanged"
-	EvButtonChanged              = "EvButtonChanged"
-	EvButtonReleased             = "EvButtonReleased"
-	EvButtonPressed              = "EvButtonPressed"
-	EvButtonRepeated             = "EvButtonRepeated"
-	EvConnected                  = "EvConnected"
-	EvDisconnected               = "EvDisconnected"
-	EvDropped                    = "EvDropped"
-	EvPadFirstTouched            = "EvPadFirstTouched"
-	EvPadReleased                = "EvPadReleased"
+	EvButtonChanged   EventTypeT = "EvButtonChanged"
+	EvButtonReleased  EventTypeT = "EvButtonReleased"
+	EvButtonPressed   EventTypeT = "EvButtonPressed"
+	EvButtonRepeated  EventTypeT = "EvButtonRepeated"
+	EvConnected       EventTypeT = "EvConnected"
+	EvDisconnected    EventTypeT = "EvDisconnected"
+	EvDropped         EventTypeT = "EvDropped"
+	EvPadFirstTouched EventTypeT = "EvPadFirstTouched"
+	EvPadReleased     EventTypeT = "EvPadReleased"
 )
 
 var EventTypeMap = map[uint8]EventTypeT{
