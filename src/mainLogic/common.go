@@ -220,7 +220,7 @@ func reverse[T BasicType](seq []T) []T {
 	return res
 }
 
-func contains[T BasicType](s []T, e T) bool {
+func contains[T comparable](s []T, e T) bool {
 	for _, a := range s {
 		if a == e {
 			return true

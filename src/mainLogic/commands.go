@@ -31,9 +31,9 @@ var commonCmdMapping = map[string]int{
 	"SwitchToTyping": SwitchToTyping,
 }
 
-type HoldStartTime map[string]time.Time
+type HoldStartTime map[BtnOrAxisT]time.Time
 type Command []int
-type ButtonToCommand map[string]Command
+type ButtonToCommand map[BtnOrAxisT]Command
 
 var holdStartTime = HoldStartTime{}
 var buttonsMutex = sync.Mutex{}
@@ -49,7 +49,7 @@ func loadCommandsLayout() ButtonToCommand {
 		keys := parts[1:]
 
 		if btnSynonym, found := BtnSynonyms[btn]; found {
-			btn = btnSynonym
+			btn = string(btnSynonym)
 		}
 		if !contains(AllOriginalButtons, removeHoldSuffix(btn)) {
 			PanicMisspelled(btn)
@@ -69,12 +69,12 @@ func loadCommandsLayout() ButtonToCommand {
 		if codes[0] == NoAction {
 			continue
 		}
-		layout[btn] = codes
+		layout[BtnOrAxisT(btn)] = codes
 	}
 	return layout
 }
 
-func getCommand(btn string, hold bool) Command {
+func getCommand(btn BtnOrAxisT, hold bool) Command {
 	if hold {
 		return commandsLayout[addHoldSuffix(btn)]
 	} else {
@@ -82,7 +82,7 @@ func getCommand(btn string, hold bool) Command {
 	}
 }
 
-func press(btn string, hold bool) {
+func press(btn BtnOrAxisT, hold bool) {
 	command := getCommand(btn, hold)
 
 	if isEmpty(command) {
@@ -106,7 +106,7 @@ func press(btn string, hold bool) {
 	}
 }
 
-func release(btn string) {
+func release(btn BtnOrAxisT) {
 	command := pop(buttonsToRelease, btn)
 	if isEmpty(command) {
 		return
@@ -118,7 +118,7 @@ func release(btn string) {
 }
 
 func releaseAll() {
-	var buttonsCopy []string
+	var buttonsCopy []BtnOrAxisT
 	for btn := range buttonsToRelease {
 		buttonsCopy = append(buttonsCopy, btn)
 	}
@@ -127,12 +127,12 @@ func releaseAll() {
 	}
 }
 
-var triggersPressed = map[string]bool{
+var triggersPressed = map[BtnOrAxisT]bool{
 	BtnLeftTrigger2:  false,
 	BtnRightTrigger2: false,
 }
 
-func isTriggerBtn(btn string) bool {
+func isTriggerBtn(btn BtnOrAxisT) bool {
 	return btn == BtnLeftTrigger2 || btn == BtnRightTrigger2
 }
 

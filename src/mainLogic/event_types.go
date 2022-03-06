@@ -10,7 +10,7 @@ type Adjustment [2]float64
 
 const adjMult = 0.08
 
-var AxesAdjustments = map[string]Adjustment{
+var AxesAdjustments = map[BtnOrAxisT]Adjustment{
 	AxisRightPadX: {adjMult, adjMult},
 	AxisRightPadY: {0.0, adjMult},
 	AxisLeftPadX:  {adjMult, adjMult},
@@ -39,11 +39,11 @@ func checkAdjustments() {
 }
 
 type Event struct {
-	eventType string
-	btnOrAxis string
+	eventType EventTypeT
+	btnOrAxis BtnOrAxisT
 	value     float64
-	codeType  string
-	code      int
+	codeType  CodeTypeT
+	code      CodeT
 }
 
 func (event *Event) convertToAxisChanged() {
@@ -116,11 +116,12 @@ func (event *Event) update(msg string) {
 				return
 			}
 			typeAndCode := strings.Split(valueAndCode[1], "(")
-			event.codeType = typeAndCode[0]
+			event.codeType = CodeTypeT(typeAndCode[0])
 
 			code := typeAndCode[1]
-			event.code, err = strconv.Atoi(code[:len(code)-1])
+			codeNum, err := strconv.Atoi(code[:len(code)-1])
 			CheckErr(err)
+			event.code = CodeT(codeNum)
 		}
 	}
 	event.filterEvents()
@@ -128,47 +129,51 @@ func (event *Event) update(msg string) {
 
 func (event *Event) print() {
 	print("%s %s %s %v %0.2f",
-		strings.TrimPrefix(event.eventType, "Ev"),
-		strings.TrimPrefix(strings.TrimPrefix(event.btnOrAxis, "Btn"), "Axis"),
+		strings.TrimPrefix(string(event.eventType), "Ev"),
+		strings.TrimPrefix(strings.TrimPrefix(string(event.btnOrAxis), "Btn"), "Axis"),
 		event.codeType,
 		event.code,
 		event.value)
 }
 
-type CodeType string
+type CodeTypeT string
 
 const (
-	CTAbs string = "ABS"
-	CTKey        = "KEY"
+	CTAbs CodeTypeT = "ABS"
+	CTKey           = "KEY"
 )
+
+type CodeT int
 
 const (
-	CodeLeftPadX  int = 16
-	CodeLeftPadY      = 17
-	CodeRightPadX     = 3
-	CodeRightPadY     = 4
+	CodeLeftPadX  CodeT = 16
+	CodeLeftPadY        = 17
+	CodeRightPadX       = 3
+	CodeRightPadY       = 4
 )
 
-var CodeToAxisMap = map[int]string{
+var CodeToAxisMap = map[CodeT]BtnOrAxisT{
 	CodeLeftPadX:  AxisLeftPadX,
 	CodeLeftPadY:  AxisLeftPadY,
 	CodeRightPadX: AxisRightPadX,
 	CodeRightPadY: AxisRightPadY,
 }
 
+type BtnOrAxisT string
+
 const (
-	AxisLeftStickX string = "AxisLeftStickX"
-	AxisLeftStickY        = "AxisLeftStickY"
-	AxisLeftZ             = "AxisLeftZ"
-	AxisRightPadX         = "AxisRightPadX"
-	AxisRightPadY         = "AxisRightPadY"
-	AxisRightZ            = "AxisRightZ"
-	AxisLeftPadX          = "AxisLeftPadX"
-	AxisLeftPadY          = "AxisLeftPadY"
-	AxisUnknown           = "AxisUnknown"
+	AxisLeftStickX BtnOrAxisT = "AxisLeftStickX"
+	AxisLeftStickY            = "AxisLeftStickY"
+	AxisLeftZ                 = "AxisLeftZ"
+	AxisRightPadX             = "AxisRightPadX"
+	AxisRightPadY             = "AxisRightPadY"
+	AxisRightZ                = "AxisRightZ"
+	AxisLeftPadX              = "AxisLeftPadX"
+	AxisLeftPadY              = "AxisLeftPadY"
+	AxisUnknown               = "AxisUnknown"
 )
 
-var _AxisMap = map[uint8]string{
+var _AxisMap = map[uint8]BtnOrAxisT{
 	'u': AxisLeftStickX,
 	'v': AxisLeftStickY,
 	'w': AxisLeftZ,
@@ -182,38 +187,42 @@ var _AxisMap = map[uint8]string{
 
 const HoldSuffix = "Hold"
 
-func addHoldSuffix(btn string) string {
-	return btn + HoldSuffix
+type StrBtnAxisT interface {
+	BtnOrAxisT | string
 }
 
-func removeHoldSuffix(btn string) string {
-	return strings.TrimSuffix(btn, HoldSuffix)
+func addHoldSuffix[T StrBtnAxisT](btn T) BtnOrAxisT {
+	return BtnOrAxisT(string(btn) + HoldSuffix)
+}
+
+func removeHoldSuffix[T StrBtnAxisT](btn T) BtnOrAxisT {
+	return BtnOrAxisT(strings.TrimSuffix(string(btn), HoldSuffix))
 }
 
 const (
-	BtnSouth         string = "South"
-	BtnEast                 = "East"
-	BtnNorth                = "North"
-	BtnWest                 = "West"
-	BtnC                    = "BtnC"
-	BtnZ                    = "BtnZ"
-	BtnLeftTrigger          = "LB"
-	BtnLeftTrigger2         = "LT"
-	BtnRightTrigger         = "RB"
-	BtnRightTrigger2        = "RT"
-	BtnSelect               = "Select"
-	BtnStart                = "Start"
-	BtnMode                 = "Mode"
-	BtnLeftThumb            = "LeftThumb"
-	BtnRightThumb           = "RightThumb"
-	BtnDPadUp               = "DPadUp"
-	BtnDPadDown             = "DPadDown"
-	BtnDPadLeft             = "DPadLeft"
-	BtnDPadRight            = "DPadRight"
-	BtnUnknown              = "BtnUnknown"
+	BtnSouth         BtnOrAxisT = "South"
+	BtnEast                     = "East"
+	BtnNorth                    = "North"
+	BtnWest                     = "West"
+	BtnC                        = "BtnC"
+	BtnZ                        = "BtnZ"
+	BtnLeftTrigger              = "LB"
+	BtnLeftTrigger2             = "LT"
+	BtnRightTrigger             = "RB"
+	BtnRightTrigger2            = "RT"
+	BtnSelect                   = "Select"
+	BtnStart                    = "Start"
+	BtnMode                     = "Mode"
+	BtnLeftThumb                = "LeftThumb"
+	BtnRightThumb               = "RightThumb"
+	BtnDPadUp                   = "DPadUp"
+	BtnDPadDown                 = "DPadDown"
+	BtnDPadLeft                 = "DPadLeft"
+	BtnDPadRight                = "DPadRight"
+	BtnUnknown                  = "BtnUnknown"
 )
 
-type Synonyms map[string]string
+type Synonyms map[string]BtnOrAxisT
 
 func genBtnSynonyms() Synonyms {
 	synonyms := Synonyms{
@@ -225,14 +234,14 @@ func genBtnSynonyms() Synonyms {
 		"RightStick":    BtnRightThumb,
 	}
 	for key, val := range synonyms {
-		synonyms[addHoldSuffix(key)] = addHoldSuffix(val)
+		synonyms[string(addHoldSuffix(key))] = addHoldSuffix(val)
 	}
 	return synonyms
 }
 
 var BtnSynonyms = genBtnSynonyms()
 
-var AllOriginalButtons = []string{
+var AllOriginalButtons = []BtnOrAxisT{
 	BtnSouth,
 	BtnEast,
 	BtnNorth,
@@ -254,7 +263,7 @@ var AllOriginalButtons = []string{
 	BtnDPadRight,
 }
 
-var _BtnMap = map[uint8]string{
+var _BtnMap = map[uint8]BtnOrAxisT{
 	'a': BtnSouth,
 	'b': BtnEast,
 	'c': BtnNorth,
@@ -277,22 +286,22 @@ var _BtnMap = map[uint8]string{
 	't': BtnUnknown,
 }
 
+type EventTypeT string
+
 const (
-	EvAxisChanged     string = "EvAxisChanged"
-	EvButtonChanged          = "EvButtonChanged"
-	EvButtonReleased         = "EvButtonReleased"
-	EvButtonPressed          = "EvButtonPressed"
-	EvButtonRepeated         = "EvButtonRepeated"
-	EvConnected              = "EvConnected"
-	EvDisconnected           = "EvDisconnected"
-	EvDropped                = "EvDropped"
-	EvPadFirstTouched        = "EvPadFirstTouched"
-	EvPadReleased            = "EvPadReleased"
+	EvAxisChanged     EventTypeT = "EvAxisChanged"
+	EvButtonChanged              = "EvButtonChanged"
+	EvButtonReleased             = "EvButtonReleased"
+	EvButtonPressed              = "EvButtonPressed"
+	EvButtonRepeated             = "EvButtonRepeated"
+	EvConnected                  = "EvConnected"
+	EvDisconnected               = "EvDisconnected"
+	EvDropped                    = "EvDropped"
+	EvPadFirstTouched            = "EvPadFirstTouched"
+	EvPadReleased                = "EvPadReleased"
 )
 
-var ButtonEvents = []string{EvButtonChanged, EvButtonReleased, EvButtonPressed, EvButtonRepeated}
-
-var EventTypeMap = map[uint8]string{
+var EventTypeMap = map[uint8]EventTypeT{
 	'a': EvAxisChanged,
 	'b': EvButtonChanged,
 	'c': EvButtonReleased,
@@ -303,8 +312,8 @@ var EventTypeMap = map[uint8]string{
 	'h': EvDropped,
 }
 
-func genBtnAxisMap() map[uint8]string {
-	mapping := map[uint8]string{}
+func genBtnAxisMap() map[uint8]BtnOrAxisT {
+	mapping := map[uint8]BtnOrAxisT{}
 	for k, v := range _AxisMap {
 		AssignWithDuplicateCheck(mapping, k, v)
 	}
