@@ -95,6 +95,7 @@ func (pad *TouchPadPosition) updateAccel(x, y float64) {
 		dist := calcDistance(diffIgnoreNotInit(x, pad.prevAccelPointX), diffIgnoreNotInit(y, pad.prevAccelPointY))
 		//pad.accel = 2 * dist / math.Pow(float64(timeDiff)/timeDiv, 2.0)
 		accel := dist / AccelIntervalNum
+		accel *= 100
 		print("accel: %0.2f", accel)
 
 		pad.updateAccelValues(x, y, accel, timeNow)
