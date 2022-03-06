@@ -2,7 +2,7 @@
 GamesModeOn = false
 
 //commands
-TriggerThreshold = 0.1
+TriggerThreshold = 0.07
 holdThreshold = 200
 
 //mouse
