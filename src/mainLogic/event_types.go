@@ -8,29 +8,33 @@ import (
 
 type Adjustment = [2]float64
 
+const adjMult = 0.08
+
 var AxesAdjustments = map[string]Adjustment{
-	AxisRightStickX: {0.04, 0.13},
-	AxisRightStickY: {0.02, 0.11},
-	AxisDPadX:       {0.04, 0.13},
-	AxisDPadY:       {0.02, 0.15},
+	AxisRightStickX: {adjMult, adjMult},
+	AxisRightStickY: {0.0, adjMult},
+	AxisDPadX:       {adjMult, adjMult},
+	AxisDPadY:       {0.0, adjMult},
 }
 
-var adjustmentThreshold float64 = 0.65
+var adjustmentThreshold float64 = 0.8
 
-func checkAdj(value float64) {
-	if value < 0 {
+func checkAdj(value *float64) {
+	if *value < 0 {
 		panicMsg("Adjustment value can't be negative")
 	}
-	if math.Abs(value) >= 0.2 {
+	if math.Abs(*value) >= 0.2 {
 		panicMsg("Adjustment value is too high")
 	}
+	*value += 1
 }
 
 func checkAdjustments() {
-	for _, adjustment := range AxesAdjustments {
+	for axis, adjustment := range AxesAdjustments {
 		negAdj, posAdj := adjustment[0], adjustment[1]
-		checkAdj(negAdj)
-		checkAdj(posAdj)
+		checkAdj(&negAdj)
+		checkAdj(&posAdj)
+		AxesAdjustments[axis] = Adjustment{negAdj, posAdj}
 	}
 }
 
@@ -72,9 +76,9 @@ func (event *Event) filterEvents() {
 
 				switch true {
 				case event.value > 0:
-					event.value = math.Min(event.value+posAdj, 1.0)
+					event.value = math.Min(event.value*posAdj, 1.0)
 				case event.value < 0:
-					event.value = -math.Min(math.Abs(event.value-negAdj), 1.0)
+					event.value = math.Max(event.value*negAdj, -1.0)
 				}
 			}
 		}
