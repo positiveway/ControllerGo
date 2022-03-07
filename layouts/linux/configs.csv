@@ -6,7 +6,6 @@ TriggerThreshold = 0.07
 holdThreshold = 200
 
 //mouse
-mouseMaxMove = 200
 deadzone = 0.0
 
 //scroll

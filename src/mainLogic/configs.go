@@ -58,7 +58,6 @@ func setConfigVars() {
 	holdThreshold = toMillisConfig("holdThreshold")
 
 	//mouse
-	mouseMaxMove = toIntToFloatConfig("mouseMaxMove")
 
 	Deadzone = toFloatConfig("Deadzone")
 	inputRange = 1.0 - Deadzone
@@ -87,7 +86,6 @@ var TriggerThreshold float64
 var holdThreshold time.Duration
 
 //mouse
-var mouseMaxMove float64
 var Deadzone float64
 var inputRange float64
 

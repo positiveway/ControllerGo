@@ -13,14 +13,100 @@ const CoordNotInitialized = -10000
 
 var TimeNotInitialized = time.Now().Add(time.Hour)
 
-var AccelIntervalNum float64 = 16
-var AccelInterval = numberToMillis(AccelIntervalNum)
+type MouseConfigs struct {
+	interval,
+	speedMult,
+	speedPower,
+	accelMult,
+	accelPower float64
+	intervalTime time.Duration
+}
+
+func makeMouseConfigs(
+	interval,
+	speedMult,
+	speedPower,
+	accelMult,
+	accelPower float64) MouseConfigs {
+	return MouseConfigs{
+		intervalTime: numberToMillis(interval),
+		interval:     interval,
+		speedMult:    speedMult,
+		speedPower:   speedPower,
+		accelMult:    accelMult,
+		accelPower:   accelPower,
+	}
+}
+
+var mouseConfigs = makeMouseConfigs(12, 2000, 1, 50, 1)
+
+const changeThreshold float64 = 0.001
 
 type TouchPadPosition struct {
-	prevX, prevY                     float64
-	prevAccelPointX, prevAccelPointY float64
-	accelTimeStart                   time.Time
-	accel                            float64
+	x, y           float64
+	prevX, prevY   float64
+	startTimePoint time.Time
+	prevSpeed      float64
+}
+
+func (pad *TouchPadPosition) updateValues(speed float64, startTime time.Time) {
+	pad.prevX = pad.x
+	pad.prevY = pad.y
+	pad.prevSpeed = speed
+	pad.startTimePoint = startTime
+}
+
+type MouseMetrics struct {
+	speed, accel, coef float64
+}
+
+func pow(value, power float64) float64 {
+	sign, value := getSignAndAbs(value)
+	value = math.Pow(value, power)
+	return applySign(sign, value)
+}
+
+func (m *MouseMetrics) calcCoef() {
+	speed := mouseConfigs.speedMult * pow(m.speed, mouseConfigs.speedPower) * mouseConfigs.interval
+	accel := mouseConfigs.accelMult * pow(m.accel, mouseConfigs.accelPower) * pow(mouseConfigs.interval, 2)
+	m.coef = speed + accel
+	print("speed: %0.4f; accel: %0.4f", speed, accel)
+}
+
+func (m *MouseMetrics) calcMove(diff float64) int32 {
+	pixels := diff * m.coef
+	print("diff: %0.4f, pixels: %0.4f", diff, pixels)
+	return floatToInt32(pixels)
+}
+
+func (pad *TouchPadPosition) diffX() float64 {
+	return diffIgnoreNotInit(pad.x, pad.prevX)
+}
+
+func (pad *TouchPadPosition) diffY() float64 {
+	return diffIgnoreNotInit(pad.y, pad.prevY)
+}
+
+func (pad *TouchPadPosition) updateMetrics(timeNow time.Time) (m MouseMetrics) {
+	timeInt := mouseConfigs.interval
+
+	if pad.startTimePoint == TimeNotInitialized {
+		pad.initAccelTime(timeNow)
+		return
+	}
+
+	timeDiff := timeNow.Sub(pad.startTimePoint)
+	if timeDiff >= mouseConfigs.intervalTime {
+
+		dist := calcDistance(pad.diffX(), pad.diffY())
+
+		m.speed = dist / timeInt
+		m.accel = (m.speed - pad.prevSpeed) / timeInt
+		m.calcCoef()
+
+		pad.updateValues(m.speed, timeNow)
+	}
+	return
 }
 
 func makeTouchPosition() TouchPadPosition {
@@ -30,34 +116,34 @@ func makeTouchPosition() TouchPadPosition {
 }
 
 func (pad *TouchPadPosition) setX() {
-	pad.updateAccelX()
-	if pixels := pad.calcPixels(&pad.prevX); pixels != 0 {
-		//print("x: %v", pixels)
-		platformSpecific.MoveMouse(pixels, 0)
-	}
+	pad.x = event.value
+	pad.moveMouse()
 }
 
 func (pad *TouchPadPosition) setY() {
-	pad.updateAccelY()
-	if pixels := pad.calcPixels(&pad.prevY); pixels != 0 {
-		//print("y: %v", pixels)
-		platformSpecific.MoveMouse(0, pixels)
-	}
+	pad.y = event.value
+	pad.moveMouse()
 }
 
-func (pad *TouchPadPosition) resetAccel() {
-	pad.updateAccelValues(CoordNotInitialized, CoordNotInitialized, 0, TimeNotInitialized)
+func (pad *TouchPadPosition) moveMouse() {
+	diffX := pad.diffX()
+	diffY := pad.diffY()
+
+	timeNow := time.Now()
+	metrics := pad.updateMetrics(timeNow)
+
+	moveX := metrics.calcMove(diffX)
+	moveY := metrics.calcMove(diffY)
+
+	platformSpecific.MoveMouse(moveX, moveY)
 }
 
 func (pad *TouchPadPosition) reset() {
-	pad.prevX = CoordNotInitialized
-	pad.prevY = CoordNotInitialized
+	pad.x = CoordNotInitialized
+	pad.y = CoordNotInitialized
 
-	pad.resetAccel()
+	pad.updateValues(0, TimeNotInitialized)
 }
-
-const changeThreshold float64 = 0.005
-const pixelsThreshold = 2
 
 func diffIgnoreNotInit(curValue, prevValue float64) float64 {
 	if curValue == CoordNotInitialized || prevValue == CoordNotInitialized {
@@ -65,69 +151,9 @@ func diffIgnoreNotInit(curValue, prevValue float64) float64 {
 	}
 	return curValue - prevValue
 }
-func diffCheckInit(curValue, prevValue float64) float64 {
-	if curValue == CoordNotInitialized || prevValue == CoordNotInitialized {
-		panicMsg("Value for diff is not initialized")
-	}
-	return curValue - prevValue
-}
-
-func (pad *TouchPadPosition) updateAccelValues(x, y, accel float64, startTime time.Time) {
-	pad.accel = accel
-	pad.accelTimeStart = startTime
-	pad.prevAccelPointX = x
-	pad.prevAccelPointY = y
-}
 
 func (pad *TouchPadPosition) initAccelTime(startTime time.Time) {
-	pad.accelTimeStart = startTime
-}
-
-func (pad *TouchPadPosition) updateAccel(x, y float64) {
-	timeNow := time.Now()
-	if pad.accelTimeStart == TimeNotInitialized {
-		pad.initAccelTime(timeNow)
-		return
-	}
-	timeDiff := timeNow.Sub(pad.accelTimeStart)
-	if timeDiff >= AccelInterval {
-
-		dist := calcDistance(diffIgnoreNotInit(x, pad.prevAccelPointX), diffIgnoreNotInit(y, pad.prevAccelPointY))
-		//pad.accel = 2 * dist / math.Pow(float64(timeDiff)/timeDiv, 2.0)
-		accel := dist / AccelIntervalNum
-		accel *= 100
-		print("accel: %0.2f", accel)
-
-		pad.updateAccelValues(x, y, accel, timeNow)
-	}
-}
-
-func (pad *TouchPadPosition) updateAccelX() {
-	pad.updateAccel(event.value, pad.prevY)
-}
-
-func (pad *TouchPadPosition) updateAccelY() {
-	pad.updateAccel(pad.prevX, event.value)
-}
-
-func (pad *TouchPadPosition) calcPixels(prevValue *float64) int32 {
-	curValue := event.value
-
-	if *prevValue == CoordNotInitialized {
-		*prevValue = curValue
-		return 0
-	}
-
-	diff := diffCheckInit(curValue, *prevValue)
-	if math.Abs(diff) <= changeThreshold {
-		return 0
-	}
-	*prevValue = curValue
-	pixels := floatToInt32(diff * mouseMaxMove)
-	//if math.Abs(float64(pixels)) < pixelsThreshold {
-	//	return 0
-	//}
-	return pixels
+	pad.startTimePoint = startTime
 }
 
 func calcScrollInterval(input float64) time.Duration {
