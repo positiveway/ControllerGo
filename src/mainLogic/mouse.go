@@ -38,7 +38,7 @@ func makeMouseConfigs(
 	}
 }
 
-var mouseConfigs = makeMouseConfigs(12, 2000, 1, 50, 1)
+var mouseConfigs = makeMouseConfigs(12, 5000, 1, 0, 1)
 
 const changeThreshold float64 = 0.001
 
@@ -49,9 +49,21 @@ type TouchPadPosition struct {
 	prevSpeed      float64
 }
 
+func updateCoord(value float64, prevValue *float64, pixels int32) {
+	if pixels != 0 || *prevValue == CoordNotInitialized || value == CoordNotInitialized {
+		*prevValue = value
+	}
+}
+
+func (pad *TouchPadPosition) updateX(pixels int32) {
+	updateCoord(pad.x, &pad.prevX, pixels)
+}
+
+func (pad *TouchPadPosition) updateY(pixels int32) {
+	updateCoord(pad.y, &pad.prevY, pixels)
+}
+
 func (pad *TouchPadPosition) updateValues(speed float64, startTime time.Time) {
-	pad.prevX = pad.x
-	pad.prevY = pad.y
 	pad.prevSpeed = speed
 	pad.startTimePoint = startTime
 }
@@ -87,7 +99,8 @@ func (pad *TouchPadPosition) diffY() float64 {
 	return diffIgnoreNotInit(pad.y, pad.prevY)
 }
 
-func (pad *TouchPadPosition) updateMetrics(timeNow time.Time) (m MouseMetrics) {
+func (pad *TouchPadPosition) updateMetrics() {
+	timeNow := time.Now()
 	timeInt := mouseConfigs.interval
 
 	if pad.startTimePoint == TimeNotInitialized {
@@ -97,12 +110,24 @@ func (pad *TouchPadPosition) updateMetrics(timeNow time.Time) (m MouseMetrics) {
 
 	timeDiff := timeNow.Sub(pad.startTimePoint)
 	if timeDiff >= mouseConfigs.intervalTime {
+		m := MouseMetrics{}
 
-		dist := calcDistance(pad.diffX(), pad.diffY())
+		diffX := pad.diffX()
+		diffY := pad.diffY()
+
+		dist := calcDistance(diffX, diffY)
 
 		m.speed = dist / timeInt
 		m.accel = (m.speed - pad.prevSpeed) / timeInt
 		m.calcCoef()
+
+		moveX := m.calcMove(diffX)
+		moveY := m.calcMove(diffY)
+
+		pad.updateX(moveX)
+		pad.updateY(moveY)
+
+		platformSpecific.MoveMouse(moveX, moveY)
 
 		pad.updateValues(m.speed, timeNow)
 	}
@@ -117,30 +142,19 @@ func makeTouchPosition() TouchPadPosition {
 
 func (pad *TouchPadPosition) setX() {
 	pad.x = event.value
-	pad.moveMouse()
+	pad.updateMetrics()
 }
 
 func (pad *TouchPadPosition) setY() {
 	pad.y = event.value
-	pad.moveMouse()
-}
-
-func (pad *TouchPadPosition) moveMouse() {
-	diffX := pad.diffX()
-	diffY := pad.diffY()
-
-	timeNow := time.Now()
-	metrics := pad.updateMetrics(timeNow)
-
-	moveX := metrics.calcMove(diffX)
-	moveY := metrics.calcMove(diffY)
-
-	platformSpecific.MoveMouse(moveX, moveY)
+	pad.updateMetrics()
 }
 
 func (pad *TouchPadPosition) reset() {
 	pad.x = CoordNotInitialized
 	pad.y = CoordNotInitialized
+	pad.prevX = pad.x
+	pad.prevY = pad.y
 
 	pad.updateValues(0, TimeNotInitialized)
 }
