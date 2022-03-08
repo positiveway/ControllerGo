@@ -12,11 +12,11 @@ var mousePad = makeSoloPadPosition()
 
 const CoordNotInitialized = -10000
 
-var mouseInterval = numberToMillis(18)
+var mouseInterval = numberToMillis(12)
 
 const changeThreshold float64 = 0.001
 
-var mouseSpeed float64 = 300
+var mouseSpeed float64 = 200
 
 func calcMove(value, prevValue float64) int32 {
 	if prevValue == CoordNotInitialized {

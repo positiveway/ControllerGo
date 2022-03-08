@@ -67,22 +67,22 @@ func (event *Event) transformToPadEvent() {
 
 func (event *Event) transformAndFilter() {
 	if event.eventType == EvAxisChanged {
-		if adjustment, found := AxesAdjustments[event.btnOrAxis]; found {
+		if _, found := AxesAdjustments[event.btnOrAxis]; found {
 			if event.value == 0.0 {
 				return
 			}
-			if !typingMode.mode {
-				if math.Abs(event.value) > adjustmentThreshold {
-					negAdj, posAdj := adjustment[0], adjustment[1]
-
-					switch true {
-					case event.value > 0:
-						event.value = math.Min(event.value*posAdj, 1.0)
-					case event.value < 0:
-						event.value = math.Max(event.value*negAdj, -1.0)
-					}
-				}
-			}
+			//if !typingMode.mode {
+			//	if math.Abs(event.value) > adjustmentThreshold {
+			//		negAdj, posAdj := adjustment[0], adjustment[1]
+			//
+			//		switch true {
+			//		case event.value > 0:
+			//			event.value = math.Min(event.value*posAdj, 1.0)
+			//		case event.value < 0:
+			//			event.value = math.Max(event.value*negAdj, -1.0)
+			//		}
+			//	}
+			//}
 		}
 	}
 
@@ -92,7 +92,7 @@ func (event *Event) transformAndFilter() {
 	event.transformToPadEvent()
 
 	//fmt.Printf("After: ")
-	event.print()
+	//event.print()
 
 	matchEvent()
 }
