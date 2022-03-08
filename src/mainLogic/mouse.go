@@ -128,6 +128,7 @@ func RunScrollThread() {
 		if scrollMovement.magnitude != 0 {
 			scrollInterval = calcScrollInterval(scrollMovement.magnitude)
 		}
+
 		scrollMovement.mu.Unlock()
 
 		if hDir != 0 {
