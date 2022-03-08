@@ -94,11 +94,12 @@ const outputMin float64 = 0.0
 
 func convertRange(input, outputMax float64) float64 {
 	panicIsNan(input)
-	sign, input := getSignAndAbs(input)
 
 	if input == 0.0 {
 		return 0.0
 	}
+
+	sign, input := getSignAndAbs(input)
 
 	if input > 1.0 {
 		panicMsg("Axis input value is greater than 1.0. Current value: %v", input)
