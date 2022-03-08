@@ -32,9 +32,11 @@ func calcMove(value, prevValue float64) int32 {
 func RunMouseThread() {
 	for {
 		mousePad.mu.Lock()
+
 		moveX := calcMove(mousePad.x, mousePad.prevX)
 		moveY := calcMove(mousePad.y, mousePad.prevY)
 		mousePad.update()
+
 		mousePad.mu.Unlock()
 
 		if moveX != 0 || moveY != 0 {
@@ -77,6 +79,7 @@ func (pad *PadPosition) setY() {
 func (pad *PadPosition) reset() {
 	pad.mu.Lock()
 	defer pad.mu.Unlock()
+
 	pad.x = CoordNotInitialized
 	pad.y = CoordNotInitialized
 	pad.prevX = CoordNotInitialized
@@ -116,6 +119,8 @@ func getDirections(x, y float64) (int32, int32) {
 func RunScrollThread() {
 	var hDir, vDir int32
 	for {
+		scrollMovement.mu.Lock()
+
 		scrollMovement.updateValues()
 		hDir, vDir = getDirections(scrollMovement.x, scrollMovement.y)
 
@@ -123,6 +128,7 @@ func RunScrollThread() {
 		if scrollMovement.magnitude != 0 {
 			scrollInterval = calcScrollInterval(scrollMovement.magnitude)
 		}
+		scrollMovement.mu.Unlock()
 
 		if hDir != 0 {
 			platformSpecific.ScrollHorizontal(hDir)

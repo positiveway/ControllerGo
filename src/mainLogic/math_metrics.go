@@ -48,9 +48,6 @@ func (coords *Coords) reset() {
 }
 
 func (coords *Coords) updateValues() {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-
 	coords.x = coords._x
 	coords.y = coords._y
 
