@@ -45,9 +45,6 @@ func InitSettings() {
 	checkAdjustments()
 }
 
-var found bool
-var err error
-
 func RunMain() {
 	InitSettings()
 	platformSpecific.InitResources()

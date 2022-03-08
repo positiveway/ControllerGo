@@ -118,6 +118,9 @@ func (event *Event) transformAndFilter() {
 }
 
 func (event *Event) update(msg string) {
+	var found bool
+	var err error
+
 	event.eventType, found = EventTypeMap[msg[0]]
 	if !found {
 		PanicMisspelled(string(msg[0]))
