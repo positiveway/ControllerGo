@@ -133,6 +133,12 @@ func PanicMisspelled(str any) {
 	panicMsg("Probably misspelled: %v", str)
 }
 
+func panicIsNan(value float64) {
+	if isNan(value) {
+		panicMsg("Value is Nan")
+	}
+}
+
 func CheckErr(err error) {
 	if err != nil {
 		panicMsg("%v", err)
@@ -209,6 +215,15 @@ func trunc(number float64, precision int) float64 {
 func round(number float64, precision int) float64 {
 	multiplier := math.Pow(10, float64(precision))
 	return math.Round(number*multiplier) / multiplier
+}
+
+func isNan(values ...float64) bool {
+	for _, value := range values {
+		if math.IsNaN(value) {
+			return true
+		}
+	}
+	return false
 }
 
 func max[T Number](a, b T) T {

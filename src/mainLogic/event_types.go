@@ -101,7 +101,7 @@ func (event *Event) transformAndFilter() {
 	event.transformToPadEvent()
 
 	//fmt.Printf("After: ")
-	event.print()
+	//event.print()
 
 	matchEvent()
 }

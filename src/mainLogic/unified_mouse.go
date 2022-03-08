@@ -7,7 +7,7 @@ import (
 )
 
 func UnifiedDiffIgnoreNotInit(curValue, prevValue float64) float64 {
-	if curValue == CoordNotInitialized || prevValue == CoordNotInitialized {
+	if isNan(curValue, prevValue) {
 		return 0
 	}
 	return curValue - prevValue
@@ -50,7 +50,7 @@ type UnifiedPadPosition struct {
 }
 
 func updateCoord(value float64, prevValue *float64, pixels int32) {
-	if pixels != 0 || *prevValue == CoordNotInitialized || value == CoordNotInitialized {
+	if pixels != 0 || isNan(value, *prevValue) {
 		*prevValue = value
 	}
 }
@@ -151,8 +151,8 @@ func (pad *UnifiedPadPosition) setY() {
 }
 
 func (pad *UnifiedPadPosition) reset() {
-	pad.x = CoordNotInitialized
-	pad.y = CoordNotInitialized
+	pad.x = math.NaN()
+	pad.y = math.NaN()
 	pad.prevX = pad.x
 	pad.prevY = pad.y
 
