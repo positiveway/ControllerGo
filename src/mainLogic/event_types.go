@@ -96,6 +96,11 @@ func (event *Event) transformStickToButtons() {
 }
 
 func (event *Event) transformAndFilter() {
+	//fmt.Printf("Before: ")
+	//event.print()
+
+	event.fixButtonNames()
+
 	if event.eventType == EvAxisChanged {
 		if _, found := AxesAdjustments[event.btnOrAxis]; found {
 			if event.value == 0.0 {
@@ -104,14 +109,10 @@ func (event *Event) transformAndFilter() {
 		}
 	}
 
-	//fmt.Printf("Before: ")
-	//event.print()
-
-	event.fixButtonNames()
 	event.transformToPadEvent()
 
 	//fmt.Printf("After: ")
-	event.print()
+	//event.print()
 
 	matchEvent()
 }
