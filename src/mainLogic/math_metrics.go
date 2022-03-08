@@ -7,7 +7,6 @@ import (
 )
 
 type Coords struct {
-	_x, _y    float64
 	x, y      float64
 	magnitude float64
 	angle     int
@@ -21,42 +20,37 @@ func makeCoords() *Coords {
 }
 
 func (coords *Coords) setDirectlyX() {
-	coords._x = event.value
+	coords.x = event.value
 }
 
 func (coords *Coords) setDirectlyY() {
-	coords._y = event.value
-}
-
-func (coords *Coords) set(receiver *float64) {
-	coords.mu.Lock()
-	defer coords.mu.Unlock()
-	*receiver = event.value
+	coords.y = event.value
 }
 
 func (coords *Coords) setX() {
-	coords.set(&coords._x)
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	coords.setDirectlyX()
 }
 
 func (coords *Coords) setY() {
-	coords.set(&coords._y)
+	coords.mu.Lock()
+	defer coords.mu.Unlock()
+	coords.setDirectlyY()
 }
 
 func (coords *Coords) printCurState() {
-	printPair(coords._x, coords._y, "(x, y): ")
+	printPair(coords.x, coords.y, "(x, y): ")
 }
 
 func (coords *Coords) reset() {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords._x = CoordNotInitialized
-	coords._y = CoordNotInitialized
+	coords.x = CoordNotInitialized
+	coords.y = CoordNotInitialized
 }
 
 func (coords *Coords) updateValues() {
-	coords.x = coords._x
-	coords.y = coords._y
-
 	coords.x, coords.y, coords.magnitude = normalizeIncorrectEdgeValues(coords.x, coords.y)
 }
 
