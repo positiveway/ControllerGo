@@ -125,6 +125,7 @@ func print(message string, variables ...any) {
 }
 
 func panicMsg(message string, variables ...any) {
+	releaseAll()
 	panic(sPrint(message, variables...))
 }
 
@@ -134,7 +135,7 @@ func PanicMisspelled(str any) {
 
 func CheckErr(err error) {
 	if err != nil {
-		panic(err)
+		panicMsg("%v", err)
 	}
 }
 

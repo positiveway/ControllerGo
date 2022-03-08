@@ -123,7 +123,7 @@ func releaseAll() {
 	for _, command := range buttonsToRelease {
 		releaseCommand(command)
 	}
-	buttonsToRelease = nil
+	buttonsToRelease = ButtonToCommand{}
 }
 
 var triggersPressed = map[BtnOrAxisT]bool{
