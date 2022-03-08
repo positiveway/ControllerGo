@@ -71,7 +71,7 @@ func applyAdjustments(value float64, axis BtnOrAxisT) float64 {
 		if math.Abs(value) > adjustmentThreshold {
 			negAdj, posAdj := adjustment[0], adjustment[1]
 
-			switch true {
+			switch {
 			case value > 0:
 				value = math.Min(value*posAdj, 1.0)
 			case value < 0:

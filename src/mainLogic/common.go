@@ -233,8 +233,8 @@ func isEmpty[T BasicType](seq []T) bool {
 
 func reverse[T BasicType](seq []T) []T {
 	var res []T
-	for _, el := range seq {
-		res = append(res, el)
+	for i := len(seq) - 1; i >= 0; i-- {
+		res = append(res, seq[i])
 	}
 	return res
 }
