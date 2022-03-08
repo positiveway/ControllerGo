@@ -36,7 +36,7 @@ func InitSettings() {
 	setLayoutDir()
 	setConfigVars()
 	initCodeMapping()
-	joystickTyping = makeJoystickTyping()
+	joystickTyping = makePadTyping()
 	commandsLayout = loadCommandsLayout()
 	boundariesMap = genBoundariesMap()
 	checkAdjustments()

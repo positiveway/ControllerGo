@@ -1,6 +1,10 @@
 package mainLogic
 
-import "ControllerGo/src/platformSpecific"
+import (
+	"ControllerGo/src/platformSpecific"
+	"fmt"
+	"sort"
+)
 
 const NeutralZone ZoneT = "⬤"
 const EdgeZone ZoneT = "❌"
@@ -47,6 +51,18 @@ func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, directio
 	}
 }
 
+func printValuesForDir(_boundariesMap BoundariesMap) {
+	direction := ZoneUpRight
+	var needAngles []int
+	for angle, dir := range _boundariesMap {
+		if dir == direction {
+			needAngles = append(needAngles, angle)
+		}
+	}
+	sort.Ints(needAngles)
+	fmt.Println(needAngles)
+}
+
 func genBoundariesMap() BoundariesMap {
 	//newMapping := map[string]AngleRange{
 	//	ZoneRight:   {350, 22},
@@ -74,28 +90,29 @@ func genBoundariesMap() BoundariesMap {
 		angle, angleMargin := angleRange[0], angleRange[1]
 		genRange(angle-angleMargin, angle+angleMargin, _boundariesMap, direction)
 	}
+	//printValuesForDir(_boundariesMap)
 	return _boundariesMap
 }
 
-type JoystickTyping struct {
-	layout                        TypingLayout
-	leftStickZone, rightStickZone ZoneT
-	awaitingNeutralPos            bool
-	leftCoords, rightCoords       Coords
-	leftCanUse, leftChanged       bool
-	rightCanUse, rightChanged     bool
+type PadTyping struct {
+	layout                    TypingLayout
+	leftPadZone, rightPadZone ZoneT
+	awaitingNeutralPos        bool
+	leftCoords, rightCoords   Coords
+	leftCanUse, leftChanged   bool
+	rightCanUse, rightChanged bool
 }
 
-func makeJoystickTyping() JoystickTyping {
-	return JoystickTyping{
+func makePadTyping() PadTyping {
+	return PadTyping{
 		layout:             loadTypingLayout(),
-		leftStickZone:      NeutralZone,
-		rightStickZone:     NeutralZone,
+		leftPadZone:        NeutralZone,
+		rightPadZone:       NeutralZone,
 		awaitingNeutralPos: false,
 	}
 }
 
-var joystickTyping JoystickTyping
+var joystickTyping PadTyping
 
 func detectZone(magnitude float64, angle int) ZoneT {
 	if magnitude > MagnitudeThreshold {
@@ -110,12 +127,12 @@ func zoneCanBeUsed(zone ZoneT) bool {
 	return zone != EdgeZone && zone != NeutralZone
 }
 
-func (jTyping *JoystickTyping) zoneChanged(zone ZoneT, prevZone *ZoneT) bool {
+func (padTyping *PadTyping) zoneChanged(zone ZoneT, prevZone *ZoneT) bool {
 	if zone != EdgeZone {
 		if *prevZone != zone {
 			*prevZone = zone
 			if zone == NeutralZone {
-				jTyping.awaitingNeutralPos = false
+				padTyping.awaitingNeutralPos = false
 			}
 			return true
 		}
@@ -123,36 +140,36 @@ func (jTyping *JoystickTyping) zoneChanged(zone ZoneT, prevZone *ZoneT) bool {
 	return false
 }
 
-func (jTyping *JoystickTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, bool) {
+func (padTyping *PadTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, bool) {
 	coords.updateValues()
 	coords.updateAngle()
 
 	zone := detectZone(coords.magnitude, coords.angle)
 	canUse := zoneCanBeUsed(zone)
-	changed := jTyping.zoneChanged(zone, prevZone)
+	changed := padTyping.zoneChanged(zone, prevZone)
 	return canUse, changed
 }
 
-func (jTyping *JoystickTyping) updateLeftZone() {
-	jTyping.leftCanUse, jTyping.leftChanged = jTyping.calcNewZone(&jTyping.leftStickZone, &jTyping.leftCoords)
-	jTyping.typeLetter()
+func (padTyping *PadTyping) updateLeftZone() {
+	padTyping.leftCanUse, padTyping.leftChanged = padTyping.calcNewZone(&padTyping.leftPadZone, &padTyping.leftCoords)
+	padTyping.typeLetter()
 }
-func (jTyping *JoystickTyping) updateRightZone() {
-	jTyping.rightCanUse, jTyping.rightChanged = jTyping.calcNewZone(&jTyping.rightStickZone, &jTyping.rightCoords)
-	jTyping.typeLetter()
+func (padTyping *PadTyping) updateRightZone() {
+	padTyping.rightCanUse, padTyping.rightChanged = padTyping.calcNewZone(&padTyping.rightPadZone, &padTyping.rightCoords)
+	padTyping.typeLetter()
 }
 
-func (jTyping *JoystickTyping) typeLetter() {
-	if jTyping.leftCanUse && jTyping.rightCanUse {
-		//print("%s %s", jTyping.leftStickZone, jTyping.rightStickZone)
+func (padTyping *PadTyping) typeLetter() {
+	if padTyping.leftCanUse && padTyping.rightCanUse {
+		//print("%s %s", padTyping.leftPadZone, padTyping.rightPadZone)
 		//print("%v %v", leftCanUse, rightCanUse)
 		//print("%v %v", leftChanged, rightChanged)
 
-		if jTyping.leftChanged || jTyping.rightChanged {
-			if !jTyping.awaitingNeutralPos {
-				jTyping.awaitingNeutralPos = true
-				position := SticksPosition{jTyping.leftStickZone, jTyping.rightStickZone}
-				if code, found := jTyping.layout[position]; found {
+		if padTyping.leftChanged || padTyping.rightChanged {
+			if !padTyping.awaitingNeutralPos {
+				padTyping.awaitingNeutralPos = true
+				position := SticksPosition{padTyping.leftPadZone, padTyping.rightPadZone}
+				if code, found := padTyping.layout[position]; found {
 					platformSpecific.TypeKey(code)
 				}
 			}
