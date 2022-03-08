@@ -66,24 +66,28 @@ func (event *Event) transformToPadEvent() {
 	}
 }
 
+func applyAdjustments(value float64, axis BtnOrAxisT) float64 {
+	if adjustment, found := AxesAdjustments[axis]; found {
+		if math.Abs(value) > adjustmentThreshold {
+			negAdj, posAdj := adjustment[0], adjustment[1]
+
+			switch true {
+			case value > 0:
+				value = math.Min(value*posAdj, 1.0)
+			case value < 0:
+				value = math.Max(value*negAdj, -1.0)
+			}
+		}
+	}
+	return value
+}
+
 func (event *Event) transformAndFilter() {
 	if event.eventType == EvAxisChanged {
 		if _, found := AxesAdjustments[event.btnOrAxis]; found {
 			if event.value == 0.0 {
 				return
 			}
-			//if !typingMode.mode {
-			//	if math.Abs(event.value) > adjustmentThreshold {
-			//		negAdj, posAdj := adjustment[0], adjustment[1]
-			//
-			//		switch true {
-			//		case event.value > 0:
-			//			event.value = math.Min(event.value*posAdj, 1.0)
-			//		case event.value < 0:
-			//			event.value = math.Max(event.value*negAdj, -1.0)
-			//		}
-			//	}
-			//}
 		}
 	}
 
