@@ -12,7 +12,7 @@ var mousePad = makeSoloPadPosition()
 
 const CoordNotInitialized = -10000
 
-var mouseInterval = numberToMillis(4)
+var mouseInterval = numberToMillis(1)
 
 const changeThreshold float64 = 0.001
 
