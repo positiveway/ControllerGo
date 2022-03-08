@@ -83,12 +83,15 @@ func getCommand(btn BtnOrAxisT, hold bool) Command {
 	}
 }
 
+func pressCommand(command Command) {
+	for _, el := range command {
+		platformSpecific.PressKeyOrMouse(el)
+	}
+}
+
 func press(btn BtnOrAxisT, hold bool) {
 	command := getCommand(btn, hold)
 
-	if isEmpty(command) {
-		return
-	}
 	switch command[0] {
 	case SwitchToTyping:
 		typingMode.switchMode()
@@ -102,30 +105,25 @@ func press(btn BtnOrAxisT, hold bool) {
 	//	locale := osSpecific.GetLocale()
 	//	print(locale)
 	//}
-	for _, el := range command {
-		platformSpecific.PressKeyOrMouse(el)
-	}
+	pressCommand(command)
 }
 
-func release(btn BtnOrAxisT) {
-	command := pop(buttonsToRelease, btn)
-	if isEmpty(command) {
-		return
-	}
-
+func releaseCommand(command Command) {
 	for _, el := range reverse(command) {
 		platformSpecific.ReleaseKeyOrMouse(el)
 	}
 }
 
+func release(btn BtnOrAxisT) {
+	command := pop(buttonsToRelease, btn)
+	releaseCommand(command)
+}
+
 func releaseAll() {
-	var buttonsCopy []BtnOrAxisT
-	for btn := range buttonsToRelease {
-		buttonsCopy = append(buttonsCopy, btn)
+	for _, command := range buttonsToRelease {
+		releaseCommand(command)
 	}
-	for _, btn := range buttonsCopy {
-		release(btn)
-	}
+	buttonsToRelease = nil
 }
 
 var triggersPressed = map[BtnOrAxisT]bool{
@@ -142,15 +140,16 @@ func detectTriggers() {
 	if !isTriggerBtn(btn) {
 		return
 	}
-	buttonsMutex.Lock()
-	defer buttonsMutex.Unlock()
+	value := event.value
+	triggerPressed := triggersPressed[btn]
+	command := commandsLayout[btn]
 
-	if event.value > TriggerThreshold && !triggersPressed[btn] {
+	if value > TriggerThreshold && !triggerPressed {
 		triggersPressed[btn] = true
-		press(btn, false)
-	} else if event.value < TriggerThreshold && triggersPressed[btn] {
+		pressCommand(command)
+	} else if value < TriggerThreshold && triggerPressed {
 		triggersPressed[btn] = false
-		release(btn)
+		releaseCommand(command)
 	}
 }
 
