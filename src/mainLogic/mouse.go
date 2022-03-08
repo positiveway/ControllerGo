@@ -124,7 +124,7 @@ func RunScrollThread() {
 		scrollMovement.updateValues()
 		hDir, vDir = getDirections(scrollMovement.x, scrollMovement.y)
 
-		scrollInterval := time.Duration(scrollFastestInterval) * time.Millisecond
+		scrollInterval := numberToMillis(scrollFastestInterval)
 		if scrollMovement.magnitude != 0 {
 			scrollInterval = calcScrollInterval(scrollMovement.magnitude)
 		}
