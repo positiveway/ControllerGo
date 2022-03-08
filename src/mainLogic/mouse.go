@@ -3,55 +3,82 @@ package mainLogic
 import (
 	"ControllerGo/src/platformSpecific"
 	"math"
+	"sync"
 	"time"
 )
 
-var scrollMovement = Coords{}
+var scrollMovement = &Coords{}
 var mousePad = makeSoloPadPosition()
 
 const CoordNotInitialized = -10000
+
+var mouseInterval = numberToMillis(18)
 
 const changeThreshold float64 = 0.001
 
 var mouseSpeed float64 = 300
 
-func moveMouse(value float64, prevValue *float64, isX bool) {
-	if *prevValue == CoordNotInitialized {
-		*prevValue = value
-		return
+func calcMove(value, prevValue float64) int32 {
+	if prevValue == CoordNotInitialized {
+		return 0
 	}
 
-	diff := value - *prevValue
+	diff := value - prevValue
 	pixels := floatToInt32(diff * mouseSpeed)
-	*prevValue = value
-	if pixels != 0 {
-		if isX {
-			platformSpecific.MoveMouse(pixels, 0)
-		} else {
-			platformSpecific.MoveMouse(0, pixels)
+
+	return pixels
+}
+
+func RunMouseThread() {
+	for {
+		mousePad.mu.Lock()
+		moveX := calcMove(mousePad.x, mousePad.prevX)
+		moveY := calcMove(mousePad.y, mousePad.prevY)
+		mousePad.update()
+		mousePad.mu.Unlock()
+
+		if moveX != 0 || moveY != 0 {
+			platformSpecific.MoveMouse(moveX, moveY)
 		}
+
+		time.Sleep(mouseInterval)
 	}
 }
 
-type SoloPadPosition struct {
+type PadPosition struct {
+	x, y         float64
 	prevX, prevY float64
+	mu           sync.Mutex
 }
 
-func makeSoloPadPosition() SoloPadPosition {
-	pad := SoloPadPosition{}
+func makeSoloPadPosition() *PadPosition {
+	pad := PadPosition{}
 	pad.reset()
-	return pad
+	return &pad
 }
 
-func (pad *SoloPadPosition) setX() {
-	moveMouse(event.value, &pad.prevX, true)
+func (pad *PadPosition) update() {
+	pad.prevX = pad.x
+	pad.prevY = pad.y
 }
 
-func (pad *SoloPadPosition) setY() {
-	moveMouse(event.value, &pad.prevY, false)
+func (pad *PadPosition) setX() {
+	pad.mu.Lock()
+	defer pad.mu.Unlock()
+	pad.x = event.value
 }
 
-func (pad *SoloPadPosition) reset() {
+func (pad *PadPosition) setY() {
+	pad.mu.Lock()
+	defer pad.mu.Unlock()
+	pad.y = event.value
+}
+
+func (pad *PadPosition) reset() {
+	pad.mu.Lock()
+	defer pad.mu.Unlock()
+	pad.x = CoordNotInitialized
+	pad.y = CoordNotInitialized
 	pad.prevX = CoordNotInitialized
 	pad.prevY = CoordNotInitialized
 }

@@ -53,6 +53,7 @@ func RunMain() {
 	defer platformSpecific.CloseInputResources()
 	defer releaseAll()
 
+	go RunMouseThread()
 	go RunScrollThread()
 	go RunReleaseHoldThread()
 
