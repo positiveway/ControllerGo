@@ -8,13 +8,14 @@ import (
 
 type Adjustment [2]float64
 
-const adjMult = 0.08
+const adjMultX = 0.08
+const adjMultY = 0.04
 
 var AxesAdjustments = map[BtnOrAxisT]Adjustment{
-	AxisRightPadX: {adjMult, adjMult},
-	AxisRightPadY: {0.0, adjMult},
-	AxisLeftPadX:  {adjMult, adjMult},
-	AxisLeftPadY:  {0.0, adjMult},
+	AxisRightPadX: {adjMultX, adjMultX},
+	AxisRightPadY: {0.0, adjMultY},
+	AxisLeftPadX:  {adjMultX, adjMultX},
+	AxisLeftPadY:  {0.0, adjMultY},
 }
 
 var adjustmentThreshold float64 = 0.8
@@ -67,22 +68,22 @@ func (event *Event) transformToPadEvent() {
 
 func (event *Event) transformAndFilter() {
 	if event.eventType == EvAxisChanged {
-		if _, found := AxesAdjustments[event.btnOrAxis]; found {
+		if adjustment, found := AxesAdjustments[event.btnOrAxis]; found {
 			if event.value == 0.0 {
 				return
 			}
-			//if !typingMode.mode {
-			//	if math.Abs(event.value) > adjustmentThreshold {
-			//		negAdj, posAdj := adjustment[0], adjustment[1]
-			//
-			//		switch true {
-			//		case event.value > 0:
-			//			event.value = math.Min(event.value*posAdj, 1.0)
-			//		case event.value < 0:
-			//			event.value = math.Max(event.value*negAdj, -1.0)
-			//		}
-			//	}
-			//}
+			if !typingMode.mode {
+				if math.Abs(event.value) > adjustmentThreshold {
+					negAdj, posAdj := adjustment[0], adjustment[1]
+
+					switch true {
+					case event.value > 0:
+						event.value = math.Min(event.value*posAdj, 1.0)
+					case event.value < 0:
+						event.value = math.Max(event.value*negAdj, -1.0)
+					}
+				}
+			}
 		}
 	}
 
