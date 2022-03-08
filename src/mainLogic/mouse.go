@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var scrollMovement = &Coords{}
+var scrollMovement = makeCoords()
 var mousePad = makeSoloPadPosition()
 
 const CoordNotInitialized = -10000

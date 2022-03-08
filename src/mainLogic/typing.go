@@ -98,7 +98,7 @@ type PadTyping struct {
 	layout                    TypingLayout
 	leftPadZone, rightPadZone ZoneT
 	awaitingNeutralPos        bool
-	leftCoords, rightCoords   Coords
+	leftCoords, rightCoords   *Coords
 	leftCanUse, leftChanged   bool
 	rightCanUse, rightChanged bool
 }
@@ -109,6 +109,8 @@ func makePadTyping() PadTyping {
 		leftPadZone:        NeutralZone,
 		rightPadZone:       NeutralZone,
 		awaitingNeutralPos: false,
+		leftCoords:         makeCoords(),
+		rightCoords:        makeCoords(),
 	}
 }
 
@@ -153,12 +155,12 @@ func (padTyping *PadTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, 
 
 func (padTyping *PadTyping) updateLeftZone() {
 	//print("Left")
-	padTyping.leftCanUse, padTyping.leftChanged = padTyping.calcNewZone(&padTyping.leftPadZone, &padTyping.leftCoords)
+	padTyping.leftCanUse, padTyping.leftChanged = padTyping.calcNewZone(&padTyping.leftPadZone, padTyping.leftCoords)
 	padTyping.typeLetter()
 }
 func (padTyping *PadTyping) updateRightZone() {
 	//print("Right")
-	padTyping.rightCanUse, padTyping.rightChanged = padTyping.calcNewZone(&padTyping.rightPadZone, &padTyping.rightCoords)
+	padTyping.rightCanUse, padTyping.rightChanged = padTyping.calcNewZone(&padTyping.rightPadZone, padTyping.rightCoords)
 	padTyping.typeLetter()
 }
 
