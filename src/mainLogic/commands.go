@@ -40,10 +40,11 @@ var holdStartTime = HoldStartTime{}
 var buttonsMutex = sync.Mutex{}
 var buttonsToRelease = ButtonToCommand{}
 
-var commandsLayout ButtonToCommand
+var pressCommandsLayout, releaseCommandsLayout ButtonToCommand
 
-func loadCommandsLayout() ButtonToCommand {
-	layout := ButtonToCommand{}
+func loadCommandsLayout() (ButtonToCommand, ButtonToCommand) {
+	pressLayout := ButtonToCommand{}
+	releaseLayout := ButtonToCommand{}
 	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "commands.csv"), 2)
 	for _, parts := range linesParts {
 		btn := BtnOrAxisT(parts[0])
@@ -70,17 +71,24 @@ func loadCommandsLayout() ButtonToCommand {
 		if codes[0] == NoAction {
 			continue
 		}
-		layout[btn] = codes
+		pressLayout[btn] = codes
+		releaseLayout[btn] = reverse(codes)
 	}
-	return layout
+	return pressLayout, releaseLayout
 }
 
-func getCommand(btn BtnOrAxisT, hold bool) Command {
+func getPressCommand(btn BtnOrAxisT, hold bool) Command {
 	if hold {
-		return commandsLayout[addHoldSuffix(btn)]
-	} else {
-		return commandsLayout[btn]
+		btn = addHoldSuffix(btn)
 	}
+	return pressCommandsLayout[btn]
+}
+
+func getReleaseCommand(btn BtnOrAxisT, hold bool) Command {
+	if hold {
+		btn = addHoldSuffix(btn)
+	}
+	return releaseCommandsLayout[btn]
 }
 
 func pressCommand(command Command) {
@@ -90,7 +98,7 @@ func pressCommand(command Command) {
 }
 
 func press(btn BtnOrAxisT, hold bool) {
-	command := getCommand(btn, hold)
+	command := getPressCommand(btn, hold)
 
 	switch command[0] {
 	case SwitchToTyping:
@@ -100,7 +108,7 @@ func press(btn BtnOrAxisT, hold bool) {
 		releaseAll()
 	}
 
-	buttonsToRelease[btn] = command
+	buttonsToRelease[btn] = getReleaseCommand(btn, hold)
 	//if len(command) > 1 && command[0] == controlKey {
 	//	locale := osSpecific.GetLocale()
 	//	print(locale)
@@ -109,7 +117,7 @@ func press(btn BtnOrAxisT, hold bool) {
 }
 
 func releaseCommand(command Command) {
-	for _, el := range reverse(command) {
+	for _, el := range command {
 		platformSpecific.ReleaseKeyOrMouse(el)
 	}
 }
@@ -142,14 +150,13 @@ func detectTriggers() {
 	}
 	value := event.value
 	triggerPressed := triggersPressed[btn]
-	command := commandsLayout[btn]
 
 	if value > TriggerThreshold && !triggerPressed {
 		triggersPressed[btn] = true
-		pressCommand(command)
+		pressCommand(pressCommandsLayout[btn])
 	} else if value < TriggerThreshold && triggerPressed {
 		triggersPressed[btn] = false
-		releaseCommand(command)
+		releaseCommand(releaseCommandsLayout[btn])
 	}
 }
 
@@ -161,7 +168,7 @@ func buttonPressed() {
 	buttonsMutex.Lock()
 	defer buttonsMutex.Unlock()
 
-	if _, found := commandsLayout[addHoldSuffix(btn)]; found {
+	if _, found := pressCommandsLayout[addHoldSuffix(btn)]; found {
 		holdStartTime[btn] = time.Now()
 	} else {
 		press(btn, false)
