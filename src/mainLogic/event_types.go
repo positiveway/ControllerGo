@@ -82,6 +82,15 @@ func applyAdjustments(value float64, axis BtnOrAxisT) float64 {
 	return value
 }
 
+func (event *Event) fixButtonNames() {
+	switch event.btnOrAxis {
+	case BtnNorth:
+		event.btnOrAxis = BtnWest
+	case BtnWest:
+		event.btnOrAxis = BtnNorth
+	}
+}
+
 func (event *Event) transformStickToButtons() {
 
 }
@@ -98,10 +107,11 @@ func (event *Event) transformAndFilter() {
 	//fmt.Printf("Before: ")
 	//event.print()
 
+	event.fixButtonNames()
 	event.transformToPadEvent()
 
 	//fmt.Printf("After: ")
-	//event.print()
+	event.print()
 
 	matchEvent()
 }
