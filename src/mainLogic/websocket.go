@@ -15,7 +15,7 @@ func RunWebSocket() {
 	}
 	server, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		panicMsg("Listen err %v", err)
+		panicMsg("Client is already running: %v", err)
 	}
 	print("Listen at %v", addr.String())
 
