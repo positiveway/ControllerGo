@@ -82,6 +82,10 @@ func applyAdjustments(value float64, axis BtnOrAxisT) float64 {
 	return value
 }
 
+func (event *Event) transformStickToButtons() {
+
+}
+
 func (event *Event) transformAndFilter() {
 	if event.eventType == EvAxisChanged {
 		if _, found := AxesAdjustments[event.btnOrAxis]; found {

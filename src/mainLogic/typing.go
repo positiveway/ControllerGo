@@ -47,12 +47,12 @@ func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, directio
 
 	for angle := lowerBound; angle <= upperBound; angle++ {
 		resolvedAngle := resolveAngle(float64(angle))
-		_boundariesMap[resolvedAngle] = direction
+		AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, direction)
 	}
 }
 
 func printValuesForDir(_boundariesMap BoundariesMap) {
-	direction := ZoneUpRight
+	direction := ZoneRight
 	var needAngles []int
 	for angle, dir := range _boundariesMap {
 		if dir == direction {
@@ -145,16 +145,19 @@ func (padTyping *PadTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, 
 	coords.updateAngle()
 
 	zone := detectZone(coords.magnitude, coords.angle)
+	//print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", coords.x, coords.y, coords.magnitude, coords.angle, zone)
 	canUse := zoneCanBeUsed(zone)
 	changed := padTyping.zoneChanged(zone, prevZone)
 	return canUse, changed
 }
 
 func (padTyping *PadTyping) updateLeftZone() {
+	//print("Left")
 	padTyping.leftCanUse, padTyping.leftChanged = padTyping.calcNewZone(&padTyping.leftPadZone, &padTyping.leftCoords)
 	padTyping.typeLetter()
 }
 func (padTyping *PadTyping) updateRightZone() {
+	//print("Right")
 	padTyping.rightCanUse, padTyping.rightChanged = padTyping.calcNewZone(&padTyping.rightPadZone, &padTyping.rightCoords)
 	padTyping.typeLetter()
 }

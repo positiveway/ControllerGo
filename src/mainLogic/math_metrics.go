@@ -14,6 +14,12 @@ type Coords struct {
 	mu        sync.Mutex
 }
 
+func makeCoords() *Coords {
+	coords := Coords{}
+	coords.reset()
+	return &coords
+}
+
 func (coords *Coords) setDirectlyX() {
 	coords._x = event.value
 }
@@ -43,8 +49,8 @@ func (coords *Coords) printCurState() {
 func (coords *Coords) reset() {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords._x = 0
-	coords._y = 0
+	coords._x = CoordNotInitialized
+	coords._y = CoordNotInitialized
 }
 
 func (coords *Coords) updateValues() {
@@ -66,15 +72,17 @@ func resolveAngle(angle float64) int {
 const radiansMultiplier float64 = 180 / math.Pi
 
 func calcResolvedAngle(x, y float64) int {
+	if x == CoordNotInitialized || y == CoordNotInitialized {
+		return 0
+	}
 	angle := math.Atan2(y, x) * radiansMultiplier
 	return resolveAngle(angle)
 }
 
-func coordsDiffDistance(x1, y1, x2, y2 float64) float64 {
-	return math.Hypot(x2-x1, y2-y1)
-}
-
 func calcDistance(x, y float64) float64 {
+	if x == CoordNotInitialized || y == CoordNotInitialized {
+		return 0
+	}
 	return math.Hypot(x, y)
 }
 
@@ -113,6 +121,9 @@ func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.D
 }
 
 func applyDeadzone(value float64) float64 {
+	if value == CoordNotInitialized {
+		return value
+	}
 	if math.Abs(value) < Deadzone {
 		value = 0.0
 	}
