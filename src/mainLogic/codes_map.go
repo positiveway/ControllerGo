@@ -54,27 +54,3 @@ func initCodeMapping() {
 	convertLetterToCodeMapping()
 	EscLetter = getCodeFromLetter("Esc")
 }
-
-type ZoneT string
-
-const (
-	ZoneRight     ZoneT = "Right"
-	ZoneUpRight   ZoneT = "UpRight"
-	ZoneUp        ZoneT = "Up"
-	ZoneUpLeft    ZoneT = "UpLeft"
-	ZoneLeft      ZoneT = "Left"
-	ZoneDownLeft  ZoneT = "DownLeft"
-	ZoneDown      ZoneT = "Down"
-	ZoneDownRight ZoneT = "DownRight"
-)
-
-var AllZones = []ZoneT{
-	ZoneRight,
-	ZoneUpRight,
-	ZoneUp,
-	ZoneUpLeft,
-	ZoneLeft,
-	ZoneDownLeft,
-	ZoneDown,
-	ZoneDownRight,
-}

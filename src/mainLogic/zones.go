@@ -17,14 +17,38 @@ const (
 	AngleDownRight int = 315
 )
 
+type Zone string
+
+const (
+	ZoneRight     Zone = "Right"
+	ZoneUpRight   Zone = "UpRight"
+	ZoneUp        Zone = "Up"
+	ZoneUpLeft    Zone = "UpLeft"
+	ZoneLeft      Zone = "Left"
+	ZoneDownLeft  Zone = "DownLeft"
+	ZoneDown      Zone = "Down"
+	ZoneDownRight Zone = "DownRight"
+)
+
+var AllZones = []Zone{
+	ZoneRight,
+	ZoneUpRight,
+	ZoneUp,
+	ZoneUpLeft,
+	ZoneLeft,
+	ZoneDownLeft,
+	ZoneDown,
+	ZoneDownRight,
+}
+
 type Direction struct {
 	threshold float64
-	zone      ZoneT
+	zone      Zone
 }
 
 type BoundariesMap map[int]Direction
 
-type InitBoundaries map[int]ZoneT
+type InitBoundaries map[int]Zone
 
 type Threshold struct {
 	diagonal, horizontal, vertical float64
@@ -42,7 +66,7 @@ func makeAngleMargin(diagonal, horizontal, vertical int) AngleMargin {
 	return AngleMargin{diagonal: diagonal, horizontal: horizontal, vertical: vertical}
 }
 
-func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, zone ZoneT, threshold float64) {
+func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, zone Zone, threshold float64) {
 	lowerBound += 360
 	upperBound += 360
 
@@ -115,23 +139,25 @@ func genBoundariesMap(initBoundaries InitBoundaries, angleMargin AngleMargin, th
 		thresholdValue := getThresholdValue(baseAngle, threshold)
 		genRange(baseAngle-margin, baseAngle+margin, _boundariesMap, direction, thresholdValue)
 	}
-	//printValuesForDir(_boundariesMap)
+	//printAnglesForZones(_boundariesMap)
 	return _boundariesMap
 }
 
-func printValuesForDir(_boundariesMap BoundariesMap) {
-	direction := ZoneRight
-	var needAngles []int
-	for angle, dir := range _boundariesMap {
-		if dir.zone == direction {
-			needAngles = append(needAngles, angle)
+func printAnglesForZones(_boundariesMap BoundariesMap) {
+	for _, zone := range AllZones {
+		print("%v: ", zone)
+		var needAngles []int
+		for angle, dir := range _boundariesMap {
+			if dir.zone == zone {
+				needAngles = append(needAngles, angle)
+			}
 		}
+		sort.Ints(needAngles)
+		fmt.Println(needAngles)
 	}
-	sort.Ints(needAngles)
-	fmt.Println(needAngles)
 }
 
-func detectZone(magnitude float64, angle int, boundariesMap BoundariesMap) ZoneT {
+func detectZone(magnitude float64, angle int, boundariesMap BoundariesMap) Zone {
 	if direction, found := boundariesMap[angle]; found {
 		if magnitude > direction.threshold {
 			return direction.zone

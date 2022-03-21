@@ -2,12 +2,12 @@ package mainLogic
 
 import "ControllerGo/src/osSpec"
 
-const NeutralZone ZoneT = "⬤"
-const EdgeZone ZoneT = "❌"
+const NeutralZone Zone = "⬤"
+const EdgeZone Zone = "❌"
 
 const NoneStr = "None"
 
-type SticksPosition [2]ZoneT
+type SticksPosition [2]Zone
 type TypingLayout map[SticksPosition]int
 
 var TypingBoundariesMap BoundariesMap
@@ -17,7 +17,7 @@ func loadTypingLayout() TypingLayout {
 
 	layout := TypingLayout{}
 	for _, parts := range linesParts {
-		leftStick, rightStick, letter := ZoneT(parts[0]), ZoneT(parts[1]), parts[2]
+		leftStick, rightStick, letter := Zone(parts[0]), Zone(parts[1]), parts[2]
 		if !contains(AllZones, leftStick) {
 			PanicMisspelled(leftStick)
 		}
@@ -53,7 +53,7 @@ func genTypingBoundariesMap() BoundariesMap {
 
 type PadTyping struct {
 	layout                    TypingLayout
-	leftPadZone, rightPadZone ZoneT
+	leftPadZone, rightPadZone Zone
 	awaitingNeutralPos        bool
 	leftCoords, rightCoords   *Coords
 	leftCanUse, leftChanged   bool
@@ -73,11 +73,11 @@ func makePadTyping() PadTyping {
 
 var joystickTyping PadTyping
 
-func zoneCanBeUsed(zone ZoneT) bool {
+func zoneCanBeUsed(zone Zone) bool {
 	return zone != EdgeZone && zone != NeutralZone
 }
 
-func (padTyping *PadTyping) zoneChanged(zone ZoneT, prevZone *ZoneT) bool {
+func (padTyping *PadTyping) zoneChanged(zone Zone, prevZone *Zone) bool {
 	if zone != EdgeZone {
 		if *prevZone != zone {
 			*prevZone = zone
@@ -90,7 +90,7 @@ func (padTyping *PadTyping) zoneChanged(zone ZoneT, prevZone *ZoneT) bool {
 	return false
 }
 
-func (padTyping *PadTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, bool) {
+func (padTyping *PadTyping) calcNewZone(prevZone *Zone, coords *Coords) (bool, bool) {
 	coords.updateValues()
 	coords.updateAngle()
 
