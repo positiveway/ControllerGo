@@ -1,12 +1,12 @@
-
 ## Functionality
- - Mouse and scrolling emulation
- - Typing with sticks
+ - High precision mouse emulation using controller's stick or touchpad 
+ - Unique typing mechanics that allow typing using only touchpads or sticks 
  - Custom layouts for commands and typing
  - Different actions for holding and shortly pressing a key
  - Remmaping of any key or trigger
 
 ## Supported controllers
+ - Steam Controller
  - PlayStation Dualshock
  - Xbox
 
