@@ -28,23 +28,23 @@ func getConfig(constName string) string {
 }
 
 func toBoolConfig(name string) bool {
-	return StrToBool(getConfig(name))
+	return strToBool(getConfig(name))
 }
 
 func toIntConfig(name string) int {
-	return StrToInt(getConfig(name))
+	return strToInt(getConfig(name))
 }
 
 func toMillisConfig(name string) time.Duration {
-	return StrToMillis(getConfig(name))
+	return strToMillis(getConfig(name))
 }
 
 func toFloatConfig(name string) float64 {
-	return StrToFloat(getConfig(name))
+	return strToFloat(getConfig(name))
 }
 
 func toIntToFloatConfig(name string) float64 {
-	return StrToIntToFloat(getConfig(name))
+	return strToIntToFloat(getConfig(name))
 }
 
 func setConfigVars() {

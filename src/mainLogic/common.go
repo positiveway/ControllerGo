@@ -12,28 +12,28 @@ import (
 	"time"
 )
 
-func StrToBool(value string) bool {
+func strToBool(value string) bool {
 	res, err := strconv.ParseBool(value)
 	checkErr(err)
 	return res
 }
 
-func StrToInt(value string) int {
+func strToInt(value string) int {
 	res, err := strconv.Atoi(value)
 	checkErr(err)
 	return res
 }
 
-func StrToMillis(value string) time.Duration {
-	number := StrToFloat(value)
+func strToMillis(value string) time.Duration {
+	number := strToFloat(value)
 	return numberToMillis(number)
 }
 
-func StrToIntToFloat(value string) float64 {
-	return float64(StrToInt(value))
+func strToIntToFloat(value string) float64 {
+	return float64(strToInt(value))
 }
 
-func StrToFloat(value string) float64 {
+func strToFloat(value string) float64 {
 	res, err := strconv.ParseFloat(value, 64)
 	checkErr(err)
 	return res

@@ -15,8 +15,8 @@ RightTrigger2: LeftMouse
 Select:        Windows
 Start:         Esc
 Mode:          NoAction
-LeftThumb:     Control, C
-RightThumb:    Control, V
+LeftStick:     Control, C
+RightWing:    Control, V
 DPadUp:        Up
 DPadDown:      Down
 DPadLeft:      Left

@@ -53,7 +53,7 @@ func loadCommandsLayout() (ButtonToCommand, ButtonToCommand) {
 		if btnSynonym, found := BtnSynonyms[btn]; found {
 			btn = btnSynonym
 		}
-		if !contains(AllOriginalButtons, removeHoldSuffix(btn)) {
+		if !contains(AllAvailableButtons, removeHoldSuffix(btn)) {
 			PanicMisspelled(btn)
 		}
 		var codes []int
