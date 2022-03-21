@@ -2,8 +2,6 @@ package mainLogic
 
 import (
 	"ControllerGo/src/platformSpecific"
-	"fmt"
-	"sort"
 )
 
 const NeutralZone ZoneT = "⬤"
@@ -13,7 +11,8 @@ const NoneStr = "None"
 
 type SticksPosition [2]ZoneT
 type TypingLayout map[SticksPosition]int
-type AngleRange [2]int
+
+var TypingBoundariesMap BoundariesMap
 
 func loadTypingLayout() TypingLayout {
 	linesParts := ReadLayoutFile("typing.csv", 2)
@@ -37,61 +36,21 @@ func loadTypingLayout() TypingLayout {
 	return layout
 }
 
-type BoundariesMap map[int]ZoneT
-
-var boundariesMap BoundariesMap
-
-func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, direction ZoneT) {
-	lowerBound += 360
-	upperBound += 360
-
-	for angle := lowerBound; angle <= upperBound; angle++ {
-		resolvedAngle := resolveAngle(float64(angle))
-		AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, direction)
-	}
+var typingInitBoundaries = InitBoundaries{
+	AngleRight:     ZoneRight,
+	AngleUpRight:   ZoneUpRight,
+	AngleUp:        ZoneUp,
+	AngleUpLeft:    ZoneUpLeft,
+	AngleLeft:      ZoneLeft,
+	AngleDownLeft:  ZoneDownLeft,
+	AngleDown:      ZoneDown,
+	AngleDownRight: ZoneDownRight,
 }
 
-func printValuesForDir(_boundariesMap BoundariesMap) {
-	direction := ZoneRight
-	var needAngles []int
-	for angle, dir := range _boundariesMap {
-		if dir == direction {
-			needAngles = append(needAngles, angle)
-		}
-	}
-	sort.Ints(needAngles)
-	fmt.Println(needAngles)
-}
-
-func genBoundariesMap() BoundariesMap {
-	//newMapping := map[string]AngleRange{
-	//	ZoneRight:   {350, 22},
-	//	ZoneUpRight: {24, 71},
-	//}
-	//print(newMapping)
-
-	if RightAngleMargin+DiagonalAngleMargin > 45 {
-		panic("With this margin of angle areas will overlap")
-	}
-
-	mapping := map[ZoneT]AngleRange{
-		ZoneRight:     {0, RightAngleMargin},
-		ZoneUpRight:   {45, DiagonalAngleMargin},
-		ZoneUp:        {90, RightAngleMargin},
-		ZoneUpLeft:    {135, DiagonalAngleMargin},
-		ZoneLeft:      {180, RightAngleMargin},
-		ZoneDownLeft:  {225, DiagonalAngleMargin},
-		ZoneDown:      {270, RightAngleMargin},
-		ZoneDownRight: {315, DiagonalAngleMargin},
-	}
-
-	_boundariesMap := BoundariesMap{}
-	for direction, angleRange := range mapping {
-		angle, angleMargin := angleRange[0], angleRange[1]
-		genRange(angle-angleMargin, angle+angleMargin, _boundariesMap, direction)
-	}
-	//printValuesForDir(_boundariesMap)
-	return _boundariesMap
+func genTypingBoundariesMap() BoundariesMap {
+	return genBoundariesMap(typingInitBoundaries,
+		makeAngleMargin(TypingDiagonalAngleMargin, TypingStraightAngleMargin, TypingStraightAngleMargin),
+		makeThreshold(TypingThreshold, TypingThreshold, TypingThreshold))
 }
 
 type PadTyping struct {
@@ -116,15 +75,6 @@ func makePadTyping() PadTyping {
 
 var joystickTyping PadTyping
 
-func detectZone(magnitude float64, angle int) ZoneT {
-	if magnitude > MagnitudeThreshold {
-		//print("%v", angle)
-		return getOrDefault(boundariesMap, angle, EdgeZone)
-	} else {
-		return NeutralZone
-	}
-}
-
 func zoneCanBeUsed(zone ZoneT) bool {
 	return zone != EdgeZone && zone != NeutralZone
 }
@@ -146,7 +96,7 @@ func (padTyping *PadTyping) calcNewZone(prevZone *ZoneT, coords *Coords) (bool, 
 	coords.updateValues()
 	coords.updateAngle()
 
-	zone := detectZone(coords.magnitude, coords.angle)
+	zone := detectZone(coords.magnitude, coords.angle, TypingBoundariesMap)
 	//print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", coords.x, coords.y, coords.magnitude, coords.angle, zone)
 	canUse := zoneCanBeUsed(zone)
 	changed := padTyping.zoneChanged(zone, prevZone)

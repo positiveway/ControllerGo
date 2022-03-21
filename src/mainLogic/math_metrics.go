@@ -46,8 +46,8 @@ func (coords *Coords) printCurState() {
 func (coords *Coords) reset() {
 	coords.mu.Lock()
 	defer coords.mu.Unlock()
-	coords.x = math.NaN()
-	coords.y = math.NaN()
+	coords.x = NaN()
+	coords.y = NaN()
 }
 
 func (coords *Coords) updateValues() {
@@ -58,15 +58,15 @@ func (coords *Coords) updateAngle() {
 	coords.angle = calcResolvedAngle(coords.x, coords.y)
 }
 
-func resolveAngle(angle float64) int {
-	angle = math.Mod(angle+360, 360)
-	return floatToInt(angle)
+func resolveAngle[T Number](angle T) int {
+	resolvedAngle := math.Mod(float64(angle)+360, 360)
+	return floatToInt(resolvedAngle)
 }
 
 const radiansMultiplier float64 = 180 / math.Pi
 
 func calcResolvedAngle(x, y float64) int {
-	if isNan(x, y) {
+	if isNotInit(x, y) {
 		return 0
 	}
 	angle := math.Atan2(y, x) * radiansMultiplier
@@ -74,7 +74,7 @@ func calcResolvedAngle(x, y float64) int {
 }
 
 func calcDistance(x, y float64) float64 {
-	if isNan(x, y) {
+	if isNotInit(x, y) {
 		return 0
 	}
 	return math.Hypot(x, y)
@@ -93,7 +93,7 @@ func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 const outputMin float64 = 0.0
 
 func convertRange(input, outputMax float64) float64 {
-	panicIsNan(input)
+	panicIfNotInit(input)
 
 	if input == 0.0 {
 		return 0.0
@@ -117,7 +117,7 @@ func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.D
 }
 
 func applyDeadzone(value float64) float64 {
-	if isNan(value) {
+	if isNotInit(value) {
 		return value
 	}
 	if math.Abs(value) < Deadzone {

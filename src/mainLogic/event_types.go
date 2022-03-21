@@ -135,7 +135,7 @@ func (event *Event) update(msg string) {
 			valueAndCode := strings.Split(msg, ";")
 
 			event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
-			CheckErr(err)
+			checkErr(err)
 
 			if strings.HasSuffix(msg, ";") {
 				return
@@ -145,7 +145,7 @@ func (event *Event) update(msg string) {
 
 			code := typeAndCode[1]
 			codeNum, err := strconv.Atoi(code[:len(code)-1])
-			CheckErr(err)
+			checkErr(err)
 			event.code = CodeT(codeNum)
 		}
 	}
@@ -154,8 +154,8 @@ func (event *Event) update(msg string) {
 
 func (event *Event) print() {
 	print("%s %s %s %v %0.2f",
-		TrimAnyPrefix(string(event.eventType), "Ev"),
-		TrimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
+		trimAnyPrefix(string(event.eventType), "Ev"),
+		trimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
 		event.codeType,
 		event.code,
 		event.value)

@@ -36,13 +36,10 @@ func InitSettings() {
 	setLayoutDir()
 	setConfigVars()
 	initCodeMapping()
+	checkAdjustments()
+	TypingBoundariesMap = genTypingBoundariesMap()
 	joystickTyping = makePadTyping()
 	pressCommandsLayout, releaseCommandsLayout = loadCommandsLayout()
-	//fmt.Println(pressCommandsLayout)
-	//print("\n\n\n")
-	//fmt.Println(releaseCommandsLayout)
-	boundariesMap = genBoundariesMap()
-	checkAdjustments()
 }
 
 func RunMain() {

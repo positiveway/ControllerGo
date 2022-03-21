@@ -11,10 +11,10 @@ var scrollMovement = makeCoords()
 var mousePad = makeSoloPadPosition()
 
 var mouseInterval = numberToMillis(0.125)
-var mouseSpeed float64 = 150
+var mouseSpeed float64 = 250
 
 func calcMove(value, prevValue float64) int32 {
-	if isNan(prevValue) {
+	if isNotInit(prevValue) {
 		return 0
 	}
 
@@ -75,10 +75,10 @@ func (pad *PadPosition) reset() {
 	pad.mu.Lock()
 	defer pad.mu.Unlock()
 
-	pad.x = math.NaN()
-	pad.y = math.NaN()
-	pad.prevX = math.NaN()
-	pad.prevY = math.NaN()
+	pad.x = NaN()
+	pad.y = NaN()
+	pad.prevX = pad.x
+	pad.prevY = pad.y
 }
 
 func calcScrollInterval(input float64) time.Duration {
@@ -86,7 +86,7 @@ func calcScrollInterval(input float64) time.Duration {
 }
 
 func getDirection(val float64, horizontal bool) int32 {
-	if isNan(val) {
+	if isNotInit(val) {
 		return 0
 	}
 	if horizontal && math.Abs(val) < horizontalScrollThreshold {

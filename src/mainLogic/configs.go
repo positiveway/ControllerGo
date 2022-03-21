@@ -69,10 +69,10 @@ func setConfigVars() {
 	horizontalScrollThreshold = toFloatConfig("horizontalScrollThreshold")
 
 	//typing
-	RightAngleMargin = toIntConfig("RightAngleMargin")
-	DiagonalAngleMargin = toIntConfig("DiagonalAngleMargin")
-	magnitudeThresholdPct = toIntToFloatConfig("magnitudeThresholdPct")
-	MagnitudeThreshold = magnitudeThresholdPct / 100
+	TypingStraightAngleMargin = toIntConfig("TypingStraightAngleMargin")
+	TypingDiagonalAngleMargin = toIntConfig("TypingDiagonalAngleMargin")
+	TypingThresholdPct = toIntToFloatConfig("TypingThresholdPct")
+	TypingThreshold = TypingThresholdPct / 100
 
 	//common
 	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
@@ -96,10 +96,10 @@ var scrollSlowestInterval float64
 var horizontalScrollThreshold float64
 
 //typing
-var RightAngleMargin int
-var DiagonalAngleMargin int
-var magnitudeThresholdPct float64
-var MagnitudeThreshold float64
+var TypingStraightAngleMargin int
+var TypingDiagonalAngleMargin int
+var TypingThresholdPct float64
+var TypingThreshold float64
 
 //common
 var DefaultRefreshInterval time.Duration
