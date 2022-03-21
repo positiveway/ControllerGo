@@ -1,4 +1,4 @@
-package platformSpecific
+package osSpec
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ const MiddleMouse = -5
 
 const EventServerNotRunningMsg = "Event server is not running"
 
-func CheckErr(err error) {
+func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +32,7 @@ func print(message string, variables ...any) {
 
 func GetCurFileDir() string {
 	ex, err := os.Executable()
-	CheckErr(err)
+	checkErr(err)
 	exPath := filepath.Dir(ex)
 	print("Exec path: %s", exPath)
 	return exPath

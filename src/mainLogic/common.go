@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"ControllerGo/src/osSpec"
 	"fmt"
 	"math"
 	"os"
@@ -307,8 +308,8 @@ func floatToInt(value float64) int {
 	return int(math.Round(value))
 }
 
-func floatToInt32(value float64) int32 {
-	return int32(math.Round(value))
+func floatToIntT(value float64) osSpec.IntT {
+	return osSpec.IntT(math.Round(value))
 }
 
 func floatToInt64(value float64) int64 {

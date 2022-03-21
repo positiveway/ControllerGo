@@ -1,13 +1,13 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/platformSpecific"
+	"ControllerGo/src/osSpec"
 	"strings"
 )
 
 func getCodeFromLetter(letter string) int {
 	letter = strings.ToLower(letter)
-	if code, found := platformSpecific.LetterToCodes[letter]; found {
+	if code, found := osSpec.LetterToCodes[letter]; found {
 		return code
 	} else {
 		panicMsg("No such letter in mapping %s", letter)
@@ -40,10 +40,10 @@ func convertLetterToCodeMapping() {
 		synonyms[k] = strings.ToLower(v)
 	}
 
-	toLowerMap(platformSpecific.LetterToCodes)
+	toLowerMap(osSpec.LetterToCodes)
 	for orig, synonym := range synonyms {
-		if code, found := platformSpecific.LetterToCodes[orig]; found {
-			platformSpecific.LetterToCodes[synonym] = code
+		if code, found := osSpec.LetterToCodes[orig]; found {
+			osSpec.LetterToCodes[synonym] = code
 		}
 	}
 }

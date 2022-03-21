@@ -1,7 +1,7 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/platformSpecific"
+	"ControllerGo/src/osSpec"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,9 +14,9 @@ const RunFromTerminal = false
 
 func InitPath() {
 	if RunFromTerminal {
-		BaseDir = filepath.Dir(filepath.Dir(platformSpecific.GetCurFileDir()))
+		BaseDir = filepath.Dir(filepath.Dir(osSpec.GetCurFileDir()))
 	} else {
-		BaseDir = platformSpecific.DefaultProjectDir
+		BaseDir = osSpec.DefaultProjectDir
 	}
 	LayoutsDir = filepath.Join(BaseDir, "layouts")
 }
@@ -44,10 +44,10 @@ func InitSettings() {
 
 func RunMain() {
 	InitSettings()
-	platformSpecific.InitResources()
+	osSpec.InitResources()
 
-	platformSpecific.InitInput()
-	defer platformSpecific.CloseInputResources()
+	osSpec.InitInput()
+	defer osSpec.CloseInputResources()
 	defer releaseAll()
 
 	go RunMouseThread()

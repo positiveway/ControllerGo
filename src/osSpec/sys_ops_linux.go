@@ -1,6 +1,6 @@
 //go:build linux
 
-package platformSpecific
+package osSpec
 
 import (
 	"os/exec"

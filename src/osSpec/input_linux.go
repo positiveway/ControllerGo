@@ -1,10 +1,12 @@
 //go:build linux
 
-package platformSpecific
+package osSpec
 
 import (
 	"github.com/bendahl/uinput"
 )
+
+type IntT = int32
 
 var mouse uinput.Mouse
 var keyboard uinput.Keyboard
@@ -23,11 +25,11 @@ func InitInput() {
 
 	// initialize keyboard and check for possible errors
 	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("testkeyboard"))
-	CheckErr(err)
+	checkErr(err)
 
 	// initialize mouse and check for possible errors
 	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
-	CheckErr(err)
+	checkErr(err)
 }
 
 func PressKeyOrMouse(key int) {

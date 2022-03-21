@@ -1,10 +1,12 @@
 //go:build windows
 
-package platformSpecific
+package osSpec
 
 import (
 	"github.com/go-vgo/robotgo"
 )
+
+type IntT = int32
 
 func CloseInputResources() {}
 

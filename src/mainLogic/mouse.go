@@ -1,7 +1,7 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/platformSpecific"
+	"ControllerGo/src/osSpec"
 	"math"
 	"sync"
 	"time"
@@ -13,13 +13,13 @@ var mousePad = makeSoloPadPosition()
 var mouseInterval = numberToMillis(0.125)
 var mouseSpeed float64 = 250
 
-func calcMove(value, prevValue float64) int32 {
+func calcMove(value, prevValue float64) osSpec.IntT {
 	if isNotInit(prevValue) {
 		return 0
 	}
 
 	diff := value - prevValue
-	pixels := floatToInt32(diff * mouseSpeed)
+	pixels := floatToIntT(diff * mouseSpeed)
 
 	return pixels
 }
@@ -35,7 +35,7 @@ func RunMouseThread() {
 		mousePad.mu.Unlock()
 
 		if moveX != 0 || moveY != 0 {
-			platformSpecific.MoveMouse(moveX, moveY)
+			osSpec.MoveMouse(moveX, moveY)
 		}
 
 		time.Sleep(mouseInterval)
@@ -85,7 +85,7 @@ func calcScrollInterval(input float64) time.Duration {
 	return calcRefreshInterval(input, scrollSlowestInterval, scrollFastestInterval)
 }
 
-func getDirection(val float64, horizontal bool) int32 {
+func getDirection(val float64, horizontal bool) osSpec.IntT {
 	if isNotInit(val) {
 		return 0
 	}
@@ -103,7 +103,7 @@ func getDirection(val float64, horizontal bool) int32 {
 	panic("direction error")
 }
 
-func getDirections(x, y float64) (int32, int32) {
+func getDirections(x, y float64) (osSpec.IntT, osSpec.IntT) {
 	hDir := getDirection(x, true)
 	vDir := getDirection(y, false)
 	//hDir *= -1
@@ -115,7 +115,7 @@ func getDirections(x, y float64) (int32, int32) {
 }
 
 func RunScrollThread() {
-	var hDir, vDir int32
+	var hDir, vDir osSpec.IntT
 	for {
 		scrollMovement.mu.Lock()
 
@@ -130,10 +130,10 @@ func RunScrollThread() {
 		scrollMovement.mu.Unlock()
 
 		if hDir != 0 {
-			platformSpecific.ScrollHorizontal(hDir)
+			osSpec.ScrollHorizontal(hDir)
 		}
 		if vDir != 0 {
-			platformSpecific.ScrollVertical(vDir)
+			osSpec.ScrollVertical(vDir)
 		}
 
 		time.Sleep(scrollInterval)

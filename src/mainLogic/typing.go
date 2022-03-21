@@ -1,8 +1,6 @@
 package mainLogic
 
-import (
-	"ControllerGo/src/platformSpecific"
-)
+import "ControllerGo/src/osSpec"
 
 const NeutralZone ZoneT = "⬤"
 const EdgeZone ZoneT = "❌"
@@ -125,7 +123,7 @@ func (padTyping *PadTyping) typeLetter() {
 				padTyping.awaitingNeutralPos = true
 				position := SticksPosition{padTyping.leftPadZone, padTyping.rightPadZone}
 				if code, found := padTyping.layout[position]; found {
-					platformSpecific.TypeKey(code)
+					osSpec.TypeKey(code)
 				}
 			}
 		}
