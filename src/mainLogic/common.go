@@ -1,7 +1,6 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpec"
 	"fmt"
 	"math"
 	"os"
@@ -306,10 +305,6 @@ func getSignAndAbs(val float64) (bool, float64) {
 
 func floatToInt(value float64) int {
 	return int(math.Round(value))
-}
-
-func floatToIntT(value float64) osSpec.IntT {
-	return osSpec.IntT(math.Round(value))
 }
 
 func floatToInt64(value float64) int64 {

@@ -21,10 +21,10 @@ type Event struct {
 
 func (event *Event) fixButtonNames() {
 	switch event.btnOrAxis {
-	case BtnNorth:
-		event.btnOrAxis = BtnWest
-	case BtnWest:
-		event.btnOrAxis = BtnNorth
+	case BtnY:
+		event.btnOrAxis = BtnX
+	case BtnX:
+		event.btnOrAxis = BtnY
 	}
 }
 

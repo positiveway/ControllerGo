@@ -13,13 +13,13 @@ var mousePad = makeSoloPadPosition()
 var mouseInterval = numberToMillis(0.125)
 var mouseSpeed float64 = 250
 
-func calcMove(value, prevValue float64) osSpec.IntT {
+func calcMove(value, prevValue float64) int {
 	if isNotInit(prevValue) {
 		return 0
 	}
 
 	diff := value - prevValue
-	pixels := floatToIntT(diff * mouseSpeed)
+	pixels := floatToInt(diff * mouseSpeed)
 
 	return pixels
 }
@@ -85,7 +85,7 @@ func calcScrollInterval(input float64) time.Duration {
 	return calcRefreshInterval(input, scrollSlowestInterval, scrollFastestInterval)
 }
 
-func getDirection(val float64, horizontal bool) osSpec.IntT {
+func getDirection(val float64, horizontal bool) int {
 	if isNotInit(val) {
 		return 0
 	}
@@ -103,7 +103,7 @@ func getDirection(val float64, horizontal bool) osSpec.IntT {
 	panic("direction error")
 }
 
-func getDirections(x, y float64) (osSpec.IntT, osSpec.IntT) {
+func getDirections(x, y float64) (int, int) {
 	hDir := getDirection(x, true)
 	vDir := getDirection(y, false)
 	//hDir *= -1
@@ -115,7 +115,7 @@ func getDirections(x, y float64) (osSpec.IntT, osSpec.IntT) {
 }
 
 func RunScrollThread() {
-	var hDir, vDir osSpec.IntT
+	var hDir, vDir int
 	for {
 		scrollMovement.mu.Lock()
 

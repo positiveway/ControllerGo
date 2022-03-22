@@ -71,8 +71,7 @@ func setConfigVars() {
 	//typing
 	TypingStraightAngleMargin = toIntConfig("TypingStraightAngleMargin")
 	TypingDiagonalAngleMargin = toIntConfig("TypingDiagonalAngleMargin")
-	TypingThresholdPct = toIntToFloatConfig("TypingThresholdPct")
-	TypingThreshold = TypingThresholdPct / 100
+	TypingThreshold = toIntToFloatConfig("TypingThresholdPct") / 100
 
 	//common
 	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
@@ -98,7 +97,6 @@ var horizontalScrollThreshold float64
 //typing
 var TypingStraightAngleMargin int
 var TypingDiagonalAngleMargin int
-var TypingThresholdPct float64
 var TypingThreshold float64
 
 //common

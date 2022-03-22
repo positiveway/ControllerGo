@@ -57,7 +57,7 @@ var _AxisMap = map[uint8]BtnOrAxisT{
 	'2': AxisUnknown,
 }
 
-const HoldSuffix = "Hold"
+const HoldSuffix = "_Hold"
 
 func addHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 	return BtnOrAxisT(string(btn) + HoldSuffix)
@@ -68,40 +68,46 @@ func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 }
 
 const (
-	BtnSouth         BtnOrAxisT = "South"
-	BtnLeftWing      BtnOrAxisT = "LeftWing"
-	BtnRightWing     BtnOrAxisT = "RightWing"
-	BtnEast          BtnOrAxisT = "East"
-	BtnNorth         BtnOrAxisT = "North"
-	BtnWest          BtnOrAxisT = "West"
-	BtnC             BtnOrAxisT = "BtnC"
-	BtnZ             BtnOrAxisT = "BtnZ"
-	BtnLeftTrigger   BtnOrAxisT = "LB"
-	BtnLeftTrigger2  BtnOrAxisT = "LT"
-	BtnRightTrigger  BtnOrAxisT = "RB"
-	BtnRightTrigger2 BtnOrAxisT = "RT"
-	BtnSelect        BtnOrAxisT = "Select"
-	BtnStart         BtnOrAxisT = "Start"
-	BtnMode          BtnOrAxisT = "Mode"
-	BtnLeftStick     BtnOrAxisT = "LeftStick"
-	BtnRightStick    BtnOrAxisT = "RightStick"
-	BtnDPadUp        BtnOrAxisT = "DPadUp"
-	BtnDPadDown      BtnOrAxisT = "DPadDown"
-	BtnDPadLeft      BtnOrAxisT = "DPadLeft"
-	BtnDPadRight     BtnOrAxisT = "DPadRight"
-	BtnUnknown       BtnOrAxisT = "BtnUnknown"
+	BtnLeftWing     BtnOrAxisT = "LeftWing"
+	BtnRightWing    BtnOrAxisT = "RightWing"
+	BtnB            BtnOrAxisT = "B"
+	BtnY            BtnOrAxisT = "Y"
+	BtnX            BtnOrAxisT = "X"
+	BtnA            BtnOrAxisT = "A"
+	BtnC            BtnOrAxisT = "BtnC"
+	BtnZ            BtnOrAxisT = "BtnZ"
+	BtnLeftButton   BtnOrAxisT = "LB"
+	BtnLeftTrigger  BtnOrAxisT = "LT"
+	BtnRightButton  BtnOrAxisT = "RB"
+	BtnRightTrigger BtnOrAxisT = "RT"
+	BtnSelect       BtnOrAxisT = "Select"
+	BtnStart        BtnOrAxisT = "Start"
+	BtnMode         BtnOrAxisT = "Mode"
+	BtnStick        BtnOrAxisT = "Stick"
+
+	BtnRightPad  BtnOrAxisT = "RightPad"
+	BtnLeftPad   BtnOrAxisT = "LeftPad"
+	BtnDPadUp    BtnOrAxisT = BtnLeftPad
+	BtnDPadDown  BtnOrAxisT = BtnLeftPad
+	BtnDPadLeft  BtnOrAxisT = BtnLeftPad
+	BtnDPadRight BtnOrAxisT = BtnLeftPad
+
+	BtnStickUp    BtnOrAxisT = "StickUp"
+	BtnStickDown  BtnOrAxisT = "StickDown"
+	BtnStickLeft  BtnOrAxisT = "StickLeft"
+	BtnStickRight BtnOrAxisT = "StickRight"
+
+	BtnUnknown BtnOrAxisT = "BtnUnknown"
 )
 
 type Synonyms map[BtnOrAxisT]BtnOrAxisT
 
 func genBtnSynonyms() Synonyms {
 	synonyms := Synonyms{
-		"LeftTrigger":   BtnLeftTrigger,
-		"LeftTrigger2":  BtnLeftTrigger2,
-		"RightTrigger":  BtnRightTrigger,
-		"RightTrigger2": BtnRightTrigger2,
-		"LeftStick":     BtnLeftStick,
-		"RightStick":    BtnRightStick,
+		"LeftButton":   BtnLeftButton,
+		"LeftTrigger":  BtnLeftTrigger,
+		"RightButton":  BtnRightButton,
+		"RightTrigger": BtnRightTrigger,
 	}
 	for key, val := range synonyms {
 		synonyms[addHoldSuffix(key)] = addHoldSuffix(val)
@@ -114,43 +120,45 @@ var BtnSynonyms = genBtnSynonyms()
 var AllAvailableButtons = []BtnOrAxisT{
 	BtnLeftWing,
 	BtnRightWing,
-	BtnSouth,
-	BtnEast,
-	BtnNorth,
-	BtnWest,
+	BtnA,
+	BtnB,
+	BtnY,
+	BtnX,
 	BtnC,
 	BtnZ,
+	BtnLeftButton,
 	BtnLeftTrigger,
-	BtnLeftTrigger2,
+	BtnRightButton,
 	BtnRightTrigger,
-	BtnRightTrigger2,
 	BtnSelect,
 	BtnStart,
 	BtnMode,
-	BtnLeftStick,
-	BtnRightStick,
-	BtnDPadUp,
-	BtnDPadDown,
-	BtnDPadLeft,
-	BtnDPadRight,
+	BtnStick,
+	BtnLeftPad,
+	BtnRightPad,
+
+	BtnStickUp,
+	BtnStickDown,
+	BtnStickLeft,
+	BtnStickRight,
 }
 
 var _BtnMap = map[uint8]BtnOrAxisT{
-	'a': BtnSouth,
-	'b': BtnEast,
-	'c': BtnNorth,
-	'd': BtnWest,
+	'a': BtnA,
+	'b': BtnB,
+	'c': BtnY,
+	'd': BtnX,
 	'e': BtnC,
 	'f': BtnZ,
-	'g': BtnLeftTrigger,
-	'h': BtnLeftTrigger2,
-	'i': BtnRightTrigger,
-	'j': BtnRightTrigger2,
+	'g': BtnLeftButton,
+	'h': BtnLeftTrigger,
+	'i': BtnRightButton,
+	'j': BtnRightTrigger,
 	'k': BtnSelect,
 	'l': BtnStart,
 	'm': BtnMode,
-	'n': BtnLeftStick,
-	'o': BtnRightStick,
+	'n': BtnStick,
+	'o': BtnRightPad,
 	'p': BtnDPadUp,
 	'q': BtnDPadDown,
 	'r': BtnDPadLeft,

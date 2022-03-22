@@ -6,8 +6,6 @@ import (
 	"github.com/bendahl/uinput"
 )
 
-type IntT = int32
-
 var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 
@@ -62,14 +60,14 @@ func TypeKey(key int) {
 	keyboard.KeyPress(key)
 }
 
-func MoveMouse(x, y int32) {
-	mouse.Move(x, -y)
+func MoveMouse(x, y int) {
+	mouse.Move(int32(x), int32(-y))
 }
 
-func ScrollHorizontal(direction int32) {
-	mouse.Wheel(true, direction)
+func ScrollHorizontal(direction int) {
+	mouse.Wheel(true, int32(direction))
 }
 
-func ScrollVertical(direction int32) {
-	mouse.Wheel(false, direction)
+func ScrollVertical(direction int) {
+	mouse.Wheel(false, int32(direction))
 }

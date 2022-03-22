@@ -1,27 +1,27 @@
 Button : Command
 ------------------------------
-South:         MiddleMouse
-SouthHold:     Control, Z
-East:          Backspace
-EastHold:      Del
-North:         Space
-NorthHold:     Control, Alt, B
-West:          Enter
-WestHold:      Control, Alt, L
-LeftTrigger:   SwitchToTyping
-LeftTrigger2:  RightMouse
-RightTrigger:  Rightalt
-RightTrigger2: LeftMouse
+B:          Backspace
+B_Hold:      Del
+Y:         Space
+Y_Hold:     Control, Alt, B
+X:          Enter
+X_Hold:      Control, Alt, L
+A:         MiddleMouse
+A_Hold:     Control, Z
+LeftButton:   SwitchToTyping
+LeftTrigger:  RightMouse
+RightButton:  Rightalt
+RightTrigger: LeftMouse
 Select:        Windows
 Start:         Esc
 Mode:          NoAction
-LeftStick:     Control, C
+Stick:     Control, C
 RightWing:    Control, V
-DPadUp:        Up
-DPadDown:      Down
-DPadLeft:      Left
-DPadRight:     Right
-DPadUpHold:        VolumeUp
-DPadDownHold:      VolumeDown
-DPadLeftHold:      Alt, Shift, Left
-DPadRightHold:     Alt, Shift, Right
+StickUp:        Up
+StickDown:      Down
+StickLeft:      Left
+StickRight:     Right
+//StickUp_Edge:        VolumeUp
+//StickDown_Edge:      VolumeDown
+//StickLeft_Edge:      Alt, Shift, Left
+//StickRight_Edge:     Alt, Shift, Right

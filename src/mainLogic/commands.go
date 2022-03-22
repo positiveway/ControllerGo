@@ -135,12 +135,12 @@ func releaseAll() {
 }
 
 var triggersPressed = map[BtnOrAxisT]bool{
-	BtnLeftTrigger2:  false,
-	BtnRightTrigger2: false,
+	BtnLeftTrigger:  false,
+	BtnRightTrigger: false,
 }
 
 func isTriggerBtn(btn BtnOrAxisT) bool {
-	return btn == BtnLeftTrigger2 || btn == BtnRightTrigger2
+	return btn == BtnLeftTrigger || btn == BtnRightTrigger
 }
 
 func detectTriggers() {

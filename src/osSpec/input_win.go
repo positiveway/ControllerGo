@@ -6,8 +6,6 @@ import (
 	"github.com/go-vgo/robotgo"
 )
 
-type IntT = int32
-
 func CloseInputResources() {}
 
 func InitInput() {
