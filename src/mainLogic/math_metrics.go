@@ -105,7 +105,7 @@ func convertRange(input, outputMax float64) float64 {
 		panicMsg("Axis input value is greater than 1.0. Current value: %v", input)
 	}
 
-	output := outputMin + ((outputMax-outputMin)/inputRange)*(input-Deadzone)
+	output := outputMin + ((outputMax-outputMin)/(1.0-Deadzone))*(input-Deadzone)
 	return applySign(sign, output)
 }
 

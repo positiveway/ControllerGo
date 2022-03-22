@@ -219,6 +219,26 @@ func getOrDefault[K comparable, V any](m map[K]V, key K, defaultVal V) V {
 	}
 }
 
+func getOrPanic[K comparable, V any](m map[K]V, key K, msg ...string) V {
+	if val, found := m[key]; found {
+		return val
+	}
+	message := func(message []string) string {
+		switch len(message) {
+		case 0:
+			return "No such key in map"
+		case 1:
+			return message[0]
+		default:
+			panicMsg("Only one message can be specified")
+		}
+		panic("")
+	}(msg)
+
+	panicMsg(message+": \"%v\"", key)
+	panic("")
+}
+
 type Int interface {
 	int | int32 | int64
 }

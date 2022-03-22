@@ -10,9 +10,6 @@ import (
 var scrollMovement = makeCoords()
 var mousePad = makeSoloPadPosition()
 
-var mouseInterval = numberToMillis(0.125)
-var mouseSpeed float64 = 250
-
 func calcMove(value, prevValue float64) int {
 	if isNotInit(prevValue) {
 		return 0

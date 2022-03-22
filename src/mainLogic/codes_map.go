@@ -7,12 +7,7 @@ import (
 
 func getCodeFromLetter(letter string) int {
 	letter = strings.ToLower(letter)
-	if code, found := osSpec.LetterToCodes[letter]; found {
-		return code
-	} else {
-		panicMsg("No such letter in mapping %s", letter)
-	}
-	return 0
+	return getOrPanic(osSpec.LetterToCodes, letter, "No such letter in mapping")
 }
 
 func toLowerMap[V any](m map[string]V) {

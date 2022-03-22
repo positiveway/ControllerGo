@@ -19,12 +19,7 @@ func loadConfigs() {
 
 func getConfig(constName string) string {
 	constName = strings.ToLower(constName)
-	if constValue, found := Configs[constName]; found {
-		return constValue
-	} else {
-		panicMsg("No such name in config %s", constName)
-	}
-	return ""
+	return getOrPanic(Configs, constName, "No such name in config")
 }
 
 func toBoolConfig(name string) bool {
@@ -58,9 +53,12 @@ func setConfigVars() {
 	holdThreshold = toMillisConfig("holdThreshold")
 
 	//mouse
+	mouseInterval = toMillisConfig("mouseInterval")
+	mouseSpeed = toFloatConfig("mouseSpeed")
+	mouseEdgeThreshold = toFloatConfig("mouseEdgeThreshold")
 
+	//stick
 	Deadzone = toFloatConfig("Deadzone")
-	inputRange = 1.0 - Deadzone
 
 	//scroll
 	scrollFastestInterval = toIntToFloatConfig("scrollFastestInterval")
@@ -85,8 +83,12 @@ var TriggerThreshold float64
 var holdThreshold time.Duration
 
 //mouse
+var mouseInterval time.Duration
+var mouseSpeed float64
+var mouseEdgeThreshold float64
+
+//stick
 var Deadzone float64
-var inputRange float64
 
 //scroll
 var scrollFastestInterval float64
