@@ -99,6 +99,9 @@ func pressCommand(command Command) {
 
 func press(btn BtnOrAxisT, hold bool) {
 	command := getPressCommand(btn, hold)
+	if isEmpty(command) {
+		return
+	}
 
 	switch command[0] {
 	case SwitchToTyping:
@@ -124,6 +127,9 @@ func releaseCommand(command Command) {
 
 func release(btn BtnOrAxisT) {
 	command := pop(buttonsToRelease, btn)
+	if isEmpty(command) {
+		return
+	}
 	releaseCommand(command)
 }
 
