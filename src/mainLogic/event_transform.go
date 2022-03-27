@@ -55,8 +55,22 @@ func (event *Event) transformToWings() {
 	}
 }
 
-func (event *Event) transformStickToButtons() {
+var stickCoords = makeCoords()
 
+func (event *Event) transformStickToButtons() {
+	if event.eventType == EvAxisChanged {
+		switch event.btnOrAxis {
+		case AxisStickX:
+			stickCoords.setDirectlyX()
+		case AxisStickY:
+			stickCoords.setDirectlyY()
+		default:
+			return
+		}
+		stickCoords.updateValues()
+		stickCoords.updateAngle()
+
+	}
 }
 
 func (event *Event) transformAndFilter() {

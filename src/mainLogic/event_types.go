@@ -34,20 +34,20 @@ var UnknownCodesResolvingMap = map[CodeT]BtnOrAxisT{
 type BtnOrAxisT string
 
 const (
-	AxisLeftStickX BtnOrAxisT = "LeftStickX"
-	AxisLeftStickY BtnOrAxisT = "LeftStickY"
-	AxisLeftZ      BtnOrAxisT = "LeftZ"
-	AxisRightPadX  BtnOrAxisT = "RightPadX"
-	AxisRightPadY  BtnOrAxisT = "RightPadY"
-	AxisRightZ     BtnOrAxisT = "RightZ"
-	AxisLeftPadX   BtnOrAxisT = "LeftPadX"
-	AxisLeftPadY   BtnOrAxisT = "LeftPadY"
-	AxisUnknown    BtnOrAxisT = "Unknown"
+	AxisStickX    BtnOrAxisT = "StickX"
+	AxisStickY    BtnOrAxisT = "StickY"
+	AxisLeftZ     BtnOrAxisT = "LeftZ"
+	AxisRightPadX BtnOrAxisT = "RightPadX"
+	AxisRightPadY BtnOrAxisT = "RightPadY"
+	AxisRightZ    BtnOrAxisT = "RightZ"
+	AxisLeftPadX  BtnOrAxisT = "LeftPadX"
+	AxisLeftPadY  BtnOrAxisT = "LeftPadY"
+	AxisUnknown   BtnOrAxisT = "Unknown"
 )
 
 var _AxisMap = map[uint8]BtnOrAxisT{
-	'u': AxisLeftStickX,
-	'v': AxisLeftStickY,
+	'u': AxisStickX,
+	'v': AxisStickY,
 	'w': AxisLeftZ,
 	'x': AxisRightPadX,
 	'y': AxisRightPadY,

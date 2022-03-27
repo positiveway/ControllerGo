@@ -306,6 +306,42 @@ func panicIfNotInit(values ...any) {
 	}
 }
 
+func anyCmp[T Number](pairs [][]T, cmp func(val1, val2 T) bool) bool {
+	for _, pair := range pairs {
+		if len(pair) > 2 {
+			panicMsg("Pair can only have 2 elements")
+		}
+		if cmp(pair[0], pair[1]) {
+			return true
+		}
+	}
+	return false
+}
+
+func anyGreater[T Number](pairs [][]T) bool {
+	return anyCmp(pairs, func(val1, val2 T) bool { return val1 > val2 })
+}
+
+func anyGreaterOrEqual[T Number](pairs [][]T) bool {
+	return anyCmp(pairs, func(val1, val2 T) bool { return val1 >= val2 })
+}
+
+func anyLess[T Number](pairs [][]T) bool {
+	return anyCmp(pairs, func(val1, val2 T) bool { return val1 < val2 })
+}
+
+func anyLessOrEqual[T Number](pairs [][]T) bool {
+	return anyCmp(pairs, func(val1, val2 T) bool { return val1 <= val2 })
+}
+
+func anyEqual[T Number](pairs [][]T) bool {
+	return anyCmp(pairs, func(val1, val2 T) bool { return val1 == val2 })
+}
+
+func anyNotEqual[T Number](pairs [][]T) bool {
+	return anyCmp(pairs, func(val1, val2 T) bool { return val1 != val2 })
+}
+
 func swap[T any](value1, value2 *T) {
 	*value1, *value2 = *value2, *value1
 }

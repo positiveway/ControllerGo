@@ -2,9 +2,6 @@ package mainLogic
 
 import "ControllerGo/src/osSpec"
 
-const NeutralZone Zone = "⬤"
-const EdgeZone Zone = "❌"
-
 const NoneStr = "None"
 
 type SticksPosition [2]Zone
@@ -48,7 +45,8 @@ var typingInitBoundaries = InitBoundaries{
 func genTypingBoundariesMap() BoundariesMap {
 	return genBoundariesMap(typingInitBoundaries,
 		makeAngleMargin(TypingDiagonalAngleMargin, TypingStraightAngleMargin, TypingStraightAngleMargin),
-		makeThreshold(TypingThreshold, TypingThreshold, TypingThreshold))
+		makeThreshold(TypingThreshold, TypingThreshold, TypingThreshold),
+		makeThreshold(1.0, 1.0, 1.0))
 }
 
 type PadTyping struct {
@@ -74,11 +72,11 @@ func makePadTyping() PadTyping {
 var joystickTyping PadTyping
 
 func zoneCanBeUsed(zone Zone) bool {
-	return zone != EdgeZone && zone != NeutralZone
+	return zone != UnmappedZone && zone != NeutralZone
 }
 
 func (padTyping *PadTyping) zoneChanged(zone Zone, prevZone *Zone) bool {
-	if zone != EdgeZone {
+	if zone != UnmappedZone {
 		if *prevZone != zone {
 			*prevZone = zone
 			if zone == NeutralZone {

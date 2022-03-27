@@ -20,8 +20,8 @@ scrollSlowestInterval = 280
 horizontalScrollThreshold = 0.45
 
 //typing
-TypingStraightAngleMargin = 20
-TypingDiagonalAngleMargin = 24
+TypingStraightAngleMargin = 21
+TypingDiagonalAngleMargin = 23
 TypingThresholdPct = 35
 
 //common
