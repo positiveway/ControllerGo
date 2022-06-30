@@ -371,6 +371,10 @@ func numberToMillis[T Number](value T) time.Duration {
 	return time.Duration(float64(value)*1000) * time.Microsecond
 }
 
+func sqr[T Number](x T) T {
+	return x * x
+}
+
 func trunc(number float64, precision int) float64 {
 	multiplier := math.Pow(10, float64(precision))
 	return math.Trunc(number*multiplier) / multiplier

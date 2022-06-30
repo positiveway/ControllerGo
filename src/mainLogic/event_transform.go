@@ -4,6 +4,14 @@ import (
 	"strconv"
 )
 
+const (
+	LeftAdjustX float64 = -0.04
+	LeftAdjustY float64 = -0.14
+
+	RightAdjustX float64 = 0
+	RightAdjustY float64 = 0
+)
+
 var PadAxes = []BtnOrAxisT{
 	AxisRightPadX,
 	AxisRightPadY,
@@ -17,6 +25,21 @@ type Event struct {
 	value     float64
 	codeType  CodeTypeT
 	code      CodeT
+}
+
+func (event *Event) applyAdjustments() {
+	if event.eventType == EvAxisChanged {
+		switch event.btnOrAxis {
+		case AxisLeftPadX:
+			event.value -= LeftAdjustX
+		case AxisLeftPadY:
+			event.value -= LeftAdjustY
+		case AxisRightPadX:
+			event.value -= RightAdjustX
+		case AxisRightPadY:
+			event.value -= RightAdjustY
+		}
+	}
 }
 
 func (event *Event) fixButtonNames() {
@@ -58,7 +81,11 @@ func (event *Event) transformToWings() {
 var stickCoords = makeCoords()
 
 func (event *Event) transformStickToButtons() {
+
 	if event.eventType == EvAxisChanged {
+		stickCoords.mu.Lock()
+		defer stickCoords.mu.Unlock()
+
 		switch event.btnOrAxis {
 		case AxisStickX:
 			stickCoords.setDirectlyX()
@@ -67,9 +94,9 @@ func (event *Event) transformStickToButtons() {
 		default:
 			return
 		}
+
 		stickCoords.updateValues()
 		stickCoords.updateAngle()
-
 	}
 }
 
@@ -84,6 +111,8 @@ func (event *Event) transformAndFilter() {
 		event.value == 0.0 {
 		return
 	}
+
+	//event.applyAdjustments()
 
 	event.transformToPadEvent()
 	event.transformToWings()

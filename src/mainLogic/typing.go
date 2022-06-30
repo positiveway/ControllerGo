@@ -88,12 +88,16 @@ func (padTyping *PadTyping) zoneChanged(zone Zone, prevZone *Zone) bool {
 	return false
 }
 
+var printCurZone bool
+
 func (padTyping *PadTyping) calcNewZone(prevZone *Zone, coords *Coords) (bool, bool) {
 	coords.updateValues()
 	coords.updateAngle()
 
 	zone := detectZone(coords.magnitude, coords.angle, TypingBoundariesMap)
-	//print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", coords.x, coords.y, coords.magnitude, coords.angle, zone)
+	if printCurZone {
+		print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", coords.x, coords.y, coords.magnitude, coords.angle, zone)
+	}
 	canUse := zoneCanBeUsed(zone)
 	changed := padTyping.zoneChanged(zone, prevZone)
 	return canUse, changed
@@ -101,13 +105,17 @@ func (padTyping *PadTyping) calcNewZone(prevZone *Zone, coords *Coords) (bool, b
 
 func (padTyping *PadTyping) updateLeftZone() {
 	//print("Left")
+	printCurZone = true
 	padTyping.leftCanUse, padTyping.leftChanged = padTyping.calcNewZone(&padTyping.leftPadZone, padTyping.leftCoords)
 	padTyping.typeLetter()
+	printCurZone = false
 }
 func (padTyping *PadTyping) updateRightZone() {
 	//print("Right")
+	//printCurZone = true
 	padTyping.rightCanUse, padTyping.rightChanged = padTyping.calcNewZone(&padTyping.rightPadZone, padTyping.rightCoords)
 	padTyping.typeLetter()
+	printCurZone = false
 }
 
 func (padTyping *PadTyping) typeLetter() {

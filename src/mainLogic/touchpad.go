@@ -13,6 +13,17 @@ type Coords struct {
 	mu        sync.Mutex
 }
 
+func calcFromActualMax(x, y float64) float64 {
+	maxPossibleX := math.Sqrt(1 - sqr(y))
+	ratioFromMax := x / maxPossibleX
+	return ratioFromMax
+}
+
+func (coords *Coords) calcActualCoords() {
+	coords.x = calcFromActualMax(coords.x, coords.y)
+	coords.y = calcFromActualMax(coords.y, coords.x)
+}
+
 func makeCoords() *Coords {
 	coords := Coords{}
 	coords.reset()

@@ -45,14 +45,14 @@ func TypeKey(key int) {
 	robotgo.KeyTap(string(key))
 }
 
-func MoveMouse(x, y int32) {
-	robotgo.MoveRelative(int(x), int(y))
+func MoveMouse(x, y int) {
+	robotgo.MoveRelative(x, y)
 }
 
-func ScrollHorizontal(direction int32) {
-	robotgo.Scroll(int(direction), 0)
+func ScrollHorizontal(direction int) {
+	robotgo.Scroll(direction, 0)
 }
 
-func ScrollVertical(direction int32) {
-	robotgo.Scroll(0, int(direction))
+func ScrollVertical(direction int) {
+	robotgo.Scroll(0, direction)
 }

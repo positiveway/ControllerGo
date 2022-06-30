@@ -17,7 +17,7 @@ func RunWebSocket() {
 	if err != nil {
 		panicMsg("Client is already running: %v", err)
 	}
-	print("Listen at %v", addr.String())
+	print("Listening at %v", addr.String())
 
 	p := make([]byte, 32)
 
