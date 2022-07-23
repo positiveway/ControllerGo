@@ -8,7 +8,7 @@ X:          Enter
 X_Hold:      Control, Alt, L
 A:         MiddleMouse
 A_Hold:     Control, Z
-LeftButton:   SwitchToTyping
+LeftButton:   SwitchMode
 LeftTrigger:  RightMouse
 RightButton:  Rightalt
 RightTrigger: LeftMouse

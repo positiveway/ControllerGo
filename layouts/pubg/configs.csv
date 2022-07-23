@@ -1,26 +1,35 @@
+//Mode
+PadsMode = 1
+
 //commands
-TriggerThreshold = 0.15
-holdThreshold = 150
+TriggerThreshold = 0.07
+holdingThreshold = 200
 
 //mouse
-mouseMaxMove = 4
-forcePower = 1.52
-deadzone = 0.13
-MaxAccelThreshold = 0.98
-MaxAccelMultiplier = 1.5
+mouseInterval = 0.125
+mouseSpeed = 250
+mouseEdgeThreshold = 0.95
 
-mouseInterval = 12
+//Pads/Stick
+PadsRotation = 10
+StickRotation = 10
+
+StickAngleMargin = 40
+StickThresholdPct = 35
+StickEdgeThresholdPct = 100
+
+StickDeadzone = 0.0
 
 //scroll
-scrollFastestInterval = 20
-scrollSlowestInterval = 160
+scrollFastestInterval = 40
+scrollSlowestInterval = 280
 
 horizontalScrollThreshold = 0.45
 
 //typing
-RightAngleMargin = 20
-DiagonalAngleMargin = 24
-magnitudeThresholdPct = 35
+TypingStraightAngleMargin = 21
+TypingDiagonalAngleMargin = 23
+TypingThresholdPct = 35
 
 //common
-DefaultWaitInterval = 25
+DefaultRefreshInterval = 20

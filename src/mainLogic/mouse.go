@@ -3,12 +3,8 @@ package mainLogic
 import (
 	"ControllerGo/src/osSpec"
 	"math"
-	"sync"
 	"time"
 )
-
-var scrollMovement = makeCoords()
-var mousePad = makeSoloPadPosition()
 
 func calcMove(value, prevValue float64) int {
 	if isNotInit(prevValue) {
@@ -22,60 +18,24 @@ func calcMove(value, prevValue float64) int {
 }
 
 func RunMouseThread() {
-	for {
-		mousePad.mu.Lock()
+	ticker := time.NewTicker(mouseInterval)
+	for range ticker.C {
+		if padsMode.GetMode() == TypingMode {
+			continue
+		}
 
-		moveX := calcMove(mousePad.x, mousePad.prevX)
-		moveY := calcMove(mousePad.y, mousePad.prevY)
-		mousePad.update()
+		RightPad.Lock()
 
-		mousePad.mu.Unlock()
+		moveX := calcMove(RightPad.x, RightPad.prevX)
+		moveY := calcMove(RightPad.y, RightPad.prevY)
+		RightPad.UpdatePrevValues()
+
+		RightPad.Unlock()
 
 		if moveX != 0 || moveY != 0 {
 			osSpec.MoveMouse(moveX, moveY)
 		}
-
-		time.Sleep(mouseInterval)
 	}
-}
-
-type PadPosition struct {
-	x, y         float64
-	prevX, prevY float64
-	mu           sync.Mutex
-}
-
-func makeSoloPadPosition() *PadPosition {
-	pad := PadPosition{}
-	pad.reset()
-	return &pad
-}
-
-func (pad *PadPosition) update() {
-	pad.prevX = pad.x
-	pad.prevY = pad.y
-}
-
-func (pad *PadPosition) setX() {
-	pad.mu.Lock()
-	defer pad.mu.Unlock()
-	pad.x = event.value
-}
-
-func (pad *PadPosition) setY() {
-	pad.mu.Lock()
-	defer pad.mu.Unlock()
-	pad.y = event.value
-}
-
-func (pad *PadPosition) reset() {
-	pad.mu.Lock()
-	defer pad.mu.Unlock()
-
-	pad.x = NaN()
-	pad.y = NaN()
-	pad.prevX = pad.x
-	pad.prevY = pad.y
 }
 
 func calcScrollInterval(input float64) time.Duration {
@@ -89,21 +49,12 @@ func getDirection(val float64, horizontal bool) int {
 	if horizontal && math.Abs(val) < horizontalScrollThreshold {
 		return 0
 	}
-	switch {
-	case val == 0:
-		return 0
-	case val > 0:
-		return -1
-	case val < 0:
-		return 1
-	}
-	panic("direction error")
+	return int(sign(val))
 }
 
 func getDirections(x, y float64) (int, int) {
 	hDir := getDirection(x, true)
 	vDir := getDirection(y, false)
-	//hDir *= -1
 
 	if hDir != 0 {
 		vDir = 0
@@ -112,19 +63,24 @@ func getDirections(x, y float64) (int, int) {
 }
 
 func RunScrollThread() {
-	var hDir, vDir int
 	for {
-		scrollMovement.mu.Lock()
-
-		scrollMovement.updateValues()
-		hDir, vDir = getDirections(scrollMovement.x, scrollMovement.y)
-
 		scrollInterval := numberToMillis(scrollFastestInterval)
-		if scrollMovement.magnitude != 0 {
-			scrollInterval = calcScrollInterval(scrollMovement.magnitude)
+
+		if padsMode.GetMode() != ScrollingMode {
+			time.Sleep(scrollInterval)
+			continue
 		}
 
-		scrollMovement.mu.Unlock()
+		LeftPad.Lock()
+
+		LeftPad.CalcActualCoords()
+		hDir, vDir := getDirections(LeftPad.x, LeftPad.y)
+
+		if LeftPad.magnitude != 0 {
+			scrollInterval = calcScrollInterval(LeftPad.magnitude)
+		}
+
+		LeftPad.Unlock()
 
 		if hDir != 0 {
 			osSpec.ScrollHorizontal(hDir)

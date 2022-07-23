@@ -41,7 +41,7 @@ var AllZones = []Zone{
 	ZoneDownRight,
 }
 
-const NeutralZone Zone = "⬤"
+const CentralNeutralZone Zone = "⬤"
 const UnmappedZone Zone = "❌"
 const EdgeZoneSuffix Zone = "_Edge"
 
@@ -54,7 +54,7 @@ func makeDirection(zone Zone, zoneThreshold, edgeThreshold float64) Direction {
 	return Direction{zone: zone, zoneThreshold: zoneThreshold, edgeThreshold: edgeThreshold}
 }
 
-type BoundariesMap map[int]Direction
+type ZoneBoundariesMap map[int]Direction
 
 type InitBoundaries map[int]Zone
 
@@ -84,6 +84,10 @@ func isHorizontal(angle int) bool {
 
 func isVertical(angle int) bool {
 	return angle == 90 || angle == 270
+}
+
+func isEdgeZone(zone Zone) bool {
+	return endsWith(string(zone), string(EdgeZoneSuffix))
 }
 
 func resolveThreeDirectionalValue[T Number](angle int, diagonal, horizontal, vertical T) T {
@@ -124,7 +128,7 @@ func checkEdgeThreshold(zoneThreshold, edgeThreshold Threshold) {
 		{zoneThreshold.vertical, edgeThreshold.vertical},
 		{zoneThreshold.horizontal, edgeThreshold.horizontal},
 	}) {
-		panicMsg("Incorrect edge threshold")
+		panicMsg("Edge threshold can't be less or equal to Zone threshold")
 	}
 }
 
@@ -137,7 +141,7 @@ func checkAngleMargin(angleMargin AngleMargin) {
 	}
 }
 
-func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, zone Zone, zoneThreshold, edgeThreshold float64) {
+func genRange(lowerBound, upperBound int, _boundariesMap ZoneBoundariesMap, zone Zone, zoneThreshold, edgeThreshold float64) {
 	lowerBound += 360
 	upperBound += 360
 
@@ -147,19 +151,40 @@ func genRange(lowerBound, upperBound int, _boundariesMap BoundariesMap, zone Zon
 	}
 }
 
-func genBoundariesMap(initBoundaries InitBoundaries, angleMargin AngleMargin, zoneThreshold, edgeThreshold Threshold) BoundariesMap {
-	//newMapping := map[string]AngleRange{
-	//	ZoneRight:   {350, 22},
-	//	ZoneUpRight: {24, 71},
-	//}
-	//print(newMapping)
+func genInitBoundaries(includeDiagonalZones bool) InitBoundaries {
+	initBoundaries := InitBoundaries{
+		AngleRight:     ZoneRight,
+		AngleUpRight:   ZoneUpRight,
+		AngleUp:        ZoneUp,
+		AngleUpLeft:    ZoneUpLeft,
+		AngleLeft:      ZoneLeft,
+		AngleDownLeft:  ZoneDownLeft,
+		AngleDown:      ZoneDown,
+		AngleDownRight: ZoneDownRight,
+	}
+	resBoundaries := InitBoundaries{}
+	for angle, zone := range initBoundaries {
+		if isDiagonal(angle) && !includeDiagonalZones {
+			continue
+		}
+		resBoundaries[angle] = zone
+	}
+	return resBoundaries
+}
 
+func genEqualThresholdBoundariesMap(includeDiagonalZones bool, angleMargin AngleMargin, zoneThreshold, edgeThreshold float64) ZoneBoundariesMap {
+	return genBoundariesMap(includeDiagonalZones, angleMargin,
+		makeThreshold(zoneThreshold, zoneThreshold, zoneThreshold),
+		makeThreshold(edgeThreshold, edgeThreshold, edgeThreshold))
+}
+
+func genBoundariesMap(includeDiagonalZones bool, angleMargin AngleMargin, zoneThreshold, edgeThreshold Threshold) ZoneBoundariesMap {
 	checkZoneThreshold(zoneThreshold)
 	checkEdgeThreshold(zoneThreshold, edgeThreshold)
 	checkAngleMargin(angleMargin)
 
-	_boundariesMap := BoundariesMap{}
-	for baseAngle, direction := range initBoundaries {
+	_boundariesMap := ZoneBoundariesMap{}
+	for baseAngle, direction := range genInitBoundaries(includeDiagonalZones) {
 		margin := getAngleMargin(baseAngle, angleMargin)
 		zoneThresholdValue := getThresholdValue(baseAngle, zoneThreshold)
 		edgeThresholdValue := getThresholdValue(baseAngle, edgeThreshold)
@@ -169,7 +194,7 @@ func genBoundariesMap(initBoundaries InitBoundaries, angleMargin AngleMargin, zo
 	return _boundariesMap
 }
 
-func printAnglesForZones(_boundariesMap BoundariesMap) {
+func printAnglesForZones(_boundariesMap ZoneBoundariesMap) {
 	for _, zone := range AllZones {
 		print("%v: ", zone)
 		var needAngles []int
@@ -183,7 +208,8 @@ func printAnglesForZones(_boundariesMap BoundariesMap) {
 	}
 }
 
-func detectZone(magnitude float64, angle int, boundariesMap BoundariesMap) Zone {
+func detectZone(magnitude float64, angle int, zoneRotation int, boundariesMap ZoneBoundariesMap) Zone {
+	angle += zoneRotation
 	if direction, found := boundariesMap[angle]; found {
 		if magnitude > direction.zoneThreshold {
 			zone := direction.zone
@@ -194,9 +220,35 @@ func detectZone(magnitude float64, angle int, boundariesMap BoundariesMap) Zone 
 			return zone
 
 		} else {
-			return NeutralZone
+			return CentralNeutralZone
 		}
 	} else {
 		return UnmappedZone
+	}
+}
+
+func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap, printDebugInfo bool) {
+	if pad.newValueHandled {
+		return
+	}
+	pad.newValueHandled = true
+
+	zone := detectZone(pad.magnitude, pad.angle, pad.zoneRotation, zoneBoundariesMap)
+	if printDebugInfo {
+		print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.angle, zone)
+	}
+
+	if zone == UnmappedZone {
+		pad.zoneCanBeUsed = false
+		pad.zoneChanged = false
+		return
+	}
+
+	pad.zoneCanBeUsed = zone != CentralNeutralZone
+	pad.zoneChanged = pad.zone != zone
+	pad.zone = zone
+
+	if pad.zoneChanged && pad.zone == CentralNeutralZone {
+		pad.awaitingCentralPostion = false
 	}
 }

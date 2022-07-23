@@ -14,19 +14,23 @@ const (
 type CodeT int
 
 const (
-	CodeLeftPadX  CodeT = 16
-	CodeLeftPadY  CodeT = 17
-	CodeRightPadX CodeT = 3
-	CodeRightPadY CodeT = 4
+	//CodeStickX  CodeT = 0
+	//CodeStickY  CodeT = 1
+	//CodeLeftPadX  CodeT = 16
+	//CodeLeftPadY  CodeT = 17
+	//CodeRightPadX CodeT = 3
+	//CodeRightPadY CodeT = 4
 	CodeLeftWing  CodeT = 336
 	CodeRightWing CodeT = 337
 )
 
 var UnknownCodesResolvingMap = map[CodeT]BtnOrAxisT{
-	CodeLeftPadX:  AxisLeftPadX,
-	CodeLeftPadY:  AxisLeftPadY,
-	CodeRightPadX: AxisRightPadX,
-	CodeRightPadY: AxisRightPadY,
+	//CodeStickX: AxisStickX,
+	//CodeStickY: AxisStickY,
+	//CodeLeftPadX:  AxisLeftPadX,
+	//CodeLeftPadY:  AxisLeftPadY,
+	//CodeRightPadX: AxisRightPadX,
+	//CodeRightPadY: AxisRightPadY,
 	CodeLeftWing:  BtnLeftWing,
 	CodeRightWing: BtnRightWing,
 }
@@ -36,10 +40,10 @@ type BtnOrAxisT string
 const (
 	AxisStickX    BtnOrAxisT = "StickX"
 	AxisStickY    BtnOrAxisT = "StickY"
-	AxisLeftZ     BtnOrAxisT = "LeftZ"
+	AxisStickZ    BtnOrAxisT = "StickZ"
 	AxisRightPadX BtnOrAxisT = "RightPadX"
 	AxisRightPadY BtnOrAxisT = "RightPadY"
-	AxisRightZ    BtnOrAxisT = "RightZ"
+	AxisRightPadZ BtnOrAxisT = "RightPadZ"
 	AxisLeftPadX  BtnOrAxisT = "LeftPadX"
 	AxisLeftPadY  BtnOrAxisT = "LeftPadY"
 	AxisUnknown   BtnOrAxisT = "Unknown"
@@ -48,10 +52,10 @@ const (
 var _AxisMap = map[uint8]BtnOrAxisT{
 	'u': AxisStickX,
 	'v': AxisStickY,
-	'w': AxisLeftZ,
+	'w': AxisStickZ,
 	'x': AxisRightPadX,
 	'y': AxisRightPadY,
-	'z': AxisRightZ,
+	'z': AxisRightPadZ,
 	'0': AxisLeftPadX,
 	'1': AxisLeftPadY,
 	'2': AxisUnknown,
@@ -87,10 +91,10 @@ const (
 
 	BtnRightPad  BtnOrAxisT = "RightPad"
 	BtnLeftPad   BtnOrAxisT = "LeftPad"
-	BtnDPadUp    BtnOrAxisT = BtnLeftPad
-	BtnDPadDown  BtnOrAxisT = BtnLeftPad
-	BtnDPadLeft  BtnOrAxisT = BtnLeftPad
-	BtnDPadRight BtnOrAxisT = BtnLeftPad
+	BtnDPadUp               = BtnLeftPad
+	BtnDPadDown             = BtnLeftPad
+	BtnDPadLeft             = BtnLeftPad
+	BtnDPadRight            = BtnLeftPad
 
 	BtnStickUp    BtnOrAxisT = "StickUp"
 	BtnStickDown  BtnOrAxisT = "StickDown"
@@ -169,16 +173,15 @@ var _BtnMap = map[uint8]BtnOrAxisT{
 type EventTypeT string
 
 const (
-	EvAxisChanged     EventTypeT = "AxisChanged"
-	EvButtonChanged   EventTypeT = "ButtonChanged"
-	EvButtonReleased  EventTypeT = "ButtonReleased"
-	EvButtonPressed   EventTypeT = "ButtonPressed"
-	EvButtonRepeated  EventTypeT = "ButtonRepeated"
-	EvConnected       EventTypeT = "Connected"
-	EvDisconnected    EventTypeT = "Disconnected"
-	EvDropped         EventTypeT = "Dropped"
-	EvPadFirstTouched EventTypeT = "PadFirstTouched"
-	EvPadReleased     EventTypeT = "PadReleased"
+	EvAxisChanged    EventTypeT = "AxisChanged"
+	EvButtonChanged  EventTypeT = "ButtonChanged"
+	EvButtonReleased EventTypeT = "ButtonReleased"
+	EvButtonPressed  EventTypeT = "ButtonPressed"
+	EvButtonRepeated EventTypeT = "ButtonRepeated"
+	EvConnected      EventTypeT = "Connected"
+	EvDisconnected   EventTypeT = "Disconnected"
+	EvDropped        EventTypeT = "Dropped"
+	EvPadReleased    EventTypeT = "PadReleased"
 )
 
 var EventTypeMap = map[uint8]EventTypeT{

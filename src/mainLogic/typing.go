@@ -7,7 +7,13 @@ const NoneStr = "None"
 type SticksPosition [2]Zone
 type TypingLayout map[SticksPosition]int
 
-var TypingBoundariesMap BoundariesMap
+var TypingBoundariesMap ZoneBoundariesMap
+var typingLayout TypingLayout
+
+func initTyping() {
+	TypingBoundariesMap = genTypingBoundariesMap()
+	typingLayout = loadTypingLayout()
+}
 
 func loadTypingLayout() TypingLayout {
 	linesParts := ReadLayoutFile("typing.csv", 2)
@@ -31,104 +37,30 @@ func loadTypingLayout() TypingLayout {
 	return layout
 }
 
-var typingInitBoundaries = InitBoundaries{
-	AngleRight:     ZoneRight,
-	AngleUpRight:   ZoneUpRight,
-	AngleUp:        ZoneUp,
-	AngleUpLeft:    ZoneUpLeft,
-	AngleLeft:      ZoneLeft,
-	AngleDownLeft:  ZoneDownLeft,
-	AngleDown:      ZoneDown,
-	AngleDownRight: ZoneDownRight,
-}
-
-func genTypingBoundariesMap() BoundariesMap {
-	return genBoundariesMap(typingInitBoundaries,
+func genTypingBoundariesMap() ZoneBoundariesMap {
+	return genEqualThresholdBoundariesMap(true,
 		makeAngleMargin(TypingDiagonalAngleMargin, TypingStraightAngleMargin, TypingStraightAngleMargin),
-		makeThreshold(TypingThreshold, TypingThreshold, TypingThreshold),
-		makeThreshold(1.0, 1.0, 1.0))
+		TypingThreshold,
+		PadRadius)
 }
 
-type PadTyping struct {
-	layout                    TypingLayout
-	leftPadZone, rightPadZone Zone
-	awaitingNeutralPos        bool
-	leftCoords, rightCoords   *Coords
-	leftCanUse, leftChanged   bool
-	rightCanUse, rightChanged bool
-}
+var PrintTypingDebugInfo = false
 
-func makePadTyping() PadTyping {
-	return PadTyping{
-		layout:             loadTypingLayout(),
-		leftPadZone:        NeutralZone,
-		rightPadZone:       NeutralZone,
-		awaitingNeutralPos: false,
-		leftCoords:         makeCoords(),
-		rightCoords:        makeCoords(),
+func TypeLetter() {
+	if padsMode.GetMode() != TypingMode {
+		return
 	}
-}
+	LeftPad.ReCalculateZone(TypingBoundariesMap, PrintTypingDebugInfo)
+	RightPad.ReCalculateZone(TypingBoundariesMap, PrintTypingDebugInfo)
 
-var joystickTyping PadTyping
+	if LeftPad.zoneCanBeUsed && RightPad.zoneCanBeUsed {
+		if LeftPad.zoneChanged || RightPad.zoneChanged {
+			if !LeftPad.awaitingCentralPostion || !RightPad.awaitingCentralPostion {
+				LeftPad.awaitingCentralPostion = true
+				RightPad.awaitingCentralPostion = true
 
-func zoneCanBeUsed(zone Zone) bool {
-	return zone != UnmappedZone && zone != NeutralZone
-}
-
-func (padTyping *PadTyping) zoneChanged(zone Zone, prevZone *Zone) bool {
-	if zone != UnmappedZone {
-		if *prevZone != zone {
-			*prevZone = zone
-			if zone == NeutralZone {
-				padTyping.awaitingNeutralPos = false
-			}
-			return true
-		}
-	}
-	return false
-}
-
-var printCurZone bool
-
-func (padTyping *PadTyping) calcNewZone(prevZone *Zone, coords *Coords) (bool, bool) {
-	coords.updateValues()
-	coords.updateAngle()
-
-	zone := detectZone(coords.magnitude, coords.angle, TypingBoundariesMap)
-	if printCurZone {
-		print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", coords.x, coords.y, coords.magnitude, coords.angle, zone)
-	}
-	canUse := zoneCanBeUsed(zone)
-	changed := padTyping.zoneChanged(zone, prevZone)
-	return canUse, changed
-}
-
-func (padTyping *PadTyping) updateLeftZone() {
-	//print("Left")
-	printCurZone = true
-	padTyping.leftCanUse, padTyping.leftChanged = padTyping.calcNewZone(&padTyping.leftPadZone, padTyping.leftCoords)
-	padTyping.typeLetter()
-	printCurZone = false
-}
-func (padTyping *PadTyping) updateRightZone() {
-	//print("Right")
-	//printCurZone = true
-	padTyping.rightCanUse, padTyping.rightChanged = padTyping.calcNewZone(&padTyping.rightPadZone, padTyping.rightCoords)
-	padTyping.typeLetter()
-	printCurZone = false
-}
-
-func (padTyping *PadTyping) typeLetter() {
-	if padTyping.leftCanUse && padTyping.rightCanUse {
-		//print("%s %s", padTyping.leftPadZone, padTyping.rightPadZone)
-		//print("%v %v", leftCanUse, rightCanUse)
-		//print("%v %v", leftChanged, rightChanged)
-
-		if padTyping.leftChanged || padTyping.rightChanged {
-			if !padTyping.awaitingNeutralPos {
-				padTyping.awaitingNeutralPos = true
-				position := SticksPosition{padTyping.leftPadZone, padTyping.rightPadZone}
-				if code, found := padTyping.layout[position]; found {
+				position := SticksPosition{LeftPad.zone, RightPad.zone}
+				if code, found := typingLayout[position]; found {
 					osSpec.TypeKey(code)
 				}
 			}

@@ -1,90 +1,44 @@
 package mainLogic
 
 func eventChanged() {
-	switch GamesModeOn {
-	case false:
-		switch typingMode.mode {
-		case false:
-			switch event.btnOrAxis {
-			case AxisLeftPadX:
-				scrollMovement.setX()
-			case AxisLeftPadY:
-				scrollMovement.setY()
-			case AxisRightPadX:
-				//print("x: %v", event.value)
-				mousePad.setX()
-			case AxisRightPadY:
-				//print("y: %v", event.value)
-				mousePad.setY()
-			}
-			//scrollMovement.printCurState()
-		case true:
-			switch event.btnOrAxis {
-			case AxisLeftPadX:
-				joystickTyping.leftCoords.setDirectlyX()
-				joystickTyping.updateLeftZone()
-			case AxisLeftPadY:
-				joystickTyping.leftCoords.setDirectlyY()
-				joystickTyping.updateLeftZone()
-			case AxisRightPadX:
-				joystickTyping.rightCoords.setDirectlyX()
-				joystickTyping.updateRightZone()
-			case AxisRightPadY:
-				joystickTyping.rightCoords.setDirectlyY()
-				joystickTyping.updateRightZone()
-			}
-		}
-	case true:
-		switch event.btnOrAxis {
-		case AxisRightPadX:
-			movementCoords.setX()
-		case AxisRightPadY:
-			movementCoords.setY()
-		case AxisLeftPadX:
-			mousePad.setX()
-		case AxisLeftPadY:
-			mousePad.setY()
-		}
+	switch event.btnOrAxis {
+	case AxisLeftPadX:
+		LeftPad.SetX()
+	case AxisLeftPadY:
+		LeftPad.SetY()
+	case AxisRightPadX:
+		RightPad.SetX()
+	case AxisRightPadY:
+		RightPad.SetY()
 	}
+	TypeLetter()
 }
 
 func padReleased() {
-	switch GamesModeOn {
-	case false:
-		switch typingMode.mode {
-		case false:
-			switch event.btnOrAxis {
-			case AxisLeftPadX, AxisLeftPadY:
-				scrollMovement.reset()
-			case AxisRightPadX, AxisRightPadY:
-				mousePad.reset()
-			}
-		case true:
-			switch event.btnOrAxis {
-			case AxisLeftPadX, AxisLeftPadY:
-				joystickTyping.leftCoords.reset()
-				joystickTyping.updateLeftZone()
-			case AxisRightPadX, AxisRightPadY:
-				joystickTyping.rightCoords.reset()
-				joystickTyping.updateRightZone()
-			}
-		}
-	case true:
-		switch event.btnOrAxis {
-		case AxisLeftPadX, AxisLeftPadY:
-			mousePad.reset()
-		case AxisRightPadX, AxisRightPadY:
-			movementCoords.reset()
-		}
+	switch event.btnOrAxis {
+	case AxisLeftPadX, AxisLeftPadY:
+		LeftPad.Reset()
+	case AxisRightPadX, AxisRightPadY:
+		RightPad.Reset()
 	}
 }
 
+func gamepadDisconnected() {
+	LeftPad.Reset()
+	RightPad.Reset()
+	Stick.Reset()
+
+	releaseAll()
+}
+
 func matchEvent() {
+	if PrintTypingDebugInfo {
+		print("%v \"%v\": %.2f", event.eventType, event.btnOrAxis, event.value)
+	}
+
 	switch event.eventType {
 	case EvAxisChanged:
 		eventChanged()
-	case EvPadFirstTouched:
-		return
 	case EvPadReleased:
 		padReleased()
 	case EvButtonChanged:
@@ -94,7 +48,8 @@ func matchEvent() {
 	case EvButtonReleased:
 		buttonReleased()
 	case EvDisconnected:
-		panicMsg("Gamepad disconnected")
+		gamepadDisconnected()
+		print("Gamepad disconnected")
 	case EvConnected:
 		print("Gamepad connected")
 	case EvDropped:

@@ -13,10 +13,12 @@ const (
 )
 
 var PadAxes = []BtnOrAxisT{
-	AxisRightPadX,
-	AxisRightPadY,
 	AxisLeftPadX,
 	AxisLeftPadY,
+	AxisRightPadX,
+	AxisRightPadY,
+	AxisStickX,
+	AxisStickY,
 }
 
 type Event struct {
@@ -42,7 +44,7 @@ func (event *Event) applyAdjustments() {
 	}
 }
 
-func (event *Event) fixButtonNames() {
+func (event *Event) fixButtonNamesForSteamController() {
 	switch event.btnOrAxis {
 	case BtnY:
 		event.btnOrAxis = BtnX
@@ -52,21 +54,12 @@ func (event *Event) fixButtonNames() {
 }
 
 func (event *Event) transformToPadEvent() {
-	if event.btnOrAxis == BtnUnknown && event.codeType == CTAbs {
-		if axis, found := UnknownCodesResolvingMap[event.code]; found {
-			switch event.eventType {
-			case EvButtonPressed:
-				event.eventType = EvPadFirstTouched
-			case EvButtonReleased:
-				event.eventType = EvPadReleased
-			default:
-				return
-			}
-			event.btnOrAxis = axis
-			event.value = 0
-			event.code = 0
-			event.codeType = ""
-		}
+	if contains(PadAxes, event.btnOrAxis) &&
+		event.eventType == EvAxisChanged && event.value == 0.0 {
+
+		event.eventType = EvPadReleased
+		event.code = 0
+		event.codeType = ""
 	}
 }
 
@@ -78,25 +71,47 @@ func (event *Event) transformToWings() {
 	}
 }
 
-var stickCoords = makeCoords()
+var StickZoneToBtnMap = map[Zone]BtnOrAxisT{
+	ZoneRight: BtnStickRight,
+	ZoneUp:    BtnStickUp,
+	ZoneLeft:  BtnStickLeft,
+	ZoneDown:  BtnStickDown,
+}
 
-func (event *Event) transformStickToButtons() {
+var curPressedStickButton BtnOrAxisT
 
-	if event.eventType == EvAxisChanged {
-		stickCoords.mu.Lock()
-		defer stickCoords.mu.Unlock()
-
+func (event *Event) transformStickToDPad() {
+	if contains([]EventTypeT{EvAxisChanged, EvPadReleased}, event.eventType) {
 		switch event.btnOrAxis {
 		case AxisStickX:
-			stickCoords.setDirectlyX()
+			Stick.SetX()
 		case AxisStickY:
-			stickCoords.setDirectlyY()
+			Stick.SetY()
 		default:
 			return
 		}
 
-		stickCoords.updateValues()
-		stickCoords.updateAngle()
+		zoneChanged := Stick.zoneChanged
+		zoneCanBeUsed := Stick.zoneCanBeUsed
+		zone := Stick.zone
+
+		if zoneChanged {
+			if curPressedStickButton != "" {
+				event.btnOrAxis = curPressedStickButton
+				event.eventType = EvButtonReleased
+				curPressedStickButton = ""
+				matchEvent()
+			}
+			if zoneCanBeUsed {
+				stickBtn := StickZoneToBtnMap[zone]
+				curPressedStickButton = stickBtn
+
+				event.btnOrAxis = stickBtn
+				event.eventType = EvButtonPressed
+				matchEvent()
+			}
+		}
+		event.btnOrAxis = BtnUnknown
 	}
 }
 
@@ -104,18 +119,12 @@ func (event *Event) transformAndFilter() {
 	//fmt.Printf("Before: ")
 	//event.print()
 
-	event.fixButtonNames()
-
-	if event.eventType == EvAxisChanged &&
-		contains(PadAxes, event.btnOrAxis) &&
-		event.value == 0.0 {
-		return
-	}
-
-	//event.applyAdjustments()
-
+	event.fixButtonNamesForSteamController()
 	event.transformToPadEvent()
 	event.transformToWings()
+
+	//event.applyAdjustments()
+	event.transformStickToDPad()
 
 	if event.btnOrAxis == BtnUnknown {
 		return

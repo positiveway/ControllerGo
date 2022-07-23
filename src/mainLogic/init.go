@@ -6,15 +6,22 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
-	"runtime/debug"
 	"strings"
 )
 
 const RunFromTerminal = false
 
+func GetCurFileDir() string {
+	ex, err := os.Executable()
+	checkErr(err)
+	exPath := filepath.Dir(ex)
+	print("Exec path: %s", exPath)
+	return exPath
+}
+
 func InitPath() {
 	if RunFromTerminal {
-		BaseDir = filepath.Dir(filepath.Dir(osSpec.GetCurFileDir()))
+		BaseDir = filepath.Dir(filepath.Dir(GetCurFileDir()))
 	} else {
 		BaseDir = osSpec.DefaultProjectDir
 	}
@@ -36,14 +43,12 @@ func InitSettings() {
 	setLayoutDir()
 	setConfigVars()
 	initCodeMapping()
-	TypingBoundariesMap = genTypingBoundariesMap()
-	joystickTyping = makePadTyping()
-	pressCommandsLayout, releaseCommandsLayout = loadCommandsLayout()
+	initTyping()
+	initCommands()
 }
 
 func RunMain() {
 	InitSettings()
-	osSpec.InitResources()
 
 	osSpec.InitInput()
 	defer osSpec.CloseInputResources()
@@ -52,13 +57,10 @@ func RunMain() {
 	go RunMouseThread()
 	go RunScrollThread()
 	go RunReleaseHoldThread()
-
-	if GamesModeOn {
-		RunMovementThread()
-	}
+	go RunGameMovementThread()
 
 	runtime.GC()
-	debug.SetGCPercent(1000)
+	//debug.SetGCPercent(100)
 
 	RunWebSocket()
 }

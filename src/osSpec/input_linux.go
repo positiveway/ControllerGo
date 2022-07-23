@@ -6,6 +6,8 @@ import (
 	"github.com/bendahl/uinput"
 )
 
+const DefaultProjectDir string = "/home/user/GolandProjects/ControllerGo"
+
 var mouse uinput.Mouse
 var keyboard uinput.Keyboard
 

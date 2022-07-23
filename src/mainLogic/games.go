@@ -2,18 +2,21 @@ package mainLogic
 
 import "time"
 
-var movementCoords = Coords{}
-
 var fastKeyRepeatInterval time.Duration = 40
 var slowKeyRepeatInterval time.Duration = 100
 
-func RunMovementThread() {
+func RunGameMovementThread() {
 	//shiftCode := getCodeFromLetter("shift")
 	//shiftPressed := false
 
 	for {
-		//metrics := movementCoords.getMetrics()
+		keyRepeatInterval := fastKeyRepeatInterval
 
-		time.Sleep(DefaultRefreshInterval)
+		if padsMode.GetMode() != ScrollingMode {
+			time.Sleep(keyRepeatInterval)
+			continue
+		}
+
+		time.Sleep(keyRepeatInterval)
 	}
 }

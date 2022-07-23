@@ -1,17 +1,24 @@
-//games
-GamesModeOn = false
+//Mode
+PadsMode = 1
 
 //commands
 TriggerThreshold = 0.07
-holdThreshold = 200
+holdingThreshold = 200
 
 //mouse
 mouseInterval = 0.125
 mouseSpeed = 250
 mouseEdgeThreshold = 0.95
 
-//stick
-deadzone = 0.0
+//Pads/Stick
+PadsRotation = 10
+StickRotation = 10
+
+StickAngleMargin = 40
+StickThresholdPct = 35
+StickEdgeThresholdPct = 100
+
+StickDeadzone = 0.0
 
 //scroll
 scrollFastestInterval = 40

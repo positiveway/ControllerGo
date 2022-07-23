@@ -2,6 +2,7 @@ package mainLogic
 
 import (
 	"fmt"
+	"github.com/jinzhu/copier"
 	"math"
 	"os"
 	"path/filepath"
@@ -30,6 +31,10 @@ func strToMillis(value string) time.Duration {
 
 func strToIntToFloat(value string) float64 {
 	return float64(strToInt(value))
+}
+
+func strToPct(value string) float64 {
+	return strToIntToFloat(value) / 100
 }
 
 func strToFloat(value string) float64 {
@@ -198,7 +203,7 @@ func checkErr(err error) {
 	}
 }
 
-func pop[K comparable, V any](m map[K]V, key K) V {
+func Pop[K comparable, V any](m map[K]V, key K) V {
 	value := m[key]
 	delete(m, key)
 	return value
@@ -219,21 +224,23 @@ func getOrDefault[K comparable, V any](m map[K]V, key K, defaultVal V) V {
 	}
 }
 
+func getPanicMsg(message []string, defaultMsg string) string {
+	switch len(message) {
+	case 0:
+		return defaultMsg
+	case 1:
+		return message[0]
+	default:
+		panicMsg("Only one message can be specified")
+	}
+	panic("")
+}
+
 func getOrPanic[K comparable, V any](m map[K]V, key K, msg ...string) V {
 	if val, found := m[key]; found {
 		return val
 	}
-	message := func(message []string) string {
-		switch len(message) {
-		case 0:
-			return "No such key in map"
-		case 1:
-			return message[0]
-		default:
-			panicMsg("Only one message can be specified")
-		}
-		panic("")
-	}(msg)
+	message := getPanicMsg(msg, "No such key in map")
 
 	panicMsg(message+": \"%v\"", key)
 	panic("")
@@ -346,6 +353,17 @@ func swap[T any](value1, value2 *T) {
 	*value1, *value2 = *value2, *value1
 }
 
+func abs[T Number](val T) T {
+	return T(math.Abs(float64(val)))
+}
+
+func sign[T Number](val T) T {
+	if val != 0 {
+		val /= abs(val)
+	}
+	return val
+}
+
 func applySign(sign bool, val float64) float64 {
 	if sign {
 		val *= -1
@@ -450,26 +468,90 @@ func isFieldsEqual(fields ComparableFields) bool {
 	return true
 }
 
-type ThreadSafeMap struct {
-	mapping map[string]any
+//type SafeMap[K comparable, V any] struct {
+//	mapping map[K]V
+//}
+//
+//func (threadMap *SafeMap[K, V]) Put(key K, value V) {
+//	threadMap.mapping[key] = value
+//}
+//
+//func (threadMap *SafeMap[K, V]) CheckAndGet(key K) (V, bool) {
+//	value, present := threadMap.mapping[key]
+//	return value, present
+//}
+//
+//func (threadMap *SafeMap[K, V]) Get(key K) V {
+//	value, _ := threadMap.CheckAndGet(key)
+//	return value
+//}
+//
+//func (threadMap *SafeMap[K, V]) RangeOverCopy(elementHandler func(key K, value V)) {
+//	copiedMap := map[K]V{}
+//	err := copier.Copy(&copiedMap, &(threadMap.mapping))
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	for k, v := range copiedMap {
+//		elementHandler(k, v)
+//	}
+//}
+//
+//func (threadMap *SafeMap[K, V]) Pop(key K) V {
+//	value := threadMap.mapping[key]
+//	delete(threadMap.mapping, key)
+//	return value
+//}
+
+type ThreadSafeMap[K comparable, V any] struct {
+	mapping map[K]V
 	mutex   sync.Mutex
 }
 
-func (threadMap *ThreadSafeMap) set(key string, value any) {
+func MakeThreadSafeMap[K comparable, V any]() *ThreadSafeMap[K, V] {
+	tsMap := &ThreadSafeMap[K, V]{}
+	tsMap.mapping = map[K]V{}
+	return tsMap
+}
+
+func (threadMap *ThreadSafeMap[K, V]) Put(key K, value V) {
 	threadMap.mutex.Lock()
 	defer threadMap.mutex.Unlock()
 
 	threadMap.mapping[key] = value
 }
 
-func (threadMap *ThreadSafeMap) get(key string) any {
+func (threadMap *ThreadSafeMap[K, V]) CheckAndGet(key K) (V, bool) {
 	threadMap.mutex.Lock()
 	defer threadMap.mutex.Unlock()
 
-	return threadMap.mapping[key]
+	value, present := threadMap.mapping[key]
+	return value, present
 }
 
-func (threadMap *ThreadSafeMap) pop(key string) any {
+func (threadMap *ThreadSafeMap[K, V]) Get(key K) V {
+	value, _ := threadMap.CheckAndGet(key)
+	return value
+}
+
+func (threadMap *ThreadSafeMap[K, V]) RangeOverCopy(elementHandler func(key K, value V)) {
+	threadMap.mutex.Lock()
+
+	copiedMap := map[K]V{}
+	err := copier.Copy(&copiedMap, &(threadMap.mapping))
+	if err != nil {
+		panic(err)
+	}
+
+	threadMap.mutex.Unlock()
+
+	for k, v := range copiedMap {
+		elementHandler(k, v)
+	}
+}
+
+func (threadMap *ThreadSafeMap[K, V]) Pop(key K) V {
 	threadMap.mutex.Lock()
 	defer threadMap.mutex.Unlock()
 

@@ -42,23 +42,39 @@ func toIntToFloatConfig(name string) float64 {
 	return strToIntToFloat(getConfig(name))
 }
 
+func toPctConfig(name string) float64 {
+	return strToPct(getConfig(name))
+}
+
 func setConfigVars() {
 	loadConfigs()
 
-	//games
-	GamesModeOn = toBoolConfig("GamesModeOn")
+	//Mode
+	padsMode = MakePadsMode(toIntConfig("PadsMode"))
 
 	//commands
 	TriggerThreshold = toFloatConfig("TriggerThreshold")
-	holdThreshold = toMillisConfig("holdThreshold")
+	holdingThreshold = toMillisConfig("holdingThreshold")
 
 	//mouse
 	mouseInterval = toMillisConfig("mouseInterval")
 	mouseSpeed = toFloatConfig("mouseSpeed")
 	mouseEdgeThreshold = toFloatConfig("mouseEdgeThreshold")
 
-	//stick
-	Deadzone = toFloatConfig("Deadzone")
+	//Pads/Stick
+	PadsRotation = toIntConfig("PadsRotation")
+	StickRotation = toIntConfig("StickRotation")
+
+	StickAngleMargin = toIntConfig("StickAngleMargin")
+	StickThreshold = toPctConfig("StickThresholdPct")
+	StickEdgeThreshold = toPctConfig("StickEdgeThresholdPct")
+
+	StickBoundariesMap = genEqualThresholdBoundariesMap(false,
+		makeAngleMargin(0, StickAngleMargin, StickAngleMargin),
+		StickThreshold,
+		StickEdgeThreshold)
+
+	StickDeadzone = toFloatConfig("StickDeadzone")
 
 	//scroll
 	scrollFastestInterval = toIntToFloatConfig("scrollFastestInterval")
@@ -69,26 +85,35 @@ func setConfigVars() {
 	//typing
 	TypingStraightAngleMargin = toIntConfig("TypingStraightAngleMargin")
 	TypingDiagonalAngleMargin = toIntConfig("TypingDiagonalAngleMargin")
-	TypingThreshold = toIntToFloatConfig("TypingThresholdPct") / 100
+	TypingThreshold = toPctConfig("TypingThresholdPct")
 
 	//common
 	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
 }
 
-//games
-var GamesModeOn bool
+//Mode
+var padsMode *PadsMode
 
 //commands
 var TriggerThreshold float64
-var holdThreshold time.Duration
+var holdingThreshold time.Duration
 
 //mouse
 var mouseInterval time.Duration
 var mouseSpeed float64
 var mouseEdgeThreshold float64
 
-//stick
-var Deadzone float64
+//Pads/Stick
+var PadsRotation int
+var StickRotation int
+
+var StickAngleMargin int
+var StickThreshold float64
+var StickEdgeThreshold float64
+
+var StickBoundariesMap ZoneBoundariesMap
+
+var StickDeadzone float64
 
 //scroll
 var scrollFastestInterval float64
