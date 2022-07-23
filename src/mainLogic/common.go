@@ -188,6 +188,12 @@ func print(message string, variables ...any) {
 	fmt.Print(sPrint(message, variables...))
 }
 
+func printDebug(message string, variables ...any) {
+	if PrintDebugInfo {
+		print(message, variables...)
+	}
+}
+
 func panicMsg(message string, variables ...any) {
 	releaseAll()
 	panic(sPrint(message, variables...))
@@ -467,42 +473,6 @@ func isFieldsEqual(fields ComparableFields) bool {
 	}
 	return true
 }
-
-//type SafeMap[K comparable, V any] struct {
-//	mapping map[K]V
-//}
-//
-//func (threadMap *SafeMap[K, V]) Put(key K, value V) {
-//	threadMap.mapping[key] = value
-//}
-//
-//func (threadMap *SafeMap[K, V]) CheckAndGet(key K) (V, bool) {
-//	value, present := threadMap.mapping[key]
-//	return value, present
-//}
-//
-//func (threadMap *SafeMap[K, V]) Get(key K) V {
-//	value, _ := threadMap.CheckAndGet(key)
-//	return value
-//}
-//
-//func (threadMap *SafeMap[K, V]) RangeOverCopy(elementHandler func(key K, value V)) {
-//	copiedMap := map[K]V{}
-//	err := copier.Copy(&copiedMap, &(threadMap.mapping))
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	for k, v := range copiedMap {
-//		elementHandler(k, v)
-//	}
-//}
-//
-//func (threadMap *SafeMap[K, V]) Pop(key K) V {
-//	value := threadMap.mapping[key]
-//	delete(threadMap.mapping, key)
-//	return value
-//}
 
 type ThreadSafeMap[K comparable, V any] struct {
 	mapping map[K]V

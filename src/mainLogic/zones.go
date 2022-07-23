@@ -227,16 +227,14 @@ func detectZone(magnitude float64, angle int, zoneRotation int, boundariesMap Zo
 	}
 }
 
-func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap, printDebugInfo bool) {
+func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap) {
 	if pad.newValueHandled {
 		return
 	}
 	pad.newValueHandled = true
 
 	zone := detectZone(pad.magnitude, pad.angle, pad.zoneRotation, zoneBoundariesMap)
-	if printDebugInfo {
-		print("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.angle, zone)
-	}
+	//printDebug("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.angle, zone)
 
 	if zone == UnmappedZone {
 		pad.zoneCanBeUsed = false

@@ -44,14 +44,12 @@ func genTypingBoundariesMap() ZoneBoundariesMap {
 		PadRadius)
 }
 
-var PrintTypingDebugInfo = false
-
 func TypeLetter() {
 	if padsMode.GetMode() != TypingMode {
 		return
 	}
-	LeftPad.ReCalculateZone(TypingBoundariesMap, PrintTypingDebugInfo)
-	RightPad.ReCalculateZone(TypingBoundariesMap, PrintTypingDebugInfo)
+	LeftPad.ReCalculateZone(TypingBoundariesMap)
+	RightPad.ReCalculateZone(TypingBoundariesMap)
 
 	if LeftPad.zoneCanBeUsed && RightPad.zoneCanBeUsed {
 		if LeftPad.zoneChanged || RightPad.zoneChanged {

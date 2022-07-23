@@ -81,42 +81,46 @@ var StickZoneToBtnMap = map[Zone]BtnOrAxisT{
 var curPressedStickButton BtnOrAxisT
 
 func (event *Event) transformStickToDPad() {
-	if contains([]EventTypeT{EvAxisChanged, EvPadReleased}, event.eventType) {
-		switch event.btnOrAxis {
-		case AxisStickX:
-			Stick.SetX()
-		case AxisStickY:
-			Stick.SetY()
-		default:
-			return
-		}
-
-		zoneChanged := Stick.zoneChanged
-		zoneCanBeUsed := Stick.zoneCanBeUsed
-		zone := Stick.zone
-
-		if zoneChanged {
-			if curPressedStickButton != "" {
-				event.btnOrAxis = curPressedStickButton
-				event.eventType = EvButtonReleased
-				curPressedStickButton = ""
-				matchEvent()
-			}
-			if zoneCanBeUsed {
-				stickBtn := StickZoneToBtnMap[zone]
-				curPressedStickButton = stickBtn
-
-				event.btnOrAxis = stickBtn
-				event.eventType = EvButtonPressed
-				matchEvent()
-			}
-		}
-		event.btnOrAxis = BtnUnknown
+	allowedEvents := []EventTypeT{
+		EvAxisChanged,
+		EvPadReleased,
 	}
+	if !contains(allowedEvents, event.eventType) {
+		return
+	}
+
+	switch event.btnOrAxis {
+	case AxisStickX:
+		Stick.SetX()
+	case AxisStickY:
+		Stick.SetY()
+	default:
+		return
+	}
+
+	Stick.ReCalculateZone(StickBoundariesMap)
+
+	if Stick.zoneChanged {
+		if curPressedStickButton != "" {
+			event.btnOrAxis = curPressedStickButton
+			event.eventType = EvButtonReleased
+			curPressedStickButton = ""
+			matchEvent()
+		}
+		if Stick.zoneCanBeUsed {
+			stickBtn := StickZoneToBtnMap[Stick.zone]
+			curPressedStickButton = stickBtn
+
+			event.btnOrAxis = stickBtn
+			event.eventType = EvButtonPressed
+			matchEvent()
+		}
+	}
+	event.btnOrAxis = BtnUnknown
 }
 
 func (event *Event) transformAndFilter() {
-	//fmt.Printf("Before: ")
+	//printDebug("Before: ")
 	//event.print()
 
 	event.fixButtonNamesForSteamController()
@@ -130,8 +134,7 @@ func (event *Event) transformAndFilter() {
 		return
 	}
 
-	//fmt.Printf("After: ")
-	//event.print()
+	//printDebug("After: ")
 
 	matchEvent()
 }
@@ -171,10 +174,8 @@ func (event *Event) update(msg string) {
 }
 
 func (event *Event) print() {
-	print("%s %s %s %v %0.2f",
+	printDebug("%s \"%s\": %.2f",
 		trimAnyPrefix(string(event.eventType), "Ev"),
 		trimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
-		event.codeType,
-		event.code,
 		event.value)
 }

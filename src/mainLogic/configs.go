@@ -91,6 +91,9 @@ func setConfigVars() {
 	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
 }
 
+//Debug
+var PrintDebugInfo = false
+
 //Mode
 var padsMode *PadsMode
 

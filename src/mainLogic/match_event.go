@@ -32,9 +32,7 @@ func gamepadDisconnected() {
 }
 
 func matchEvent() {
-	if PrintTypingDebugInfo {
-		print("%v \"%v\": %.2f", event.eventType, event.btnOrAxis, event.value)
-	}
+	event.print()
 
 	switch event.eventType {
 	case EvAxisChanged:
