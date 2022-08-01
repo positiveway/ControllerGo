@@ -2,9 +2,30 @@ package mainLogic
 
 import (
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
+
+func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
+	file := filepath.Join(LayoutsDir, pathFromLayoutsDir)
+	lines := ReadLines(file)
+	lines = lines[skipLines:]
+
+	var linesParts [][]string
+	for _, line := range lines {
+		line = strip(line)
+		if isEmptyStr(line) || StartsWithAnyOf(line, ";", "//") {
+			continue
+		}
+		parts := splitByAnyOf(line, "&|>:,=")
+		for ind, part := range parts {
+			parts[ind] = strip(part)
+		}
+		linesParts = append(linesParts, parts)
+	}
+	return linesParts
+}
 
 func loadConfigs() {
 	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "configs.csv"), 0)

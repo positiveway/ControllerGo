@@ -48,6 +48,7 @@ var (
 )
 
 type PadPosition struct {
+	_x, _y                     float64
 	x, y                       float64
 	prevX, prevY               float64
 	magnitude                  float64
@@ -84,7 +85,8 @@ func (pad *PadPosition) UpdatePrevValues() {
 
 func (pad *PadPosition) ReCalculateValues() {
 	pad.newValueHandled = false
-	pad.x, pad.y, pad.magnitude = normalizeIncorrectEdgeValues(pad.x, pad.y)
+
+	pad.x, pad.y, pad.magnitude = normalizeIncorrectEdgeValues(pad._x, pad._y)
 	pad.angle = calcResolvedAngle(pad.x, pad.y)
 }
 
@@ -92,6 +94,9 @@ func (pad *PadPosition) CalcActualCoords() {
 	//important to use temp values then assign
 	actualX := calcFromActualMax(pad.x, pad.y)
 	actualY := calcFromActualMax(pad.y, pad.x)
+	if !isNotInit(actualX, actualY) {
+		print("before: %.2f, %.2f after: %.2f, %.2f", pad.x, pad.y, actualX, actualY)
+	}
 	pad.x, pad.y = actualX, actualY
 }
 
@@ -105,11 +110,11 @@ func (pad *PadPosition) setValue(fieldPointer *float64) {
 }
 
 func (pad *PadPosition) SetX() {
-	pad.setValue(&pad.x)
+	pad.setValue(&pad._x)
 }
 
 func (pad *PadPosition) SetY() {
-	pad.setValue(&pad.y)
+	pad.setValue(&pad._y)
 }
 
 func (pad *PadPosition) printCurState() {
@@ -120,18 +125,18 @@ func (pad *PadPosition) Reset() {
 	pad.Lock()
 	defer pad.Unlock()
 
-	pad.x = NaN()
-	pad.y = NaN()
-	pad.prevX = pad.x
-	pad.prevY = pad.y
+	pad._x = NaN()
+	pad._y = NaN()
+	pad.prevX = NaN()
+	pad.prevY = NaN()
 
 	pad.ReCalculateValues()
 }
 
 func calcFromActualMax(x, y float64) float64 {
-	maxPossibleX := math.Sqrt(1 - sqr(y))
+	maxPossibleX := math.Sqrt(sqr(PadRadius) - sqr(y))
 	ratioFromMax := x / maxPossibleX
-	return ratioFromMax
+	return ratioFromMax * PadRadius
 }
 
 func resolveAngle[T Number](angle T) int {
@@ -156,8 +161,17 @@ func calcDistance(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
+var maxMagnitude = 1.0
+
 func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 	magnitude := calcDistance(x, y)
+	if magnitude > maxMagnitude {
+		maxMagnitude = magnitude
+		//print("New max magn: %.3f", maxMagnitude)
+	}
+	if magnitude > PadRadius {
+		panicMsg("Magnitude is greater than Pad radius")
+	}
 	if magnitude > PadRadius {
 		x /= magnitude
 		y /= magnitude
@@ -167,7 +181,7 @@ func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
 }
 
 const OutputMin float64 = 0.0
-const PadRadius = 1.0
+const PadRadius = math.Sqrt2
 
 func convertRange(input, outputMax float64) float64 {
 	panicIfNotInit(input)
