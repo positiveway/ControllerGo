@@ -364,23 +364,25 @@ func abs[T Number](val T) T {
 }
 
 func sign[T Number](val T) T {
-	if val != 0 {
-		val /= abs(val)
+	isNegative := math.Signbit(float(val))
+	res := T(1)
+	if isNegative {
+		res *= -1
 	}
-	return val
+	return res
 }
 
-func applySign(sign bool, val float64) float64 {
-	if sign {
+func applySign(isNegative bool, val float64) float64 {
+	if isNegative {
 		val *= -1
 	}
 	return val
 }
 
 func getSignAndAbs(val float64) (bool, float64) {
-	sign := math.Signbit(val)
+	isNegative := math.Signbit(val)
 	val = math.Abs(val)
-	return sign, val
+	return isNegative, val
 }
 
 func floatToInt(value float64) int {

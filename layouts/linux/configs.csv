@@ -24,7 +24,7 @@ StickDeadzone = 0.0
 scrollFastestInterval = 40
 scrollSlowestInterval = 280
 
-horizontalScrollThreshold = 0.45
+horizontalScrollThreshold = 0.85
 
 //typing
 TypingStraightAngleMargin = 21
