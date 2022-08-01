@@ -89,8 +89,10 @@ func (pad *PadPosition) ReCalculateValues() {
 }
 
 func (pad *PadPosition) CalcActualCoords() {
-	pad.x = calcFromActualMax(pad.x, pad.y)
-	pad.y = calcFromActualMax(pad.y, pad.x)
+	//important to use temp values then assign
+	actualX := calcFromActualMax(pad.x, pad.y)
+	actualY := calcFromActualMax(pad.y, pad.x)
+	pad.x, pad.y = actualX, actualY
 }
 
 func (pad *PadPosition) setValue(fieldPointer *float64) {
