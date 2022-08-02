@@ -83,10 +83,25 @@ func (pad *PadPosition) UpdatePrevValues() {
 	pad.prevY = pad.y
 }
 
+var maxMagnitude = 1.0
+
+func checkMagnitude(x, y float64) {
+	magnitude := calcDistance(x, y)
+	if magnitude > maxMagnitude {
+		maxMagnitude = magnitude
+		//print("New max magn: %.3f", maxMagnitude)
+	}
+	if magnitude > PadRadius {
+		panicMsg("Magnitude is greater than Pad radius")
+	}
+}
+
 func (pad *PadPosition) ReCalculateValues() {
 	pad.newValueHandled = false
 
-	pad.x, pad.y, pad.magnitude = normalizeIncorrectEdgeValues(pad._x, pad._y)
+	checkMagnitude(pad._x, pad._y)
+	pad.x, pad.y = pad._x, pad._y
+
 	pad.angle = calcResolvedAngle(pad.x, pad.y)
 }
 
@@ -95,7 +110,7 @@ func (pad *PadPosition) CalcActualCoords() {
 	actualX := calcFromActualMax(pad.x, pad.y)
 	actualY := calcFromActualMax(pad.y, pad.x)
 	if !isNotInit(actualX, actualY) {
-		print("before: %.2f, %.2f after: %.2f, %.2f", pad.x, pad.y, actualX, actualY)
+		//print("before: %.2f, %.2f after: %.2f, %.2f", pad.x, pad.y, actualX, actualY)
 	}
 	pad.x, pad.y = actualX, actualY
 }
@@ -161,24 +176,15 @@ func calcDistance(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
-var maxMagnitude = 1.0
-
-func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
-	magnitude := calcDistance(x, y)
-	if magnitude > maxMagnitude {
-		maxMagnitude = magnitude
-		//print("New max magn: %.3f", maxMagnitude)
-	}
-	if magnitude > PadRadius {
-		panicMsg("Magnitude is greater than Pad radius")
-	}
-	if magnitude > PadRadius {
-		x /= magnitude
-		y /= magnitude
-		magnitude = PadRadius
-	}
-	return x, y, magnitude
-}
+//func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
+//	magnitude := calcDistance(x, y)
+//	if magnitude > PadRadius {
+//		x /= magnitude
+//		y /= magnitude
+//		magnitude = PadRadius
+//	}
+//	return x, y, magnitude
+//}
 
 const OutputMin float64 = 0.0
 const PadRadius = math.Sqrt2
