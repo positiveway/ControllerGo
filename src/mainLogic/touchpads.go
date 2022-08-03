@@ -90,10 +90,10 @@ func checkMagnitude(x, y float64) {
 	magnitude := calcDistance(x, y)
 	if magnitude > maxMagnitude {
 		maxMagnitude = magnitude
-		//print("New max magn: %.3f", maxMagnitude)
+		gofuncs.Print("New max magn: %.3f", maxMagnitude)
 	}
 	if magnitude > PadRadius {
-		gofuncs.Panic("Magnitude is greater than Pad radius")
+		gofuncs.Panic("Magnitude is greater than Pad radius: %v", magnitude)
 	}
 }
 
@@ -182,9 +182,6 @@ func calcDistance(x, y float64) float64 {
 //	}
 //	return x, y, magnitude
 //}
-
-const OutputMin float64 = 0.0
-const PadRadius = math.Sqrt2
 
 func convertRange(input, outputMax float64) float64 {
 	gofuncs.PanicAnyNotInit(input)

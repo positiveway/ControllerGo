@@ -49,9 +49,9 @@ func matchEvent() {
 		buttonReleased()
 	case EvDisconnected:
 		gamepadDisconnected()
-		print("Gamepad disconnected")
+		gofuncs.Print("Gamepad disconnected")
 	case EvConnected:
-		print("Gamepad connected")
+		gofuncs.Print("Gamepad connected")
 	case EvDropped:
 		gofuncs.Panic("Event dropped")
 	}

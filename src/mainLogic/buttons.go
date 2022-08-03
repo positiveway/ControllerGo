@@ -147,7 +147,7 @@ func RunReleaseHoldThread() {
 	for range ticker.C {
 		buttonsToRelease.RangeOverCopy(func(btn BtnOrAxisT, cmdWithTime CommandToReleaseWithHoldStartTime) {
 			holdDuration := time.Now().Sub(cmdWithTime.holdStartTime)
-			//print("duration: %v", holdDuration)
+			//gofuncs.Print("duration: %v", holdDuration)
 			if holdDuration > holdingThreshold {
 				pressButton(btn, true)
 			}

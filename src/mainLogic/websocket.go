@@ -18,19 +18,19 @@ func RunWebSocket() {
 	if err != nil {
 		gofuncs.Panic("Client is already running: %v", err)
 	}
-	print("Listening at %v", addr.String())
+	gofuncs.Print("Listening at %v", addr.String())
 
 	p := make([]byte, 32)
 
 	for {
 		nn, _, err := server.ReadFromUDP(p)
 		if err != nil {
-			print("Read err  %v", err)
+			gofuncs.Print("Read err  %v", err)
 			continue
 		}
 
-		//print(nn)
-		//print(string(p[:nn]))
+		//gofuncs.Print(nn)
+		//gofuncs.Print(string(p[:nn]))
 
 		event.update(string(p[:nn]))
 	}

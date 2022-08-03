@@ -16,7 +16,7 @@ func GetCurFileDir() string {
 	ex, err := os.Executable()
 	gofuncs.CheckErr(err)
 	exPath := filepath.Dir(ex)
-	print("Exec path: %s", exPath)
+	gofuncs.Print("Exec path: %s", exPath)
 	return exPath
 }
 

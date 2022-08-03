@@ -2,7 +2,7 @@ package main
 
 import "ControllerGo/mainLogic"
 
-//Run with sudo
+// Run with sudo
 func main() {
 	mainLogic.RunMain()
 }

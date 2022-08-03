@@ -8,6 +8,58 @@ import (
 	"time"
 )
 
+// Math
+const OutputMin float64 = 0.0
+const PadRadius = 1.2
+
+// Mode
+var padsMode *PadsMode
+
+// commands
+var TriggerThreshold float64
+var holdingThreshold time.Duration
+
+// mouse
+var mouseInterval time.Duration
+var mouseSpeed float64
+var mouseEdgeThreshold float64
+
+// Pads/Stick
+var PadsRotation int
+var StickRotation int
+
+var StickAngleMargin int
+var StickThreshold float64
+var StickEdgeThreshold float64
+
+var StickBoundariesMap ZoneBoundariesMap
+
+var StickDeadzone float64
+
+// scroll
+var scrollFastestInterval float64
+var scrollSlowestInterval float64
+
+var horizontalScrollThreshold float64
+
+// typing
+var TypingStraightAngleMargin int
+var TypingDiagonalAngleMargin int
+var TypingThreshold float64
+
+// common
+var DefaultRefreshInterval time.Duration
+
+// web socket
+const SocketPort int = 1234
+const SocketIP string = "0.0.0.0"
+
+// path
+var BaseDir string
+var LayoutsDir string
+var LayoutInUse string
+var Configs = map[string]string{}
+
 func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	file := filepath.Join(LayoutsDir, pathFromLayoutsDir)
 	lines := gofuncs.ReadLines(file)
@@ -112,51 +164,3 @@ func setConfigVars() {
 	//common
 	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
 }
-
-//Mode
-var padsMode *PadsMode
-
-//commands
-var TriggerThreshold float64
-var holdingThreshold time.Duration
-
-//mouse
-var mouseInterval time.Duration
-var mouseSpeed float64
-var mouseEdgeThreshold float64
-
-//Pads/Stick
-var PadsRotation int
-var StickRotation int
-
-var StickAngleMargin int
-var StickThreshold float64
-var StickEdgeThreshold float64
-
-var StickBoundariesMap ZoneBoundariesMap
-
-var StickDeadzone float64
-
-//scroll
-var scrollFastestInterval float64
-var scrollSlowestInterval float64
-
-var horizontalScrollThreshold float64
-
-//typing
-var TypingStraightAngleMargin int
-var TypingDiagonalAngleMargin int
-var TypingThreshold float64
-
-//common
-var DefaultRefreshInterval time.Duration
-
-//web socket
-const SocketPort int = 1234
-const SocketIP string = "0.0.0.0"
-
-//path
-var BaseDir string
-var LayoutsDir string
-var LayoutInUse string
-var Configs = map[string]string{}

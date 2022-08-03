@@ -197,7 +197,7 @@ func genBoundariesMap(includeDiagonalZones bool, angleMargin AngleMargin, zoneTh
 
 func printAnglesForZones(_boundariesMap ZoneBoundariesMap) {
 	for _, zone := range AllZones {
-		print("%v: ", zone)
+		gofuncs.Print("%v: ", zone)
 		var needAngles []int
 		for angle, dir := range _boundariesMap {
 			if dir.zone == zone {
