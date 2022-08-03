@@ -145,6 +145,10 @@ func (pad *PadPosition) Reset() {
 
 	pad._x = gofuncs.NaN()
 	pad._y = gofuncs.NaN()
+
+	pad.actualX = gofuncs.NaN()
+	pad.actualY = gofuncs.NaN()
+
 	pad.prevX = gofuncs.NaN()
 	pad.prevY = gofuncs.NaN()
 
