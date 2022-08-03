@@ -1,7 +1,8 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpec"
+	"ControllerGo/osSpec"
+	"github.com/positiveway/gofuncs"
 	"path"
 	"time"
 )
@@ -31,8 +32,8 @@ func loadCommandsLayout() ButtonToCommand {
 		if btnSynonym, found := BtnSynonyms[btn]; found {
 			btn = btnSynonym
 		}
-		if !contains(AllAvailableButtons, removeHoldSuffix(btn)) {
-			PanicMisspelled(btn)
+		if !gofuncs.Contains(AllAvailableButtons, removeHoldSuffix(btn)) {
+			gofuncs.PanicMisspelled(btn)
 		}
 		var codes []int
 		for _, key := range keys {
@@ -44,7 +45,7 @@ func loadCommandsLayout() ButtonToCommand {
 			}
 		}
 		if len(codes) == 0 {
-			panicMsg("Empty command mapping for button %s", btn)
+			gofuncs.Panic("Empty command mapping for button %s", btn)
 		}
 		if codes[0] == NoAction {
 			continue
@@ -61,7 +62,7 @@ func pressSequence(command Command) {
 }
 
 func releaseSequence(command Command) {
-	for _, el := range reverse(command) {
+	for _, el := range gofuncs.Reverse(command) {
 		osSpec.ReleaseKeyOrMouse(el)
 	}
 }
@@ -72,7 +73,7 @@ type ButtonToCommand map[BtnOrAxisT]Command
 
 var pressCommandsLayout ButtonToCommand
 
-var buttonsToRelease = MakeThreadSafeMap[BtnOrAxisT, CommandToReleaseWithHoldStartTime]()
+var buttonsToRelease = gofuncs.MakeThreadSafeMap[BtnOrAxisT, CommandToReleaseWithHoldStartTime]()
 
 func PutButton(btn BtnOrAxisT, command Command, alreadyPressed bool) {
 	buttonsToRelease.Put(btn,
@@ -109,7 +110,7 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 	}
 
 	command := getPressCommand(btn, hold)
-	if isEmpty(command) {
+	if gofuncs.IsEmptySlice(command) {
 		return
 	}
 
@@ -168,7 +169,7 @@ func releaseButton(btn BtnOrAxisT) {
 	cmdWithTime := buttonsToRelease.Pop(btn)
 	command := cmdWithTime.command
 
-	if isEmpty(command) {
+	if gofuncs.IsEmptySlice(command) {
 		return
 	}
 	releaseSequence(command)

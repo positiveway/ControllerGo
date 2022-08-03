@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"github.com/positiveway/gofuncs"
 	"math"
 	"sync"
 	"time"
@@ -49,7 +50,7 @@ var (
 
 type PadPosition struct {
 	_x, _y                     float64
-	x, y                       float64
+	actualX, actualY           float64
 	prevX, prevY               float64
 	magnitude                  float64
 	angle                      int
@@ -58,7 +59,7 @@ type PadPosition struct {
 	zone                       Zone
 	zoneCanBeUsed, zoneChanged bool
 	zoneRotation               int
-	awaitingCentralPostion     bool
+	awaitingCentralPosition    bool
 }
 
 func MakePadPosition(zoneRotation int) *PadPosition {
@@ -79,8 +80,8 @@ func (pad *PadPosition) Unlock() {
 }
 
 func (pad *PadPosition) UpdatePrevValues() {
-	pad.prevX = pad.x
-	pad.prevY = pad.y
+	pad.prevX = pad.actualX
+	pad.prevY = pad.actualY
 }
 
 var maxMagnitude = 1.0
@@ -92,7 +93,7 @@ func checkMagnitude(x, y float64) {
 		//print("New max magn: %.3f", maxMagnitude)
 	}
 	if magnitude > PadRadius {
-		panicMsg("Magnitude is greater than Pad radius")
+		gofuncs.Panic("Magnitude is greater than Pad radius")
 	}
 }
 
@@ -100,19 +101,25 @@ func (pad *PadPosition) ReCalculateValues() {
 	pad.newValueHandled = false
 
 	checkMagnitude(pad._x, pad._y)
-	pad.x, pad.y = pad._x, pad._y
+	pad.actualX, pad.actualY = pad._x, pad._y
 
-	pad.angle = calcResolvedAngle(pad.x, pad.y)
+	pad.angle = calcResolvedAngle(pad.actualX, pad.actualY)
 }
 
-func (pad *PadPosition) CalcActualCoords() {
+func calcFromMaxPossible(x, y float64) float64 {
+	maxPossibleX := math.Sqrt(gofuncs.Sqr(PadRadius) - gofuncs.Sqr(y))
+	ratioFromMaxPossible := x / maxPossibleX
+	return ratioFromMaxPossible * PadRadius
+}
+
+func (pad *PadPosition) CalcCoordsFromMaxPossible() {
 	//important to use temp values then assign
-	actualX := calcFromActualMax(pad.x, pad.y)
-	actualY := calcFromActualMax(pad.y, pad.x)
-	if !isNotInit(actualX, actualY) {
-		//print("before: %.2f, %.2f after: %.2f, %.2f", pad.x, pad.y, actualX, actualY)
+	xFromMaxPossible := calcFromMaxPossible(pad.actualX, pad.actualY)
+	yFromMaxPossible := calcFromMaxPossible(pad.actualY, pad.actualX)
+	if !gofuncs.AnyNotInit(xFromMaxPossible, yFromMaxPossible) {
+		print("before: %.2f, %.2f after: %.2f, %.2f", pad.actualX, pad.actualY, xFromMaxPossible, yFromMaxPossible)
 	}
-	pad.x, pad.y = actualX, actualY
+	pad.actualX, pad.actualY = xFromMaxPossible, yFromMaxPossible
 }
 
 func (pad *PadPosition) setValue(fieldPointer *float64) {
@@ -132,37 +139,27 @@ func (pad *PadPosition) SetY() {
 	pad.setValue(&pad._y)
 }
 
-func (pad *PadPosition) printCurState() {
-	printPair(pad.x, pad.y, "(x, y): ")
-}
-
 func (pad *PadPosition) Reset() {
 	pad.Lock()
 	defer pad.Unlock()
 
-	pad._x = NaN()
-	pad._y = NaN()
-	pad.prevX = NaN()
-	pad.prevY = NaN()
+	pad._x = gofuncs.NaN()
+	pad._y = gofuncs.NaN()
+	pad.prevX = gofuncs.NaN()
+	pad.prevY = gofuncs.NaN()
 
 	pad.ReCalculateValues()
 }
 
-func calcFromActualMax(x, y float64) float64 {
-	maxPossibleX := math.Sqrt(sqr(PadRadius) - sqr(y))
-	ratioFromMax := x / maxPossibleX
-	return ratioFromMax * PadRadius
-}
-
-func resolveAngle[T Number](angle T) int {
+func resolveAngle[T gofuncs.Number](angle T) int {
 	resolvedAngle := math.Mod(float64(angle)+360, 360)
-	return floatToInt(resolvedAngle)
+	return gofuncs.FloatToIntRound[int](resolvedAngle)
 }
 
 const RadiansMultiplier float64 = 180 / math.Pi
 
 func calcResolvedAngle(x, y float64) int {
-	if isNotInit(x, y) {
+	if gofuncs.AnyNotInit(x, y) {
 		return 0
 	}
 	angle := math.Atan2(y, x) * RadiansMultiplier
@@ -170,7 +167,7 @@ func calcResolvedAngle(x, y float64) int {
 }
 
 func calcDistance(x, y float64) float64 {
-	if isNotInit(x, y) {
+	if gofuncs.AnyNotInit(x, y) {
 		return 0
 	}
 	return math.Hypot(x, y)
@@ -190,42 +187,37 @@ const OutputMin float64 = 0.0
 const PadRadius = math.Sqrt2
 
 func convertRange(input, outputMax float64) float64 {
-	panicIfNotInit(input)
+	gofuncs.PanicAnyNotInit(input)
 
 	if input == 0.0 {
 		return 0.0
 	}
 
-	sign, input := getSignAndAbs(input)
+	isNegative, input := gofuncs.GetIsNegativeAndAbs(input)
 
 	if input > PadRadius {
-		panicMsg("Axis input value is greater than %v. Current value: %v", PadRadius, input)
+		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", PadRadius, input)
 	}
 
 	output := OutputMin + ((outputMax-OutputMin)/(PadRadius-StickDeadzone))*(input-StickDeadzone)
-	return applySign(sign, output)
+	return gofuncs.ApplySign(isNegative, output)
 }
 
 func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
 	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - refreshInterval
-	return time.Duration(floatToInt64(refreshInterval)) * time.Millisecond
+	return time.Duration(gofuncs.FloatToIntRound[int64](refreshInterval)) * time.Millisecond
 }
 
 func applyDeadzone(value float64) float64 {
-	if isNotInit(value) {
+	if gofuncs.IsNotInit(value) {
 		return value
 	}
 	if math.Abs(value) < StickDeadzone {
 		value = 0.0
 	}
 	return value
-}
-
-func printPair[T Number](_x, _y T, prefix string) {
-	x, y := float64(_x), float64(_y)
-	print("%s: %0.2f %0.2f", prefix, x, y)
 }
 
 //func calcOneQuarterAngle(resolvedAngle int) int {

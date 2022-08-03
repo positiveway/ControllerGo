@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"github.com/positiveway/gofuncs"
 	"path"
 	"path/filepath"
 	"strings"
@@ -9,18 +10,18 @@ import (
 
 func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	file := filepath.Join(LayoutsDir, pathFromLayoutsDir)
-	lines := ReadLines(file)
+	lines := gofuncs.ReadLines(file)
 	lines = lines[skipLines:]
 
 	var linesParts [][]string
 	for _, line := range lines {
-		line = strip(line)
-		if isEmptyStr(line) || StartsWithAnyOf(line, ";", "//") {
+		line = gofuncs.Strip(line)
+		if gofuncs.IsEmptyStripStr(line) || gofuncs.StartsWithAnyOf(line, ";", "//") {
 			continue
 		}
-		parts := splitByAnyOf(line, "&|>:,=")
+		parts := gofuncs.SplitByAnyOf(line, "&|>:,=")
 		for ind, part := range parts {
-			parts[ind] = strip(part)
+			parts[ind] = gofuncs.Strip(part)
 		}
 		linesParts = append(linesParts, parts)
 	}
@@ -34,37 +35,37 @@ func loadConfigs() {
 		constValue := parts[1]
 
 		constName = strings.ToLower(constName)
-		AssignWithDuplicateCheck(Configs, constName, constValue)
+		gofuncs.AssignWithDuplicateCheck(Configs, constName, constValue)
 	}
 }
 
 func getConfig(constName string) string {
 	constName = strings.ToLower(constName)
-	return getOrPanic(Configs, constName, "No such name in config")
+	return gofuncs.GetOrPanic(Configs, constName, "No such name in config")
 }
 
 func toBoolConfig(name string) bool {
-	return strToBool(getConfig(name))
+	return gofuncs.StrToBool(getConfig(name))
 }
 
 func toIntConfig(name string) int {
-	return strToInt(getConfig(name))
+	return gofuncs.StrToInt(getConfig(name))
 }
 
 func toMillisConfig(name string) time.Duration {
-	return strToMillis(getConfig(name))
+	return gofuncs.StrToMillis(getConfig(name))
 }
 
 func toFloatConfig(name string) float64 {
-	return strToFloat(getConfig(name))
+	return gofuncs.StrToFloat(getConfig(name))
 }
 
 func toIntToFloatConfig(name string) float64 {
-	return strToIntToFloat(getConfig(name))
+	return gofuncs.StrToIntToFloat(getConfig(name))
 }
 
 func toPctConfig(name string) float64 {
-	return strToPct(getConfig(name))
+	return gofuncs.StrToPct(getConfig(name))
 }
 
 func setConfigVars() {
@@ -111,9 +112,6 @@ func setConfigVars() {
 	//common
 	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
 }
-
-//Debug
-var PrintDebugInfo = false
 
 //Mode
 var padsMode *PadsMode

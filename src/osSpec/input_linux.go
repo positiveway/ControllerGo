@@ -4,6 +4,7 @@ package osSpec
 
 import (
 	"github.com/bendahl/uinput"
+	"github.com/positiveway/gofuncs"
 )
 
 const DefaultProjectDir string = "/home/user/GolandProjects/ControllerGo"
@@ -25,11 +26,11 @@ func InitInput() {
 
 	// initialize keyboard and check for possible errors
 	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("testkeyboard"))
-	checkErr(err)
+	gofuncs.CheckErr(err)
 
 	// initialize mouse and check for possible errors
 	mouse, err = uinput.CreateMouse("/dev/uinput", []byte("testmouse"))
-	checkErr(err)
+	gofuncs.CheckErr(err)
 }
 
 func PressKeyOrMouse(key int) {

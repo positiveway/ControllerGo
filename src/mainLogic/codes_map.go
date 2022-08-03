@@ -1,13 +1,14 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpec"
+	"ControllerGo/osSpec"
+	"github.com/positiveway/gofuncs"
 	"strings"
 )
 
 func getCodeFromLetter(letter string) int {
 	letter = strings.ToLower(letter)
-	return getOrPanic(osSpec.LetterToCodes, letter, "No such letter in mapping")
+	return gofuncs.GetOrPanic(osSpec.LetterToCodes, letter, "No such letter in mapping")
 }
 
 func toLowerMap[V any](m map[string]V) {

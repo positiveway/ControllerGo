@@ -2,6 +2,7 @@ package mainLogic
 
 import (
 	"fmt"
+	"github.com/positiveway/gofuncs"
 	"math"
 	"sort"
 )
@@ -87,10 +88,10 @@ func isVertical(angle int) bool {
 }
 
 func isEdgeZone(zone Zone) bool {
-	return endsWith(string(zone), string(EdgeZoneSuffix))
+	return gofuncs.EndsWith(string(zone), string(EdgeZoneSuffix))
 }
 
-func resolveThreeDirectionalValue[T Number](angle int, diagonal, horizontal, vertical T) T {
+func resolveThreeDirectionalValue[T gofuncs.Number](angle int, diagonal, horizontal, vertical T) T {
 	if isDiagonal(angle) {
 		return diagonal
 	}
@@ -100,7 +101,7 @@ func resolveThreeDirectionalValue[T Number](angle int, diagonal, horizontal, ver
 	if isVertical(angle) {
 		return vertical
 	}
-	panicMsg("Incorrect base angle")
+	gofuncs.Panic("Incorrect base angle")
 	panic("")
 }
 
@@ -113,31 +114,31 @@ func getAngleMargin(angle int, angleMargin AngleMargin) int {
 }
 
 func checkZoneThreshold(zoneThreshold Threshold) {
-	if anyEqual([][]float64{
+	if gofuncs.AnyEqual([][]float64{
 		{zoneThreshold.diagonal, 0},
 		{zoneThreshold.vertical, 0},
 		{zoneThreshold.horizontal, 0},
 	}) {
-		panicMsg("Threshold can't be zero")
+		gofuncs.Panic("Threshold can't be zero")
 	}
 }
 
 func checkEdgeThreshold(zoneThreshold, edgeThreshold Threshold) {
-	if anyGreaterOrEqual([][]float64{
+	if gofuncs.AnyGreaterOrEqual([][]float64{
 		{zoneThreshold.diagonal, edgeThreshold.diagonal},
 		{zoneThreshold.vertical, edgeThreshold.vertical},
 		{zoneThreshold.horizontal, edgeThreshold.horizontal},
 	}) {
-		panicMsg("Edge threshold can't be less or equal to Zone threshold")
+		gofuncs.Panic("Edge threshold can't be less or equal to Zone threshold")
 	}
 }
 
 func checkAngleMargin(angleMargin AngleMargin) {
-	if anyGreaterOrEqual([][]int{
+	if gofuncs.AnyGreaterOrEqual([][]int{
 		{angleMargin.diagonal + angleMargin.horizontal, 45},
 		{angleMargin.diagonal + angleMargin.vertical, 45},
 	}) {
-		panicMsg("With this margin of angle areas will overlap")
+		gofuncs.Panic("With this margin of angle areas will overlap")
 	}
 }
 
@@ -147,7 +148,7 @@ func genRange(lowerBound, upperBound int, _boundariesMap ZoneBoundariesMap, zone
 
 	for angle := lowerBound; angle <= upperBound; angle++ {
 		resolvedAngle := resolveAngle(angle)
-		AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, makeDirection(zone, zoneThreshold, edgeThreshold))
+		gofuncs.AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, makeDirection(zone, zoneThreshold, edgeThreshold))
 	}
 }
 
@@ -247,6 +248,6 @@ func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap) {
 	pad.zone = zone
 
 	if pad.zoneChanged && pad.zone == CentralNeutralZone {
-		pad.awaitingCentralPostion = false
+		pad.awaitingCentralPosition = false
 	}
 }

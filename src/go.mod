@@ -5,12 +5,13 @@ go 1.18
 require (
 	github.com/bendahl/uinput v1.5.1
 	github.com/go-vgo/robotgo v0.100.10
-	github.com/jinzhu/copier v0.3.5
+	github.com/positiveway/gofuncs v0.1.8-0.20220802123019-6e6b9d275034
 )
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/otiai10/gosseract v2.2.1+incompatible // indirect
 	github.com/robotn/gohook v0.31.3 // indirect

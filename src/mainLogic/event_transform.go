@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"github.com/positiveway/gofuncs"
 	"strconv"
 )
 
@@ -54,7 +55,7 @@ func (event *Event) fixButtonNamesForSteamController() {
 }
 
 func (event *Event) transformToPadEvent() {
-	if contains(PadAxes, event.btnOrAxis) &&
+	if gofuncs.Contains(PadAxes, event.btnOrAxis) &&
 		event.eventType == EvAxisChanged && event.value == 0.0 {
 
 		event.eventType = EvPadReleased
@@ -85,7 +86,7 @@ func (event *Event) transformStickToDPad() {
 		EvAxisChanged,
 		EvPadReleased,
 	}
-	if !contains(allowedEvents, event.eventType) {
+	if !gofuncs.Contains(allowedEvents, event.eventType) {
 		return
 	}
 
@@ -145,28 +146,28 @@ func (event *Event) update(msg string) {
 
 	event.eventType, found = EventTypeMap[msg[0]]
 	if !found {
-		PanicMisspelled(string(msg[0]))
+		gofuncs.PanicMisspelled(string(msg[0]))
 	}
 	if event.eventType != EvConnected && event.eventType != EvDisconnected && event.eventType != EvDropped {
 		event.btnOrAxis, found = BtnAxisMap[msg[1]]
 		if !found {
-			PanicMisspelled(string(msg[1]))
+			gofuncs.PanicMisspelled(string(msg[1]))
 		}
 		if event.eventType == EvAxisChanged || event.eventType == EvButtonChanged {
 			msg = msg[2:]
-			valueAndCode := split(msg, ";")
+			valueAndCode := gofuncs.Split(msg, ";")
 
 			event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
-			checkErr(err)
+			gofuncs.CheckErr(err)
 
-			if startsWith(msg, ";") {
+			if gofuncs.StartsWith(msg, ";") {
 				return
 			}
-			typeAndCode := split(valueAndCode[1], "(")
+			typeAndCode := gofuncs.Split(valueAndCode[1], "(")
 			event.codeType = CodeTypeT(typeAndCode[0])
 
 			code := typeAndCode[1]
-			codeNum := strToInt(code[:len(code)-1])
+			codeNum := gofuncs.StrToInt(code[:len(code)-1])
 			event.code = CodeT(codeNum)
 		}
 	}
@@ -174,8 +175,8 @@ func (event *Event) update(msg string) {
 }
 
 func (event *Event) print() {
-	printDebug("%s \"%s\": %.2f",
-		trimAnyPrefix(string(event.eventType), "Ev"),
-		trimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
+	gofuncs.PrintDebug("%s \"%s\": %.2f",
+		gofuncs.TrimAnyPrefix(string(event.eventType), "Ev"),
+		gofuncs.TrimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
 		event.value)
 }

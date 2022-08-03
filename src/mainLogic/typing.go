@@ -1,6 +1,9 @@
 package mainLogic
 
-import "ControllerGo/src/osSpec"
+import (
+	"ControllerGo/osSpec"
+	"github.com/positiveway/gofuncs"
+)
 
 const NoneStr = "None"
 
@@ -21,18 +24,18 @@ func loadTypingLayout() TypingLayout {
 	layout := TypingLayout{}
 	for _, parts := range linesParts {
 		leftStick, rightStick, letter := Zone(parts[0]), Zone(parts[1]), parts[2]
-		if !contains(AllZones, leftStick) {
-			PanicMisspelled(leftStick)
+		if !gofuncs.Contains(AllZones, leftStick) {
+			gofuncs.PanicMisspelled(leftStick)
 		}
-		if !contains(AllZones, rightStick) {
-			PanicMisspelled(rightStick)
+		if !gofuncs.Contains(AllZones, rightStick) {
+			gofuncs.PanicMisspelled(rightStick)
 		}
 		if letter == NoneStr {
 			continue
 		}
 		code := getCodeFromLetter(letter)
 		position := SticksPosition{leftStick, rightStick}
-		AssignWithDuplicateCheck(layout, position, code)
+		gofuncs.AssignWithDuplicateCheck(layout, position, code)
 	}
 	return layout
 }
@@ -53,9 +56,9 @@ func TypeLetter() {
 
 	if LeftPad.zoneCanBeUsed && RightPad.zoneCanBeUsed {
 		if LeftPad.zoneChanged || RightPad.zoneChanged {
-			if !LeftPad.awaitingCentralPostion || !RightPad.awaitingCentralPostion {
-				LeftPad.awaitingCentralPostion = true
-				RightPad.awaitingCentralPostion = true
+			if !LeftPad.awaitingCentralPosition || !RightPad.awaitingCentralPosition {
+				LeftPad.awaitingCentralPosition = true
+				RightPad.awaitingCentralPosition = true
 
 				position := SticksPosition{LeftPad.zone, RightPad.zone}
 				if code, found := typingLayout[position]; found {

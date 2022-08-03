@@ -1,18 +1,19 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpec"
+	"ControllerGo/osSpec"
+	"github.com/positiveway/gofuncs"
 	"math"
 	"time"
 )
 
 func calcMove(value, prevValue float64) int {
-	if isNotInit(prevValue) {
+	if gofuncs.IsNotInit(prevValue) {
 		return 0
 	}
 
 	diff := value - prevValue
-	pixels := floatToInt(diff * mouseSpeed)
+	pixels := gofuncs.FloatToIntRound[int](diff * mouseSpeed)
 
 	return pixels
 }
@@ -26,8 +27,8 @@ func RunMouseThread() {
 
 		RightPad.Lock()
 
-		moveX := calcMove(RightPad.x, RightPad.prevX)
-		moveY := calcMove(RightPad.y, RightPad.prevY)
+		moveX := calcMove(RightPad.actualX, RightPad.prevX)
+		moveY := calcMove(RightPad.actualY, RightPad.prevY)
 		RightPad.UpdatePrevValues()
 
 		RightPad.Unlock()
@@ -43,13 +44,13 @@ func calcScrollInterval(input float64) time.Duration {
 }
 
 func getDirection(val float64, horizontal bool) int {
-	if isNotInit(val) {
+	if gofuncs.IsNotInit(val) {
 		return 0
 	}
 	if horizontal && math.Abs(val) < horizontalScrollThreshold {
 		return 0
 	}
-	return int(sign(val))
+	return gofuncs.SignAsNumber(val)
 }
 
 func getDirections(x, y float64) (int, int) {
@@ -64,7 +65,7 @@ func getDirections(x, y float64) (int, int) {
 
 func RunScrollThread() {
 	for {
-		scrollInterval := numberToMillis(scrollFastestInterval)
+		scrollInterval := gofuncs.NumberToMillis(scrollFastestInterval)
 
 		if padsMode.GetMode() != ScrollingMode {
 			time.Sleep(scrollInterval)
@@ -73,8 +74,8 @@ func RunScrollThread() {
 
 		LeftPad.Lock()
 
-		LeftPad.CalcActualCoords()
-		hDir, vDir := getDirections(LeftPad.x, LeftPad.y)
+		LeftPad.CalcCoordsFromMaxPossible()
+		hDir, vDir := getDirections(LeftPad.actualX, LeftPad.actualY)
 
 		if LeftPad.magnitude != 0 {
 			scrollInterval = calcScrollInterval(LeftPad.magnitude)

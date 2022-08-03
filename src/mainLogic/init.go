@@ -1,7 +1,8 @@
 package mainLogic
 
 import (
-	"ControllerGo/src/osSpec"
+	"ControllerGo/osSpec"
+	"github.com/positiveway/gofuncs"
 	"os"
 	"path"
 	"path/filepath"
@@ -13,7 +14,7 @@ const RunFromTerminal = false
 
 func GetCurFileDir() string {
 	ex, err := os.Executable()
-	checkErr(err)
+	gofuncs.CheckErr(err)
 	exPath := filepath.Dir(ex)
 	print("Exec path: %s", exPath)
 	return exPath
@@ -29,16 +30,19 @@ func InitPath() {
 }
 
 func setLayoutDir() {
-	LayoutInUse = ReadFile(filepath.Join(LayoutsDir, "layout_to_use.txt"))
+	LayoutInUse = gofuncs.ReadFile(filepath.Join(LayoutsDir, "layout_to_use.txt"))
 	LayoutInUse = strings.TrimSpace(LayoutInUse)
 
 	curLayoutDir := path.Join(LayoutsDir, LayoutInUse)
 	if _, err := os.Stat(curLayoutDir); os.IsNotExist(err) {
-		panicMsg("Layout folder with such name doesn't exist: %s", LayoutInUse)
+		gofuncs.Panic("Layout folder with such name doesn't exist: %s", LayoutInUse)
 	}
 }
 
 func InitSettings() {
+	//Debug
+	gofuncs.PrintDebugInfo = false
+
 	InitPath()
 	setLayoutDir()
 	setConfigVars()

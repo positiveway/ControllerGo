@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"github.com/positiveway/gofuncs"
 	"net"
 )
 
@@ -15,7 +16,7 @@ func RunWebSocket() {
 	}
 	server, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		panicMsg("Client is already running: %v", err)
+		gofuncs.Panic("Client is already running: %v", err)
 	}
 	print("Listening at %v", addr.String())
 

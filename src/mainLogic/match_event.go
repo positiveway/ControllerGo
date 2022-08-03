@@ -1,5 +1,7 @@
 package mainLogic
 
+import "github.com/positiveway/gofuncs"
+
 func eventChanged() {
 	switch event.btnOrAxis {
 	case AxisLeftPadX:
@@ -51,6 +53,6 @@ func matchEvent() {
 	case EvConnected:
 		print("Gamepad connected")
 	case EvDropped:
-		panicMsg("Event dropped")
+		gofuncs.Panic("Event dropped")
 	}
 }

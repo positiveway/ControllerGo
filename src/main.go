@@ -1,6 +1,6 @@
 package main
 
-import "ControllerGo/src/mainLogic"
+import "ControllerGo/mainLogic"
 
 //Run with sudo
 func main() {

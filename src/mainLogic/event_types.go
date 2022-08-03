@@ -1,6 +1,7 @@
 package mainLogic
 
 import (
+	"github.com/positiveway/gofuncs"
 	"strings"
 )
 
@@ -198,10 +199,10 @@ var EventTypeMap = map[uint8]EventTypeT{
 func genBtnAxisMap() map[uint8]BtnOrAxisT {
 	mapping := map[uint8]BtnOrAxisT{}
 	for k, v := range _AxisMap {
-		AssignWithDuplicateCheck(mapping, k, v)
+		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
 	}
 	for k, v := range _BtnMap {
-		AssignWithDuplicateCheck(mapping, k, v)
+		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
 	}
 	return mapping
 }
