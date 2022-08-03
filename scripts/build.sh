@@ -1,6 +1,6 @@
-rm -rf ./build/linux/*
-cd src
+rm -rf ../build/linux/*
+cd ../src
 go build -o ../build/linux/ControllerGo
-cd ..
+cd ../scripts
 chmod +x ./run.sh
 ./run.sh
