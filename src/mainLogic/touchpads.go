@@ -117,7 +117,7 @@ func (pad *PadPosition) CalcCoordsFromMaxPossible() {
 	xFromMaxPossible := calcFromMaxPossible(pad.actualX, pad.actualY)
 	yFromMaxPossible := calcFromMaxPossible(pad.actualY, pad.actualX)
 	if !gofuncs.AnyNotInit(xFromMaxPossible, yFromMaxPossible) {
-		gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pad.actualX, pad.actualY, xFromMaxPossible, yFromMaxPossible)
+		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pad.actualX, pad.actualY, xFromMaxPossible, yFromMaxPossible)
 	}
 	pad.actualX, pad.actualY = xFromMaxPossible, yFromMaxPossible
 }
