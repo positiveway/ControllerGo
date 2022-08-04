@@ -6,4 +6,4 @@ repository="gofuncs"
 
 cd ../src
 commitID=$(git ls-remote https://github.com/$username/$repository.git HEAD | awk '{print substr($1, 0, 7)}')
-go get github.com/positiveway/gofuncs@$commitID
+go get github.com/$username/$repository@$commitID
