@@ -26,6 +26,10 @@ github.com/positiveway/gofuncs v0.1.11-0.20220804073150-8a2dfe6708a1 h1:D8ljgxRX
 github.com/positiveway/gofuncs v0.1.11-0.20220804073150-8a2dfe6708a1/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
 github.com/positiveway/gofuncs v0.1.11-0.20220804074412-8ea904d157eb h1:vcbpvQonyP1VXqOGLnTLErcJJcesiki6Dof0Iu2NHg4=
 github.com/positiveway/gofuncs v0.1.11-0.20220804074412-8ea904d157eb/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
+github.com/positiveway/gofuncs v0.1.11-0.20220810062925-4237ad0afd9e h1:185M0qfz9BomNROpeEsFMT5DxcP+fdSEesUdoq/rCLg=
+github.com/positiveway/gofuncs v0.1.11-0.20220810062925-4237ad0afd9e/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
+github.com/positiveway/gofuncs v0.1.11-0.20220810063716-89dc6841653b h1:qb0Fdm4YQ8gg+f8vqNJlzX3YtzKWYbn95teZcyUAEKg=
+github.com/positiveway/gofuncs v0.1.11-0.20220810063716-89dc6841653b/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
 github.com/robotn/gohook v0.31.3 h1:kGX8iukJ9ensVRwRKnTtdojAMQOpa6KFnXDi4OA4RaI=
 github.com/robotn/gohook v0.31.3/go.mod h1:wyGik0yb4iwCfJjDprtNkTyxkgQWuKoVPQ3hkz6+6js=
 github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 h1:2lhSR8N3T6I30q096DT7/5AKEIcf1vvnnWAmS0wfnNY=

@@ -48,62 +48,25 @@ var (
 	Stick    = MakePadPosition(StickRotation)
 )
 
-type PadPosition struct {
-	_x, _y                     float64
-	actualX, actualY           float64
-	prevX, prevY               float64
-	magnitude                  float64
-	angle                      int
-	newValueHandled            bool
-	lock                       sync.Mutex
-	zone                       Zone
-	zoneCanBeUsed, zoneChanged bool
-	zoneRotation               int
-	awaitingCentralPosition    bool
+type Position struct {
+	x, y float64
 }
 
-func MakePadPosition(zoneRotation int) *PadPosition {
-	pad := PadPosition{}
-
-	pad.Reset()
-	pad.zoneRotation = zoneRotation
-
-	return &pad
+func MakePosition() *Position {
+	return &Position{}
 }
 
-func (pad *PadPosition) Lock() {
-	pad.lock.Lock()
+func (pos *Position) Reset() {
+	pos.x = gofuncs.NaN()
+	pos.y = gofuncs.NaN()
 }
 
-func (pad *PadPosition) Unlock() {
-	pad.lock.Unlock()
+func (pos *Position) Update(newPos *Position) {
+	pos.x, pos.y = newPos.x, newPos.y
 }
 
-func (pad *PadPosition) UpdatePrevValues() {
-	pad.prevX = pad.actualX
-	pad.prevY = pad.actualY
-}
-
-var maxMagnitude = 1.0
-
-func checkMagnitude(x, y float64) {
-	magnitude := calcDistance(x, y)
-	if magnitude > maxMagnitude {
-		maxMagnitude = magnitude
-		gofuncs.Print("New max magn: %.3f", maxMagnitude)
-	}
-	if magnitude > PadRadius {
-		gofuncs.Panic("Magnitude is greater than Pad radius: %v", magnitude)
-	}
-}
-
-func (pad *PadPosition) ReCalculateValues() {
-	pad.newValueHandled = false
-
-	checkMagnitude(pad._x, pad._y)
-	pad.actualX, pad.actualY = pad._x, pad._y
-
-	pad.angle = calcResolvedAngle(pad.actualX, pad.actualY)
+func (pos *Position) GetCopy() *Position {
+	return &Position{x: pos.x, y: pos.y}
 }
 
 func calcFromMaxPossible(x, y float64) float64 {
@@ -112,47 +75,39 @@ func calcFromMaxPossible(x, y float64) float64 {
 	return ratioFromMaxPossible * PadRadius
 }
 
-func (pad *PadPosition) CalcCoordsFromMaxPossible() {
+func (pos *Position) CalcFromMaxPossible() *Position {
 	//important to use temp values then assign
-	xFromMaxPossible := calcFromMaxPossible(pad.actualX, pad.actualY)
-	yFromMaxPossible := calcFromMaxPossible(pad.actualY, pad.actualX)
-	if !gofuncs.AnyNotInit(xFromMaxPossible, yFromMaxPossible) {
-		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pad.actualX, pad.actualY, xFromMaxPossible, yFromMaxPossible)
+	posFromMaxPossible := MakePosition()
+	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y)
+	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x)
+	if !gofuncs.AnyNotInit(pos.x, pos.y) {
+		gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
+		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
+			gofuncs.Panic("Incorrect calculations")
+		}
 	}
-	pad.actualX, pad.actualY = xFromMaxPossible, yFromMaxPossible
+	return posFromMaxPossible
 }
 
-func (pad *PadPosition) setValue(fieldPointer *float64) {
-	pad.Lock()
-	defer pad.Unlock()
-
-	*fieldPointer = event.value
-
-	pad.ReCalculateValues()
+func calcDistance(x, y float64) float64 {
+	if gofuncs.AnyNotInit(x, y) {
+		return 0
+	}
+	return math.Hypot(x, y)
 }
 
-func (pad *PadPosition) SetX() {
-	pad.setValue(&pad._x)
-}
+var maxMagnitude = 1.0
 
-func (pad *PadPosition) SetY() {
-	pad.setValue(&pad._y)
-}
-
-func (pad *PadPosition) Reset() {
-	pad.Lock()
-	defer pad.Unlock()
-
-	pad._x = gofuncs.NaN()
-	pad._y = gofuncs.NaN()
-
-	pad.actualX = gofuncs.NaN()
-	pad.actualY = gofuncs.NaN()
-
-	pad.prevX = gofuncs.NaN()
-	pad.prevY = gofuncs.NaN()
-
-	pad.ReCalculateValues()
+func (pos *Position) CalcAndCheckMagnitude() float64 {
+	magnitude := calcDistance(pos.x, pos.y)
+	if magnitude > maxMagnitude {
+		maxMagnitude = magnitude
+		gofuncs.Print("New max magn: %.3f", maxMagnitude)
+	}
+	if magnitude > PadRadius {
+		gofuncs.Panic("Magnitude is greater than Pad radius: %v", magnitude)
+	}
+	return magnitude
 }
 
 func resolveAngle[T gofuncs.Number](angle T) int {
@@ -170,11 +125,81 @@ func calcResolvedAngle(x, y float64) int {
 	return resolveAngle(angle)
 }
 
-func calcDistance(x, y float64) float64 {
-	if gofuncs.AnyNotInit(x, y) {
-		return 0
-	}
-	return math.Hypot(x, y)
+func (pos *Position) CalcResolvedAngle() int {
+	return calcResolvedAngle(pos.x, pos.y)
+}
+
+type PadPosition struct {
+	curPos, prevPos, fromMaxPossiblePos *Position
+	magnitude                           float64
+	angle                               int
+	newValueHandled                     bool
+	lock                                sync.Mutex
+	zone                                Zone
+	zoneCanBeUsed, zoneChanged          bool
+	zoneRotation                        int
+	awaitingCentralPosition             bool
+}
+
+func MakePadPosition(zoneRotation int) *PadPosition {
+	pad := PadPosition{}
+	pad.curPos = MakePosition()
+	pad.prevPos = MakePosition()
+	pad.fromMaxPossiblePos = MakePosition()
+
+	pad.zoneRotation = zoneRotation
+	pad.Reset()
+
+	return &pad
+}
+
+func (pad *PadPosition) Lock() {
+	pad.lock.Lock()
+}
+
+func (pad *PadPosition) Unlock() {
+	pad.lock.Unlock()
+}
+
+func (pad *PadPosition) UpdatePrevValues() {
+	pad.prevPos.Update(pad.curPos)
+}
+
+func (pad *PadPosition) ReCalculateValues() {
+	pad.newValueHandled = false
+
+	pad.magnitude = pad.curPos.CalcAndCheckMagnitude()
+	pad.angle = pad.curPos.CalcResolvedAngle()
+	pad.fromMaxPossiblePos.Update(pad.curPos.CalcFromMaxPossible())
+}
+
+func (pad *PadPosition) setValue(fieldPointer *float64) {
+	pad.Lock()
+	defer pad.Unlock()
+
+	*fieldPointer = event.value
+
+	pad.ReCalculateValues()
+}
+
+func (pad *PadPosition) SetX() {
+	pad.setValue(&(pad.curPos.x))
+}
+
+func (pad *PadPosition) SetY() {
+	pad.setValue(&(pad.curPos.y))
+}
+
+func (pad *PadPosition) Reset() {
+	pad.Lock()
+	defer pad.Unlock()
+
+	pad.curPos.Reset()
+	//don't reset prev value to calc proper delta from prev to zero
+	pad.prevPos.Reset()
+	pad.fromMaxPossiblePos.Reset()
+
+	pad.ReCalculateValues()
 }
 
 //func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {

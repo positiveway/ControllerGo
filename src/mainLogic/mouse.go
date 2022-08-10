@@ -27,8 +27,8 @@ func RunMouseThread() {
 
 		RightPad.Lock()
 
-		moveX := calcMove(RightPad.actualX, RightPad.prevX)
-		moveY := calcMove(RightPad.actualY, RightPad.prevY)
+		moveX := calcMove(RightPad.curPos.x, RightPad.prevPos.x)
+		moveY := calcMove(RightPad.curPos.y, RightPad.prevPos.y)
 		RightPad.UpdatePrevValues()
 
 		RightPad.Unlock()
@@ -50,7 +50,7 @@ func getDirection(val float64, horizontal bool) int {
 	if horizontal && math.Abs(val) < horizontalScrollThreshold {
 		return 0
 	}
-	return gofuncs.SignAsNumber(val)
+	return gofuncs.SignAsInt(val)
 }
 
 func getDirections(x, y float64) (int, int) {
@@ -74,8 +74,7 @@ func RunScrollThread() {
 
 		LeftPad.Lock()
 
-		LeftPad.CalcCoordsFromMaxPossible()
-		hDir, vDir := getDirections(LeftPad.actualX, LeftPad.actualY)
+		hDir, vDir := getDirections(LeftPad.fromMaxPossiblePos.x, LeftPad.fromMaxPossiblePos.y)
 
 		if LeftPad.magnitude != 0 {
 			scrollInterval = calcScrollInterval(LeftPad.magnitude)

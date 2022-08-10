@@ -5,15 +5,14 @@ import (
 	"strconv"
 )
 
-const (
-	LeftAdjustX float64 = -0.04
-	LeftAdjustY float64 = -0.14
+var PadsAxesOffsetMap = map[BtnOrAxisT]float64{
+	AxisLeftPadX:  0,
+	AxisLeftPadY:  0,
+	AxisRightPadX: 0,
+	AxisRightPadY: 0,
+}
 
-	RightAdjustX float64 = 0
-	RightAdjustY float64 = 0
-)
-
-var PadAxes = []BtnOrAxisT{
+var PadAndStickAxes = []BtnOrAxisT{
 	AxisLeftPadX,
 	AxisLeftPadY,
 	AxisRightPadX,
@@ -30,18 +29,9 @@ type Event struct {
 	code      CodeT
 }
 
-func (event *Event) applyAdjustments() {
+func (event *Event) applyPadAxesAdjustments() {
 	if event.eventType == EvAxisChanged {
-		switch event.btnOrAxis {
-		case AxisLeftPadX:
-			event.value -= LeftAdjustX
-		case AxisLeftPadY:
-			event.value -= LeftAdjustY
-		case AxisRightPadX:
-			event.value -= RightAdjustX
-		case AxisRightPadY:
-			event.value -= RightAdjustY
-		}
+		event.value -= gofuncs.GetOrDefault(PadsAxesOffsetMap, event.btnOrAxis, 0)
 	}
 }
 
@@ -54,8 +44,8 @@ func (event *Event) fixButtonNamesForSteamController() {
 	}
 }
 
-func (event *Event) transformToPadEvent() {
-	if gofuncs.Contains(PadAxes, event.btnOrAxis) &&
+func (event *Event) transformToPadReleasedEvent() {
+	if gofuncs.Contains(PadAndStickAxes, event.btnOrAxis) &&
 		event.eventType == EvAxisChanged && event.value == 0.0 {
 
 		event.eventType = EvPadReleased
@@ -125,10 +115,10 @@ func (event *Event) transformAndFilter() {
 	//event.print()
 
 	event.fixButtonNamesForSteamController()
-	event.transformToPadEvent()
+	event.transformToPadReleasedEvent()
 	event.transformToWings()
 
-	//event.applyAdjustments()
+	event.applyPadAxesAdjustments()
 	event.transformStickToDPad()
 
 	if event.btnOrAxis == BtnUnknown {
