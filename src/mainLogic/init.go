@@ -46,6 +46,7 @@ func InitSettings() {
 	InitPath()
 	setLayoutDir()
 	setConfigVars()
+	initTouchpads()
 	initCodeMapping()
 	initTyping()
 	initCommands()

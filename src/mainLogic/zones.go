@@ -147,7 +147,7 @@ func genRange(lowerBound, upperBound int, _boundariesMap ZoneBoundariesMap, zone
 	upperBound += 360
 
 	for angle := lowerBound; angle <= upperBound; angle++ {
-		resolvedAngle := resolveAngle(angle)
+		resolvedAngle := resolveCircleAngle(angle)
 		gofuncs.AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, makeDirection(zone, zoneThreshold, edgeThreshold))
 	}
 }
@@ -209,8 +209,7 @@ func printAnglesForZones(_boundariesMap ZoneBoundariesMap) {
 	}
 }
 
-func detectZone(magnitude float64, angle int, zoneRotation int, boundariesMap ZoneBoundariesMap) Zone {
-	angle += zoneRotation
+func detectZone(magnitude float64, angle int, boundariesMap ZoneBoundariesMap) Zone {
 	if direction, found := boundariesMap[angle]; found {
 		if magnitude > direction.zoneThreshold {
 			zone := direction.zone
@@ -234,8 +233,8 @@ func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap) {
 	}
 	pad.newValueHandled = true
 
-	zone := detectZone(pad.magnitude, pad.angle, pad.zoneRotation, zoneBoundariesMap)
-	//printDebug("x: %0.2f; y: %0.2f; magn: %0.2f; angle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.angle, zone)
+	zone := detectZone(pad.magnitude, pad.shiftedAngle, zoneBoundariesMap)
+	//printDebug("x: %0.2f; y: %0.2f; magn: %0.2f; shiftedAngle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.shiftedAngle, zone)
 
 	if zone == UnmappedZone {
 		pad.zoneCanBeUsed = false

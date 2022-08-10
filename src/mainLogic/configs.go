@@ -17,57 +17,98 @@ func MakeControllerInUse(isSteamInUse bool) *ControllerInUseT {
 }
 
 // Math
-const OutputMin float64 = 0.0
-const PadRadius = 1.2
+const (
+	OutputMin float64 = 0.0
+	PadRadius         = 1.2
+)
 
 // Mode
-var ControllerInUse *ControllerInUseT = MakeControllerInUse(true)
-var padsMode *PadsMode
+var (
+	ControllerInUse *ControllerInUseT = MakeControllerInUse(true)
+	padsMode        *PadsMode
 
-// commands
-var TriggerThreshold float64
-var holdingThreshold time.Duration
+	// commands
+	TriggerThreshold float64
+	holdingThreshold time.Duration
 
-// mouse
-var mouseInterval time.Duration
-var mouseSpeed float64
-var mouseEdgeThreshold float64
+	// mouse
+	mouseInterval      time.Duration
+	mouseSpeed         float64
+	mouseEdgeThreshold float64
 
-// Pads/Stick
-var PadsRotation int
-var StickRotation int
+	// Pads/Stick
+	LeftPadRotation, RightPadRotation, StickRotation float64
 
-var StickAngleMargin int
-var StickThreshold float64
-var StickEdgeThreshold float64
+	StickAngleMargin                   int
+	StickThreshold, StickEdgeThreshold float64
 
-var StickBoundariesMap ZoneBoundariesMap
+	StickBoundariesMap ZoneBoundariesMap
 
-var StickDeadzone float64
+	StickDeadzone float64
 
-// scroll
-var scrollFastestInterval float64
-var scrollSlowestInterval float64
+	// scroll
+	scrollFastestInterval, scrollSlowestInterval float64
 
-var horizontalScrollThreshold float64
+	horizontalScrollThreshold float64
 
-// typing
-var TypingStraightAngleMargin int
-var TypingDiagonalAngleMargin int
-var TypingThreshold float64
+	// typing
+	TypingStraightAngleMargin, TypingDiagonalAngleMargin int
+	TypingThreshold                                      float64
 
-// common
-var DefaultRefreshInterval time.Duration
+	// path
+	BaseDir, LayoutsDir string
+	LayoutInUse         string
+	Configs             = map[string]string{}
+)
 
 // web socket
-const SocketPort int = 1234
-const SocketIP string = "0.0.0.0"
+const (
+	SocketPort int    = 1234
+	SocketIP   string = "0.0.0.0"
+)
 
-// path
-var BaseDir string
-var LayoutsDir string
-var LayoutInUse string
-var Configs = map[string]string{}
+func setConfigVars() {
+	loadConfigs()
+
+	//Mode
+	padsMode = MakePadsMode(toIntConfig("PadsMode"))
+
+	//commands
+	TriggerThreshold = toFloatConfig("TriggerThreshold")
+	holdingThreshold = toMillisConfig("holdingThreshold")
+
+	//mouse
+	mouseInterval = toMillisConfig("mouseInterval")
+	mouseSpeed = toFloatConfig("mouseSpeed")
+	mouseEdgeThreshold = toFloatConfig("mouseEdgeThreshold")
+
+	//Pads/Stick
+	LeftPadRotation = toFloatConfig("LeftPadRotation")
+	RightPadRotation = toFloatConfig("RightPadRotation")
+	StickRotation = toFloatConfig("StickRotation")
+
+	StickAngleMargin = toIntConfig("StickAngleMargin")
+	StickThreshold = toPctConfig("StickThresholdPct")
+	StickEdgeThreshold = toPctConfig("StickEdgeThresholdPct")
+
+	StickBoundariesMap = genEqualThresholdBoundariesMap(false,
+		makeAngleMargin(0, StickAngleMargin, StickAngleMargin),
+		StickThreshold,
+		StickEdgeThreshold)
+
+	StickDeadzone = toFloatConfig("StickDeadzone")
+
+	//scroll
+	scrollFastestInterval = toIntToFloatConfig("scrollFastestInterval")
+	scrollSlowestInterval = toIntToFloatConfig("scrollSlowestInterval")
+
+	horizontalScrollThreshold = toFloatConfig("horizontalScrollThreshold")
+
+	//typing
+	TypingStraightAngleMargin = toIntConfig("TypingStraightAngleMargin")
+	TypingDiagonalAngleMargin = toIntConfig("TypingDiagonalAngleMargin")
+	TypingThreshold = toPctConfig("TypingThresholdPct")
+}
 
 func ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
 	file := filepath.Join(LayoutsDir, pathFromLayoutsDir)
@@ -127,49 +168,4 @@ func toIntToFloatConfig(name string) float64 {
 
 func toPctConfig(name string) float64 {
 	return gofuncs.StrToPct(getConfig(name))
-}
-
-func setConfigVars() {
-	loadConfigs()
-
-	//Mode
-	padsMode = MakePadsMode(toIntConfig("PadsMode"))
-
-	//commands
-	TriggerThreshold = toFloatConfig("TriggerThreshold")
-	holdingThreshold = toMillisConfig("holdingThreshold")
-
-	//mouse
-	mouseInterval = toMillisConfig("mouseInterval")
-	mouseSpeed = toFloatConfig("mouseSpeed")
-	mouseEdgeThreshold = toFloatConfig("mouseEdgeThreshold")
-
-	//Pads/Stick
-	PadsRotation = toIntConfig("PadsRotation")
-	StickRotation = toIntConfig("StickRotation")
-
-	StickAngleMargin = toIntConfig("StickAngleMargin")
-	StickThreshold = toPctConfig("StickThresholdPct")
-	StickEdgeThreshold = toPctConfig("StickEdgeThresholdPct")
-
-	StickBoundariesMap = genEqualThresholdBoundariesMap(false,
-		makeAngleMargin(0, StickAngleMargin, StickAngleMargin),
-		StickThreshold,
-		StickEdgeThreshold)
-
-	StickDeadzone = toFloatConfig("StickDeadzone")
-
-	//scroll
-	scrollFastestInterval = toIntToFloatConfig("scrollFastestInterval")
-	scrollSlowestInterval = toIntToFloatConfig("scrollSlowestInterval")
-
-	horizontalScrollThreshold = toFloatConfig("horizontalScrollThreshold")
-
-	//typing
-	TypingStraightAngleMargin = toIntConfig("TypingStraightAngleMargin")
-	TypingDiagonalAngleMargin = toIntConfig("TypingDiagonalAngleMargin")
-	TypingThreshold = toPctConfig("TypingThresholdPct")
-
-	//common
-	DefaultRefreshInterval = toMillisConfig("DefaultRefreshInterval")
 }

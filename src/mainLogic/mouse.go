@@ -27,8 +27,8 @@ func RunMouseThread() {
 
 		RightPad.Lock()
 
-		moveX := calcMove(RightPad.curPos.x, RightPad.prevPos.x)
-		moveY := calcMove(RightPad.curPos.y, RightPad.prevPos.y)
+		moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevPos.x)
+		moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevPos.y)
 		RightPad.UpdatePrevValues()
 
 		RightPad.Unlock()

@@ -1,0 +1,9 @@
+# for rotation
+x, sqrt(m^2-x^2)
+atan2() = atan(y/x)
+sqrt(m^2-x^2)/x=sqrt((m^2-x^2)/x^2))=sqrt(m^2/x^2-1)
+tan(a+diff)=sqrt(m^2/x^2-1)
+(tan(a+diff))^2=m^2/x^2-1
+(tan(a+diff))^2 + 1 = m^2/x^2
+x^2 = m^2 / ((tan(a+diff))^2 + 1)
+x = sqrt(m^2 / ((tan(a+diff))^2 + 1))

@@ -11,8 +11,9 @@ mouseSpeed = 250
 mouseEdgeThreshold = 0.95
 
 //Pads/Stick
-PadsRotation = 10
-StickRotation = 10
+LeftPadRotation = -10
+RightPadRotation = 15
+StickRotation = 0
 
 StickAngleMargin = 40
 StickThresholdPct = 35
@@ -30,6 +31,3 @@ horizontalScrollThreshold = 0.85
 TypingStraightAngleMargin = 21
 TypingDiagonalAngleMargin = 23
 TypingThresholdPct = 35
-
-//common
-DefaultRefreshInterval = 20
