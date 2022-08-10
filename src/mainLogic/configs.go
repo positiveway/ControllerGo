@@ -8,11 +8,20 @@ import (
 	"time"
 )
 
+type ControllerInUseT struct {
+	Steam, DS bool
+}
+
+func MakeControllerInUse(isSteamInUse bool) *ControllerInUseT {
+	return &ControllerInUseT{Steam: isSteamInUse, DS: !isSteamInUse}
+}
+
 // Math
 const OutputMin float64 = 0.0
 const PadRadius = 1.2
 
 // Mode
+var ControllerInUse *ControllerInUseT = MakeControllerInUse(true)
 var padsMode *PadsMode
 
 // commands

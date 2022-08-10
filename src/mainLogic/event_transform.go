@@ -72,21 +72,21 @@ var StickZoneToBtnMap = map[Zone]BtnOrAxisT{
 var curPressedStickButton BtnOrAxisT
 
 func (event *Event) transformStickToDPad() {
-	allowedEvents := []EventTypeT{
-		EvAxisChanged,
-		EvPadReleased,
-	}
-	if !gofuncs.Contains(allowedEvents, event.eventType) {
+	isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
+		(event.btnOrAxis == AxisStickX || event.btnOrAxis == AxisStickY)
+	if !isStickEvent {
 		return
 	}
-
-	switch event.btnOrAxis {
-	case AxisStickX:
-		Stick.SetX()
-	case AxisStickY:
-		Stick.SetY()
-	default:
-		return
+	switch event.eventType {
+	case EvPadReleased:
+		Stick.Reset()
+	case EvAxisChanged:
+		switch event.btnOrAxis {
+		case AxisStickX:
+			Stick.SetX()
+		case AxisStickY:
+			Stick.SetY()
+		}
 	}
 
 	Stick.ReCalculateZone(StickBoundariesMap)
@@ -114,12 +114,17 @@ func (event *Event) transformAndFilter() {
 	//printDebug("Before: ")
 	//event.print()
 
-	event.fixButtonNamesForSteamController()
-	event.transformToPadReleasedEvent()
-	event.transformToWings()
+	if ControllerInUse.Steam {
+		event.fixButtonNamesForSteamController()
+		event.transformToWings()
+	}
 
-	event.applyPadAxesAdjustments()
-	event.transformStickToDPad()
+	event.transformToPadReleasedEvent()
+
+	if ControllerInUse.Steam {
+		event.applyPadAxesAdjustments()
+		event.transformStickToDPad()
+	}
 
 	if event.btnOrAxis == BtnUnknown {
 		return
