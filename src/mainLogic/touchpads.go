@@ -258,10 +258,6 @@ func (pad *PadPosition) ReCalculateValues() {
 
 	pad.shiftedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcShiftedRotationPos(pad.zoneRotation)
 	pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible())
-
-	if !gofuncs.AnyNotInit(pad.curPos.x, pad.curPos.y) {
-		moveMouse()
-	}
 }
 
 func (pad *PadPosition) setValue(fieldPointer *float64) {
@@ -271,6 +267,10 @@ func (pad *PadPosition) setValue(fieldPointer *float64) {
 	*fieldPointer = event.value
 
 	pad.ReCalculateValues()
+
+	if !gofuncs.AnyNotInit(pad.curPos.x, pad.curPos.y) {
+		moveMouse()
+	}
 }
 
 func (pad *PadPosition) SetX() {
