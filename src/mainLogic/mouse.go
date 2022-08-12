@@ -18,24 +18,28 @@ func calcMove(value, prevValue float64) int {
 	return pixels
 }
 
+func moveMouse() {
+	if Cfg.padsMode.GetMode() == TypingMode {
+		return
+	}
+
+	RightPad.Lock()
+
+	moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevPos.x)
+	moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevPos.y)
+	RightPad.UpdatePrevValues()
+
+	RightPad.Unlock()
+
+	if moveX != 0 || moveY != 0 {
+		osSpec.MoveMouse(moveX, moveY)
+	}
+}
+
 func RunMouseThread() {
 	ticker := time.NewTicker(Cfg.mouseInterval)
 	for range ticker.C {
-		if Cfg.padsMode.GetMode() == TypingMode {
-			continue
-		}
-
-		RightPad.Lock()
-
-		moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevPos.x)
-		moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevPos.y)
-		RightPad.UpdatePrevValues()
-
-		RightPad.Unlock()
-
-		if moveX != 0 || moveY != 0 {
-			osSpec.MoveMouse(moveX, moveY)
-		}
+		moveMouse()
 	}
 }
 
