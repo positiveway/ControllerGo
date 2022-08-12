@@ -71,7 +71,7 @@ func RunScrollThread() {
 	for {
 		scrollInterval := gofuncs.NumberToMillis(Cfg.scrollFastestInterval)
 
-		if Cfg.padsMode.GetMode() != ScrollingMode {
+		if Cfg.padsMode.GetMode() != MouseMode {
 			time.Sleep(scrollInterval)
 			continue
 		}

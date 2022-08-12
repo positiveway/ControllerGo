@@ -12,7 +12,7 @@ func RunGameMovementThread() {
 	for {
 		keyRepeatInterval := fastKeyRepeatInterval
 
-		if Cfg.padsMode.GetMode() != ScrollingMode {
+		if Cfg.padsMode.GetMode() != MouseMode {
 			time.Sleep(keyRepeatInterval)
 			continue
 		}

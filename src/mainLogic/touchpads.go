@@ -10,9 +10,9 @@ import (
 type ModeType = int
 
 const (
-	TypingMode    ModeType = 0
-	ScrollingMode ModeType = 1
-	GamingMode    ModeType = 2
+	TypingMode ModeType = 0
+	MouseMode  ModeType = 1
+	GamingMode ModeType = 2
 )
 
 type PadsMode struct {

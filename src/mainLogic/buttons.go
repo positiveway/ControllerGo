@@ -114,11 +114,14 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 		return
 	}
 
-	switch command[0] {
+	firstCmdSymbol := command[0]
+	switch firstCmdSymbol {
 	case SwitchMode:
-		//releaseAll()
+		PutButton(btn, Command{}, true)
+		// don't do release all
 		Cfg.padsMode.SwitchMode()
 		return
+
 	case EscLetter:
 		releaseAll()
 	}
