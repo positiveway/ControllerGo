@@ -258,38 +258,23 @@ func (pad *PadPosition) ReCalculateValues() {
 
 	pad.shiftedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcShiftedRotationPos(pad.zoneRotation)
 	pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible())
-
-	//FIXME
-	//pad.shiftedPos.Update(pad.curPos)
 }
 
-//func (pad *PadPosition) setValue(fieldPointer *float64) {
-//	pad.Lock()
-//	defer pad.Unlock()
-//
-//	*fieldPointer = event.value
-//
-//	pad.ReCalculateValues()
-//}
-
-func (pad *PadPosition) SetX() {
+func (pad *PadPosition) setValue(fieldPointer *float64) {
 	pad.Lock()
 	defer pad.Unlock()
 
-	pad.curPos.x = event.value
+	*fieldPointer = event.value
 
 	pad.ReCalculateValues()
+}
+
+func (pad *PadPosition) SetX() {
+	pad.setValue(&(pad.curPos.x))
 }
 
 func (pad *PadPosition) SetY() {
-	pad.Lock()
-	defer pad.Unlock()
-
-	pad.curPos.y = event.value
-
-	pad.ReCalculateValues()
-
-	//pad.setValue(&(pad.curPos.y))
+	pad.setValue(&(pad.curPos.y))
 }
 
 func (pad *PadPosition) Reset() {
