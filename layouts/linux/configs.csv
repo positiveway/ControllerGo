@@ -11,8 +11,10 @@ mouseSpeed = 250
 mouseEdgeThreshold = 0.95
 
 //Pads/Stick
-LeftPadRotation = -10
-RightPadRotation = 15
+LeftPadRotation = 0
+//LeftPadRotation = -10
+RightPadRotation = 0
+//RightPadRotation = 12
 StickRotation = 0
 
 StickAngleMargin = 40

@@ -98,8 +98,12 @@ func (pos *Position) CalcFromMaxPossible() *Position {
 	return posFromMaxPossible
 }
 
+func isEmptyPos(x, y float64) bool {
+	return gofuncs.AnyNotInit(x, y) || (x == 0 && y == 0)
+}
+
 func calcDistance(x, y float64) float64 {
-	if gofuncs.AnyNotInit(x, y) {
+	if isEmptyPos(x, y) {
 		return 0
 	}
 	return math.Hypot(x, y)
@@ -132,10 +136,7 @@ func resolveCircleAngle[T gofuncs.Number](angle T) int {
 }
 
 func calcRawAngle(x, y float64) float64 {
-	if gofuncs.AnyNotInit(x, y) {
-		return 0
-	}
-	if x == 0 && y == 0 {
+	if isEmptyPos(x, y) {
 		return 0
 	}
 
@@ -159,13 +160,12 @@ func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, f
 
 	angle := calcRawAngle(x, y)
 	shiftedAngle := angle + rotationShift
-	shiftedAngle = resolveRawCircleAngle(shiftedAngle)
 
 	shiftedX := gofuncs.Sqrt(gofuncs.Sqr(magnitude) / (gofuncs.Sqr(math.Tan(shiftedAngle*math.Pi/180)) + 1))
 	shiftedY := gofuncs.Sqrt(gofuncs.Sqr(magnitude) - gofuncs.Sqr(shiftedX))
 
 	angle = resolveRawCircleAngle(angle)
-	//shiftedAngle = resolveRawCircleAngle(shiftedAngle)
+	shiftedAngle = resolveRawCircleAngle(shiftedAngle)
 
 	if shiftedAngle > 180 {
 		shiftedY *= -1
@@ -176,7 +176,7 @@ func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, f
 
 	shiftedAngleInt := gofuncs.FloatToIntRound[int](shiftedAngle)
 
-	gofuncs.Print("Angle: %.2f->%.2f (%.2f), X: %.2f->%.2f, Y: %.2f->%.2f",
+	gofuncs.PrintDebug("Angle: %.2f->%.2f (%.2f), X: %.2f->%.2f, Y: %.2f->%.2f",
 		angle, shiftedAngle, calcOneQuarterAngle(shiftedAngle), x, shiftedX, y, shiftedY)
 
 	_resAngle := gofuncs.FloatToIntRound[int](calcRawResolvedAngle(shiftedX, shiftedY))
@@ -187,7 +187,24 @@ func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, f
 	return shiftedX, shiftedY, shiftedAngleInt
 }
 
+func rp(x float64) float64 {
+	return gofuncs.Round(x, 3)
+}
+
+func checkShiftCalculations(x, y, magnitude float64) {
+	if isEmptyPos(x, y) {
+		return
+	}
+	shiftedX, shiftedY, _ := _calcShiftedRotationPos(x, y, 0, magnitude)
+	if rp(x) != rp(shiftedX) || rp(y) != rp(shiftedY) {
+		gofuncs.Panic("Calculations error")
+	} else {
+		gofuncs.Print("passed")
+	}
+}
+
 func calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (*Position, int) {
+	//checkShiftCalculations(x, y, magnitude)
 	shiftedX, shiftedY, shiftedAngle := _calcShiftedRotationPos(x, y, rotationShift, magnitude)
 	return MakePosition(shiftedX, shiftedY), shiftedAngle
 }
