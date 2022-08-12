@@ -19,7 +19,7 @@ func initTyping() {
 }
 
 func loadTypingLayout() TypingLayout {
-	linesParts := ReadLayoutFile("typing.csv", 2)
+	linesParts := Cfg.ReadLayoutFile("typing.csv", 2)
 
 	layout := TypingLayout{}
 	for _, parts := range linesParts {
@@ -42,13 +42,13 @@ func loadTypingLayout() TypingLayout {
 
 func genTypingBoundariesMap() ZoneBoundariesMap {
 	return genEqualThresholdBoundariesMap(true,
-		makeAngleMargin(TypingDiagonalAngleMargin, TypingStraightAngleMargin, TypingStraightAngleMargin),
-		TypingThreshold,
-		PadRadius)
+		makeAngleMargin(Cfg.TypingDiagonalAngleMargin, Cfg.TypingStraightAngleMargin, Cfg.TypingStraightAngleMargin),
+		Cfg.TypingThreshold,
+		Cfg.PadRadius)
 }
 
 func TypeLetter() {
-	if padsMode.GetMode() != TypingMode {
+	if Cfg.padsMode.GetMode() != TypingMode {
 		return
 	}
 	LeftPad.ReCalculateZone(TypingBoundariesMap)

@@ -13,15 +13,15 @@ func calcMove(value, prevValue float64) int {
 	}
 
 	diff := value - prevValue
-	pixels := gofuncs.FloatToIntRound[int](diff * mouseSpeed)
+	pixels := gofuncs.FloatToIntRound[int](diff * Cfg.mouseSpeed)
 
 	return pixels
 }
 
 func RunMouseThread() {
-	ticker := time.NewTicker(mouseInterval)
+	ticker := time.NewTicker(Cfg.mouseInterval)
 	for range ticker.C {
-		if padsMode.GetMode() == TypingMode {
+		if Cfg.padsMode.GetMode() == TypingMode {
 			continue
 		}
 
@@ -40,14 +40,14 @@ func RunMouseThread() {
 }
 
 func calcScrollInterval(input float64) time.Duration {
-	return calcRefreshInterval(input, scrollSlowestInterval, scrollFastestInterval)
+	return calcRefreshInterval(input, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
 }
 
 func getDirection(val float64, horizontal bool) int {
 	if gofuncs.IsNotInit(val) {
 		return 0
 	}
-	if horizontal && math.Abs(val) < horizontalScrollThreshold {
+	if horizontal && math.Abs(val) < Cfg.horizontalScrollThreshold {
 		return 0
 	}
 	return gofuncs.SignAsInt(val)
@@ -65,9 +65,9 @@ func getDirections(x, y float64) (int, int) {
 
 func RunScrollThread() {
 	for {
-		scrollInterval := gofuncs.NumberToMillis(scrollFastestInterval)
+		scrollInterval := gofuncs.NumberToMillis(Cfg.scrollFastestInterval)
 
-		if padsMode.GetMode() != ScrollingMode {
+		if Cfg.padsMode.GetMode() != ScrollingMode {
 			time.Sleep(scrollInterval)
 			continue
 		}

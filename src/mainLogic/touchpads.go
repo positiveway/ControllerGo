@@ -47,9 +47,9 @@ var (
 )
 
 func initTouchpads() {
-	LeftPad = MakePadPosition(LeftPadRotation)
-	RightPad = MakePadPosition(RightPadRotation)
-	Stick = MakePadPosition(StickRotation)
+	LeftPad = MakePadPosition(Cfg.LeftPadRotation)
+	RightPad = MakePadPosition(Cfg.RightPadRotation)
+	Stick = MakePadPosition(Cfg.StickRotation)
 
 }
 
@@ -79,9 +79,9 @@ func (pos *Position) GetCopy() *Position {
 }
 
 func calcFromMaxPossible(x, y float64) float64 {
-	maxPossibleX := math.Sqrt(gofuncs.Sqr(PadRadius) - gofuncs.Sqr(y))
+	maxPossibleX := math.Sqrt(gofuncs.Sqr(Cfg.PadRadius) - gofuncs.Sqr(y))
 	ratioFromMaxPossible := x / maxPossibleX
-	return ratioFromMaxPossible * PadRadius
+	return ratioFromMaxPossible * Cfg.PadRadius
 }
 
 func (pos *Position) CalcFromMaxPossible() *Position {
@@ -114,7 +114,7 @@ func calcAndCheckMagnitude(x, y float64) float64 {
 		maxMagnitude = magnitude
 		gofuncs.Print("New max magn: %.3f", maxMagnitude)
 	}
-	if magnitude > PadRadius {
+	if magnitude > Cfg.PadRadius {
 		gofuncs.Panic("Magnitude is greater than Pad radius: %v", magnitude)
 	}
 	return magnitude
@@ -307,11 +307,11 @@ func convertRange(input, outputMax float64) float64 {
 
 	isNegative, input := gofuncs.GetIsNegativeAndAbs(input)
 
-	if input > PadRadius {
-		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", PadRadius, input)
+	if input > Cfg.PadRadius {
+		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", Cfg.PadRadius, input)
 	}
 
-	output := OutputMin + ((outputMax-OutputMin)/(PadRadius-StickDeadzone))*(input-StickDeadzone)
+	output := Cfg.OutputMin + ((outputMax-Cfg.OutputMin)/(Cfg.PadRadius-Cfg.StickDeadzone))*(input-Cfg.StickDeadzone)
 	return gofuncs.ApplySign(isNegative, output)
 }
 
@@ -326,7 +326,7 @@ func applyDeadzone(value float64) float64 {
 	if gofuncs.IsNotInit(value) {
 		return value
 	}
-	if math.Abs(value) < StickDeadzone {
+	if math.Abs(value) < Cfg.StickDeadzone {
 		value = 0.0
 	}
 	return value

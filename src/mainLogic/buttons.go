@@ -24,7 +24,7 @@ func initCommands() {
 
 func loadCommandsLayout() ButtonToCommand {
 	pressLayout := ButtonToCommand{}
-	linesParts := ReadLayoutFile(path.Join(LayoutInUse, "commands.csv"), 2)
+	linesParts := Cfg.ReadLayoutFile(path.Join(Cfg.LayoutInUse, "commands.csv"), 2)
 	for _, parts := range linesParts {
 		btn := BtnOrAxisT(parts[0])
 		keys := parts[1:]
@@ -117,7 +117,7 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 	switch command[0] {
 	case SwitchMode:
 		//releaseAll()
-		padsMode.SwitchMode()
+		Cfg.padsMode.SwitchMode()
 		return
 	case EscLetter:
 		releaseAll()
@@ -140,15 +140,13 @@ func buttonPressed() {
 	}
 }
 
-const holdRefreshInterval = 15 * time.Millisecond
-
 func RunReleaseHoldThread() {
-	ticker := time.NewTicker(holdRefreshInterval)
+	ticker := time.NewTicker(Cfg.holdRefreshInterval)
 	for range ticker.C {
 		buttonsToRelease.RangeOverCopy(func(btn BtnOrAxisT, cmdWithTime CommandToReleaseWithHoldStartTime) {
 			holdDuration := time.Now().Sub(cmdWithTime.holdStartTime)
 			//gofuncs.Print("duration: %v", holdDuration)
-			if holdDuration > holdingThreshold {
+			if holdDuration > Cfg.holdingThreshold {
 				pressButton(btn, true)
 			}
 		})
@@ -193,9 +191,9 @@ func detectTriggers() {
 
 	value := event.value
 
-	if value > TriggerThreshold {
+	if value > Cfg.TriggerThreshold {
 		pressButton(btn, false)
-	} else if value < TriggerThreshold {
+	} else if value < Cfg.TriggerThreshold {
 		releaseButton(btn)
 	}
 }

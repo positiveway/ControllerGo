@@ -11,8 +11,8 @@ var event Event
 
 func RunWebSocket() {
 	addr := net.UDPAddr{
-		Port: SocketPort,
-		IP:   net.ParseIP(SocketIP),
+		Port: Cfg.SocketPort,
+		IP:   net.ParseIP(Cfg.SocketIP),
 	}
 	server, err := net.ListenUDP("udp", &addr)
 	if err != nil {

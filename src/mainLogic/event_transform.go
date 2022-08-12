@@ -89,7 +89,7 @@ func (event *Event) transformStickToDPad() {
 		}
 	}
 
-	Stick.ReCalculateZone(StickBoundariesMap)
+	Stick.ReCalculateZone(Cfg.StickBoundariesMap)
 
 	if Stick.zoneChanged {
 		if curPressedStickButton != "" {
@@ -114,14 +114,14 @@ func (event *Event) transformAndFilter() {
 	//printDebug("Before: ")
 	//event.print()
 
-	if ControllerInUse.Steam {
+	if Cfg.ControllerInUse.SteamController {
 		event.fixButtonNamesForSteamController()
 		event.transformToWings()
 	}
 
 	event.transformToPadReleasedEvent()
 
-	if ControllerInUse.Steam {
+	if Cfg.ControllerInUse.SteamController {
 		event.applyPadAxesAdjustments()
 		event.transformStickToDPad()
 	}
