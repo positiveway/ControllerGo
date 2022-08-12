@@ -35,7 +35,7 @@ func RunMain() {
 	defer osSpec.CloseInputResources()
 	defer releaseAll()
 
-	go RunMouseThread()
+	//go RunMouseThread()
 	go RunScrollThread()
 	go RunReleaseHoldThread()
 	go RunGameMovementThread()

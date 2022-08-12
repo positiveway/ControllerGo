@@ -7,7 +7,7 @@ holdingThreshold = 200
 
 //mouse
 mouseInterval = 0.125
-mouseSpeed = 250
+mouseSpeed = 200
 mouseEdgeThreshold = 0.95
 
 //Pads/Stick

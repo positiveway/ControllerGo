@@ -23,13 +23,13 @@ func moveMouse() {
 		return
 	}
 
-	RightPad.Lock()
+	//RightPad.Lock()
 
 	moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevPos.x)
 	moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevPos.y)
 	RightPad.UpdatePrevValues()
 
-	RightPad.Unlock()
+	//RightPad.Unlock()
 
 	if moveX != 0 || moveY != 0 {
 		osSpec.MoveMouse(moveX, moveY)
