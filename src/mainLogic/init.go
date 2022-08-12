@@ -11,38 +11,6 @@ import (
 	"time"
 )
 
-func (c *ConfigsT) InitBasePath() {
-	if c.RunFromTerminal {
-		c.BaseDir = filepath.Dir(filepath.Dir(GetCurFileDir()))
-	} else {
-		c.BaseDir = osSpec.DefaultProjectDir
-	}
-	c.LayoutsDir = filepath.Join(c.BaseDir, "layouts")
-}
-
-func (c *ConfigsT) loadLayoutDir() {
-	c.LayoutInUse = gofuncs.ReadFile(filepath.Join(c.LayoutsDir, "layout_to_use.txt"))
-	c.LayoutInUse = strings.TrimSpace(c.LayoutInUse)
-
-	curLayoutDir := path.Join(c.LayoutsDir, c.LayoutInUse)
-	if _, err := os.Stat(curLayoutDir); os.IsNotExist(err) {
-		gofuncs.Panic("Layout folder with such name doesn't exist: %s", c.LayoutInUse)
-	}
-}
-
-func (c *ConfigsT) loadConfigs() {
-	c.RawStrConfigs = map[string]string{}
-
-	linesParts := c.ReadLayoutFile(path.Join(c.LayoutInUse, "configs.csv"), 0)
-	for _, parts := range linesParts {
-		constName := parts[0]
-		constValue := parts[1]
-
-		constName = strings.ToLower(constName)
-		gofuncs.AssignWithDuplicateCheck(c.RawStrConfigs, constName, constValue)
-	}
-}
-
 func MakeConfigs() *ConfigsT {
 	c := &ConfigsT{}
 
@@ -76,6 +44,38 @@ func RunMain() {
 	//debug.SetGCPercent(100)
 
 	RunWebSocket()
+}
+
+func (c *ConfigsT) InitBasePath() {
+	if c.RunFromTerminal {
+		c.BaseDir = filepath.Dir(filepath.Dir(GetCurFileDir()))
+	} else {
+		c.BaseDir = osSpec.DefaultProjectDir
+	}
+	c.LayoutsDir = filepath.Join(c.BaseDir, "layouts")
+}
+
+func (c *ConfigsT) loadLayoutDir() {
+	c.LayoutInUse = gofuncs.ReadFile(filepath.Join(c.LayoutsDir, "layout_to_use.txt"))
+	c.LayoutInUse = strings.TrimSpace(c.LayoutInUse)
+
+	curLayoutDir := path.Join(c.LayoutsDir, c.LayoutInUse)
+	if _, err := os.Stat(curLayoutDir); os.IsNotExist(err) {
+		gofuncs.Panic("Layout folder with such name doesn't exist: %s", c.LayoutInUse)
+	}
+}
+
+func (c *ConfigsT) loadConfigs() {
+	c.RawStrConfigs = map[string]string{}
+
+	linesParts := c.ReadLayoutFile(path.Join(c.LayoutInUse, "configs.csv"), 0)
+	for _, parts := range linesParts {
+		constName := parts[0]
+		constValue := parts[1]
+
+		constName = strings.ToLower(constName)
+		gofuncs.AssignWithDuplicateCheck(c.RawStrConfigs, constName, constValue)
+	}
 }
 
 func GetCurFileDir() string {
