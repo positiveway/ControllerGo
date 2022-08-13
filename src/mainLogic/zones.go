@@ -47,12 +47,12 @@ const UnmappedZone Zone = "❌"
 const EdgeZoneSuffix Zone = "_Edge"
 
 type Direction struct {
-	zoneThreshold, edgeThreshold float64
-	zone                         Zone
+	zoneThresholdPct, edgeThresholdPct float64
+	zone                               Zone
 }
 
-func makeDirection(zone Zone, zoneThreshold, edgeThreshold float64) Direction {
-	return Direction{zone: zone, zoneThreshold: zoneThreshold, edgeThreshold: edgeThreshold}
+func makeDirection(zone Zone, zoneThresholdPct, edgeThresholdPct float64) Direction {
+	return Direction{zone: zone, zoneThresholdPct: zoneThresholdPct, edgeThresholdPct: edgeThresholdPct}
 }
 
 type ZoneBoundariesMap map[int]Direction
@@ -209,12 +209,12 @@ func printAnglesForZones(_boundariesMap ZoneBoundariesMap) {
 	}
 }
 
-func detectZone(magnitude float64, angle int, boundariesMap ZoneBoundariesMap) Zone {
+func detectZone(magnitude, radius float64, angle int, boundariesMap ZoneBoundariesMap) Zone {
 	if direction, found := boundariesMap[angle]; found {
-		if magnitude > direction.zoneThreshold {
+		if magnitude > direction.zoneThresholdPct*radius {
 			zone := direction.zone
 
-			if magnitude > direction.edgeThreshold {
+			if magnitude > direction.edgeThresholdPct*radius {
 				zone += EdgeZoneSuffix
 			}
 			return zone
@@ -233,8 +233,8 @@ func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap) {
 	}
 	pad.newValueHandled = true
 
-	zone := detectZone(pad.magnitude, pad.shiftedAngle, zoneBoundariesMap)
-	//printDebug("x: %0.2f; y: %0.2f; magn: %0.2f; shiftedAngle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.shiftedAngle, zone)
+	zone := detectZone(pad.magnitude, pad.radius, pad.shiftedAngle, zoneBoundariesMap)
+	//printDebug("(x: %0.2f, y: %0.2f); magn: %0.2f; angle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.shiftedAngle, zone)
 
 	if zone == UnmappedZone {
 		pad.zoneCanBeUsed = false

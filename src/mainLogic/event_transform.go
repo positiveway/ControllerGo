@@ -46,7 +46,7 @@ func (event *Event) fixButtonNamesForSteamController() {
 
 func (event *Event) transformToPadReleasedEvent() {
 	if gofuncs.Contains(PadAndStickAxes, event.btnOrAxis) &&
-		event.eventType == EvAxisChanged && event.value == 0.0 {
+		event.eventType == EvAxisChanged && event.value == 0 {
 
 		event.eventType = EvPadReleased
 		event.code = 0

@@ -78,17 +78,17 @@ func (pos *Position) GetCopy() *Position {
 	return MakePosition(pos.x, pos.y)
 }
 
-func calcFromMaxPossible(x, y float64) float64 {
-	maxPossibleX := math.Sqrt(gofuncs.Sqr(Cfg.PadRadius) - gofuncs.Sqr(y))
+func calcFromMaxPossible(x, y, radius float64) float64 {
+	maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
 	ratioFromMaxPossible := x / maxPossibleX
-	return ratioFromMaxPossible * Cfg.PadRadius
+	return ratioFromMaxPossible * radius
 }
 
-func (pos *Position) CalcFromMaxPossible() *Position {
+func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
 	//important to use temp values then assign
 	posFromMaxPossible := MakeEmptyPosition()
-	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y)
-	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x)
+	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
+	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x, radius)
 	if !gofuncs.AnyNotInit(pos.x, pos.y) {
 		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
 		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
@@ -109,20 +109,20 @@ func calcDistance(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
-var maxMagnitude = 1.0
-
-func calcAndCheckMagnitude(x, y float64) float64 {
-	magnitude := calcDistance(x, y)
-	//gofuncs.Print("", magnitude)
-	if magnitude > maxMagnitude {
-		maxMagnitude = magnitude
-		gofuncs.Print("New max magn: %.3f", maxMagnitude)
-	}
-	if magnitude > Cfg.PadRadius {
-		gofuncs.Panic("Magnitude is greater than Pad radius: %v", magnitude)
-	}
-	return magnitude
-}
+//var maxMagnitude = 1.0
+//
+//func calcAndCheckMagnitude(x, y float64) float64 {
+//	magnitude := calcDistance(x, y)
+//	//gofuncs.Print("", magnitude)
+//	if magnitude > maxMagnitude {
+//		maxMagnitude = magnitude
+//		gofuncs.Print("New max magn: %.3f", maxMagnitude)
+//	}
+//	if magnitude > Cfg.MaxPossiblePadRadius {
+//		gofuncs.Panic("Magnitude is greater than Max Pad radius: %v", magnitude)
+//	}
+//	return magnitude
+//}
 
 const RadiansMultiplier float64 = 180 / math.Pi
 
@@ -210,16 +210,18 @@ func calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (*Position, 
 }
 
 func (pos *Position) CalcShiftedRotationPos(rotationShift float64) (*Position, int, float64) {
-	magnitude := calcAndCheckMagnitude(pos.x, pos.y)
+	magnitude := calcDistance(pos.x, pos.y)
 	shiftedPos, shiftedAngle := calcShiftedRotationPos(pos.x, pos.y, rotationShift, magnitude)
 	return shiftedPos, shiftedAngle, magnitude
 }
 
 type PadPosition struct {
-	curPos, prevPos, shiftedPos, fromMaxPossiblePos *Position
+	//transformedPos
+	curPos, prevMousePos, shiftedPos, fromMaxPossiblePos *Position
 	//normalizedMagnitude
 	magnitude                  float64
 	shiftedAngle               int
+	radius                     float64
 	newValueHandled            bool
 	lock                       sync.Mutex
 	zone                       Zone
@@ -231,7 +233,7 @@ type PadPosition struct {
 func MakePadPosition(zoneRotation float64) *PadPosition {
 	pad := PadPosition{}
 	pad.curPos = MakeEmptyPosition()
-	pad.prevPos = MakeEmptyPosition()
+	pad.prevMousePos = MakeEmptyPosition()
 	pad.shiftedPos = MakeEmptyPosition()
 	pad.fromMaxPossiblePos = MakeEmptyPosition()
 
@@ -249,15 +251,21 @@ func (pad *PadPosition) Unlock() {
 	pad.lock.Unlock()
 }
 
-func (pad *PadPosition) UpdatePrevValues() {
-	pad.prevPos.Update(pad.shiftedPos)
+func (pad *PadPosition) UpdatePrevMousePos() {
+	pad.prevMousePos.Update(pad.shiftedPos)
+}
+
+func calcRadius(magnitude float64) float64 {
+	return gofuncs.Max(magnitude, Cfg.MinStandardPadRadius)
 }
 
 func (pad *PadPosition) ReCalculateValues() {
 	pad.newValueHandled = false
 
 	pad.shiftedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcShiftedRotationPos(pad.zoneRotation)
-	pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible())
+	pad.radius = calcRadius(pad.magnitude)
+	//pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible(pad.radius))
+	pad.fromMaxPossiblePos.Update(pad.shiftedPos)
 }
 
 func (pad *PadPosition) setValue(fieldPointer *float64) {
@@ -287,7 +295,7 @@ func (pad *PadPosition) Reset() {
 
 	pad.curPos.Reset()
 	//don't reset prev value to calc proper delta from prev to zero
-	pad.prevPos.Reset()
+	pad.prevMousePos.Reset()
 	pad.shiftedPos.Reset()
 	pad.fromMaxPossiblePos.Reset()
 
@@ -304,27 +312,36 @@ func (pad *PadPosition) Reset() {
 //	return x, y, magnitude
 //}
 
-func convertRange(input, outputMax float64) float64 {
+func (pad *PadPosition) convertRange(input, outputMax float64) float64 {
 	gofuncs.PanicAnyNotInit(input)
 
-	if input == 0.0 {
-		return 0.0
+	if input == 0 {
+		return 0
 	}
 
 	isNegative, input := gofuncs.GetIsNegativeAndAbs(input)
 
-	if input > Cfg.PadRadius {
-		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", Cfg.PadRadius, input)
+	if input > pad.radius {
+		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", pad.radius, input)
 	}
 
-	output := Cfg.OutputMin + ((outputMax-Cfg.OutputMin)/(Cfg.PadRadius-Cfg.StickDeadzone))*(input-Cfg.StickDeadzone)
+	inputMin := Cfg.StickDeadzone
+
+	output := Cfg.OutputMin + ((outputMax-Cfg.OutputMin)/(pad.radius-inputMin))*(input-inputMin)
 	return gofuncs.ApplySign(isNegative, output)
 }
 
-func calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
+func (pad *PadPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
-	refreshInterval := convertRange(input, slowestInterval-fastestInterval)
+
+	//TODO: Check
+	if input == 0 {
+		return gofuncs.NumberToMillis(fastestInterval)
+	}
+
+	refreshInterval := pad.convertRange(input, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - refreshInterval
+
 	return time.Duration(gofuncs.FloatToIntRound[int64](refreshInterval)) * time.Millisecond
 }
 
@@ -333,7 +350,7 @@ func applyDeadzone(value float64) float64 {
 		return value
 	}
 	if math.Abs(value) < Cfg.StickDeadzone {
-		value = 0.0
+		value = 0
 	}
 	return value
 }

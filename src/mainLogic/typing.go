@@ -44,7 +44,7 @@ func genTypingBoundariesMap() ZoneBoundariesMap {
 	return genEqualThresholdBoundariesMap(true,
 		makeAngleMargin(Cfg.TypingDiagonalAngleMargin, Cfg.TypingStraightAngleMargin, Cfg.TypingStraightAngleMargin),
 		Cfg.TypingThreshold,
-		Cfg.PadRadius)
+		Cfg.MinStandardPadRadius)
 }
 
 func TypeLetter() {

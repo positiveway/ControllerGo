@@ -24,8 +24,9 @@ func (c *ConfigsT) setConfigVars() {
 	c.ControllerInUse = MakeControllerInUse(true)
 
 	//Math
-	c.OutputMin = 0.0
-	c.PadRadius = 1.2
+	c.OutputMin = 0
+	c.MinStandardPadRadius = 1.0
+	//c.MaxPossiblePadRadius = 1.2
 
 	// web socket
 	c.SocketPort = 1234
@@ -36,13 +37,13 @@ func (c *ConfigsT) setConfigVars() {
 
 	//commands
 	c.holdRefreshInterval = 15 * time.Millisecond
-	c.TriggerThreshold = c.toFloatConfig("TriggerThreshold")
-	c.holdingThreshold = c.toMillisConfig("holdingThreshold")
+	c.TriggerThreshold = c.toPctConfig("TriggerThresholdPct")
+	c.holdingThreshold = c.toMillisConfig("holdingThresholdMs")
 
 	//mouse
-	c.mouseInterval = c.toMillisConfig("mouseInterval")
+	c.mouseInterval = c.toMillisConfig("mouseIntervalMs")
 	c.mouseSpeed = c.toFloatConfig("mouseSpeed")
-	c.mouseEdgeThreshold = c.toFloatConfig("mouseEdgeThreshold")
+	c.mouseEdgeThreshold = c.toPctConfig("mouseEdgeThresholdPct")
 
 	//Pads/Stick
 	c.LeftPadRotation = c.toFloatConfig("LeftPadRotation")
@@ -61,10 +62,10 @@ func (c *ConfigsT) setConfigVars() {
 	c.StickDeadzone = c.toFloatConfig("StickDeadzone")
 
 	//scroll
-	c.scrollFastestInterval = c.toIntToFloatConfig("scrollFastestInterval")
-	c.scrollSlowestInterval = c.toIntToFloatConfig("scrollSlowestInterval")
+	c.scrollFastestInterval = c.toIntToFloatConfig("scrollFastestIntervalMs")
+	c.scrollSlowestInterval = c.toIntToFloatConfig("scrollSlowestIntervalMs")
 
-	c.horizontalScrollThreshold = c.toFloatConfig("horizontalScrollThreshold")
+	c.horizontalScrollThreshold = c.toPctConfig("horizontalScrollThresholdPct")
 
 	//typing
 	c.TypingStraightAngleMargin = c.toIntConfig("TypingStraightAngleMargin")
@@ -76,8 +77,9 @@ var Cfg *ConfigsT
 
 type ConfigsT struct {
 	// Math
-	OutputMin float64
-	PadRadius float64
+	OutputMin            float64
+	MinStandardPadRadius float64
+	//MaxPossiblePadRadius float64
 
 	// Mode
 	RunFromTerminal bool

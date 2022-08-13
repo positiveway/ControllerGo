@@ -25,9 +25,9 @@ func moveMouse() {
 
 	//RightPad.Lock()
 
-	moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevPos.x)
-	moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevPos.y)
-	RightPad.UpdatePrevValues()
+	moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevMousePos.x)
+	moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevMousePos.y)
+	RightPad.UpdatePrevMousePos()
 
 	//RightPad.Unlock()
 
@@ -41,10 +41,6 @@ func RunMouseThread() {
 	for range ticker.C {
 		moveMouse()
 	}
-}
-
-func calcScrollInterval(input float64) time.Duration {
-	return calcRefreshInterval(input, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
 }
 
 func getDirection(val float64, horizontal bool) int {
@@ -80,9 +76,7 @@ func RunScrollThread() {
 
 		hDir, vDir := getDirections(LeftPad.fromMaxPossiblePos.x, LeftPad.fromMaxPossiblePos.y)
 
-		if LeftPad.magnitude != 0 {
-			scrollInterval = calcScrollInterval(LeftPad.magnitude)
-		}
+		scrollInterval = LeftPad.calcRefreshInterval(LeftPad.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
 
 		LeftPad.Unlock()
 

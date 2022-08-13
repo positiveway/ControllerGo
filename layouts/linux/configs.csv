@@ -2,13 +2,13 @@
 PadsMode = 1
 
 //commands
-TriggerThreshold = 0.07
-holdingThreshold = 200
+TriggerThresholdPct = 7
+holdingThresholdMs = 200
 
 //mouse
-mouseInterval = 0.125
+mouseIntervalMs = 0.125
 mouseSpeed = 200
-mouseEdgeThreshold = 0.95
+mouseEdgeThresholdPct = 95
 
 //Pads/Stick
 LeftPadRotation = 0
@@ -24,10 +24,10 @@ StickEdgeThresholdPct = 100
 StickDeadzone = 0.0
 
 //scroll
-scrollFastestInterval = 40
-scrollSlowestInterval = 280
+scrollFastestIntervalMs = 40
+scrollSlowestIntervalMs = 280
 
-horizontalScrollThreshold = 0.85
+horizontalScrollThresholdPct = 75
 
 //typing
 TypingStraightAngleMargin = 21
