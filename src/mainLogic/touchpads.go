@@ -78,26 +78,6 @@ func (pos *Position) GetCopy() *Position {
 	return MakePosition(pos.x, pos.y)
 }
 
-func calcFromMaxPossible(x, y, radius float64) float64 {
-	maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
-	ratioFromMaxPossible := x / maxPossibleX
-	return ratioFromMaxPossible * radius
-}
-
-func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
-	//important to use temp values then assign
-	posFromMaxPossible := MakeEmptyPosition()
-	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
-	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x, radius)
-	if !gofuncs.AnyNotInit(pos.x, pos.y) {
-		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
-		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
-			gofuncs.Panic("Incorrect calculations")
-		}
-	}
-	return posFromMaxPossible
-}
-
 func isEmptyPos(x, y float64) bool {
 	return gofuncs.AnyNotInit(x, y) || (x == 0 && y == 0)
 }
@@ -138,73 +118,37 @@ func calcRawResolvedAngle(x, y float64) float64 {
 	return resolveRawCircleAngle(calcRawAngle(x, y))
 }
 
-func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, float64, int) {
-	if gofuncs.AnyNotInit(x, y) {
-		return x, y, 0
-	}
-
-	angle := calcRawAngle(x, y)
-	shiftedAngle := angle + rotationShift
-
-	shiftedX := gofuncs.Sqrt(gofuncs.Sqr(magnitude) / (gofuncs.Sqr(math.Tan(shiftedAngle*math.Pi/180)) + 1))
-	shiftedY := gofuncs.Sqrt(gofuncs.Sqr(magnitude) - gofuncs.Sqr(shiftedX))
-
-	angle = resolveRawCircleAngle(angle)
-	shiftedAngle = resolveRawCircleAngle(shiftedAngle)
-
-	if shiftedAngle > 180 {
-		shiftedY *= -1
-	}
-	if shiftedAngle > 90 && shiftedAngle < 270 {
-		shiftedX *= -1
-	}
-
-	shiftedAngleInt := gofuncs.FloatToIntRound[int](shiftedAngle)
-
-	gofuncs.PrintDebug("Angle: %.2f->%.2f (%.2f), X: %.2f->%.2f, Y: %.2f->%.2f",
-		angle, shiftedAngle, calcOneQuarterAngle(shiftedAngle), x, shiftedX, y, shiftedY)
-
-	_resAngle := gofuncs.FloatToIntRound[int](calcRawResolvedAngle(shiftedX, shiftedY))
-	if _resAngle != shiftedAngleInt {
-		gofuncs.Panic("Incorrect calculations with angle: %v", _resAngle)
-	}
-
-	return shiftedX, shiftedY, shiftedAngleInt
-}
-
-func calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (*Position, int) {
-	//checkShiftCalculations(x, y, magnitude)
-	shiftedX, shiftedY, shiftedAngle := _calcShiftedRotationPos(x, y, rotationShift, magnitude)
-	return MakePosition(shiftedX, shiftedY), shiftedAngle
-}
-
-func (pos *Position) CalcShiftedRotationPos(rotationShift float64) (*Position, int, float64) {
+func (pos *Position) CalcTransformedPos(rotationShift float64) (*Position, int, float64) {
 	magnitude := calcDistance(pos.x, pos.y)
-	shiftedPos, shiftedAngle := calcShiftedRotationPos(pos.x, pos.y, rotationShift, magnitude)
-	return shiftedPos, shiftedAngle, magnitude
+	shiftedAngle := resolveCircleAngle(calcRawAngle(pos.x, pos.y) + rotationShift)
+	return MakePosition(pos.x, pos.y), shiftedAngle, magnitude
 }
 
 type PadPosition struct {
-	//transformedPos
-	curPos, prevMousePos, shiftedPos, fromMaxPossiblePos *Position
+	curPos, prevMousePos, transformedPos *Position
+	magnitude                            float64
+	shiftedAngle                         int
+	radius                               float64
+	newValueHandled                      bool
+	lock                                 sync.Mutex
+	zone                                 Zone
+	zoneCanBeUsed, zoneChanged           bool
+	zoneRotation                         float64
+	awaitingCentralPosition              bool
+
+	//shiftedPos, fromMaxPossiblePos *Position
 	//normalizedMagnitude
-	magnitude                  float64
-	shiftedAngle               int
-	radius                     float64
-	newValueHandled            bool
-	lock                       sync.Mutex
-	zone                       Zone
-	zoneCanBeUsed, zoneChanged bool
-	zoneRotation               float64
-	awaitingCentralPosition    bool
 }
 
 func MakePadPosition(zoneRotation float64) *PadPosition {
 	pad := PadPosition{}
+
 	pad.curPos = MakeEmptyPosition()
 	pad.prevMousePos = MakeEmptyPosition()
-	pad.shiftedPos = MakeEmptyPosition()
-	pad.fromMaxPossiblePos = MakeEmptyPosition()
+	pad.transformedPos = MakeEmptyPosition()
+
+	//pad.shiftedPos = MakeEmptyPosition()
+	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
 	pad.zoneRotation = zoneRotation
 	pad.Reset()
@@ -212,16 +156,23 @@ func MakePadPosition(zoneRotation float64) *PadPosition {
 	return &pad
 }
 
-func (pad *PadPosition) Lock() {
-	pad.lock.Lock()
-}
+func (pad *PadPosition) Reset() {
+	pad.Lock()
+	defer pad.Unlock()
 
-func (pad *PadPosition) Unlock() {
-	pad.lock.Unlock()
+	pad.curPos.Reset()
+	//don't reset prev value to calc proper delta from prev to zero
+	pad.prevMousePos.Reset()
+	pad.transformedPos.Reset()
+
+	//pad.shiftedPos.Reset()
+	//pad.fromMaxPossiblePos.Reset()
+
+	pad.ReCalculateValues()
 }
 
 func (pad *PadPosition) UpdatePrevMousePos() {
-	pad.prevMousePos.Update(pad.shiftedPos)
+	pad.prevMousePos.Update(pad.transformedPos)
 }
 
 func calcRadius(magnitude float64) float64 {
@@ -231,10 +182,9 @@ func calcRadius(magnitude float64) float64 {
 func (pad *PadPosition) ReCalculateValues() {
 	pad.newValueHandled = false
 
-	pad.shiftedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcShiftedRotationPos(pad.zoneRotation)
+	pad.transformedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcTransformedPos(pad.zoneRotation)
 	pad.radius = calcRadius(pad.magnitude)
 	//pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible(pad.radius))
-	pad.fromMaxPossiblePos.Update(pad.shiftedPos)
 }
 
 func (pad *PadPosition) setValue(fieldPointer *float64) {
@@ -258,17 +208,12 @@ func (pad *PadPosition) SetY() {
 	pad.setValue(&(pad.curPos.y))
 }
 
-func (pad *PadPosition) Reset() {
-	pad.Lock()
-	defer pad.Unlock()
+func (pad *PadPosition) Lock() {
+	pad.lock.Lock()
+}
 
-	pad.curPos.Reset()
-	//don't reset prev value to calc proper delta from prev to zero
-	pad.prevMousePos.Reset()
-	pad.shiftedPos.Reset()
-	pad.fromMaxPossiblePos.Reset()
-
-	pad.ReCalculateValues()
+func (pad *PadPosition) Unlock() {
+	pad.lock.Unlock()
 }
 
 func (pad *PadPosition) convertRange(input, outputMax float64) float64 {
@@ -304,19 +249,29 @@ func (pad *PadPosition) calcRefreshInterval(input, slowestInterval, fastestInter
 	return time.Duration(gofuncs.FloatToIntRound[int64](refreshInterval)) * time.Millisecond
 }
 
-func applyDeadzone(value float64) float64 {
-	if gofuncs.IsNotInit(value) {
-		return value
-	}
-	if math.Abs(value) < Cfg.StickDeadzone {
-		value = 0
-	}
-	return value
-}
-
 func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 	return T(math.Mod(float64(resolvedAngle), 90))
 }
+
+//func calcFromMaxPossible(x, y, radius float64) float64 {
+//	maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
+//	ratioFromMaxPossible := x / maxPossibleX
+//	return ratioFromMaxPossible * radius
+//}
+//
+//func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
+//	//important to use temp values then assign
+//	posFromMaxPossible := MakeEmptyPosition()
+//	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
+//	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x, radius)
+//	if !gofuncs.AnyNotInit(pos.x, pos.y) {
+//		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
+//		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
+//			gofuncs.Panic("Incorrect calculations")
+//		}
+//	}
+//	return posFromMaxPossible
+//}
 
 //var maxMagnitude = 1.0
 //
@@ -343,6 +298,52 @@ func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 //	return x, y, magnitude
 //}
 
+//func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, float64, int) {
+//	if gofuncs.AnyNotInit(x, y) {
+//		return x, y, 0
+//	}
+//
+//	angle := calcRawAngle(x, y)
+//	shiftedAngle := angle + rotationShift
+//
+//	shiftedX := gofuncs.Sqrt(gofuncs.Sqr(magnitude) / (gofuncs.Sqr(math.Tan(shiftedAngle*math.Pi/180)) + 1))
+//	shiftedY := gofuncs.Sqrt(gofuncs.Sqr(magnitude) - gofuncs.Sqr(shiftedX))
+//
+//	angle = resolveRawCircleAngle(angle)
+//	shiftedAngle = resolveRawCircleAngle(shiftedAngle)
+//
+//	if shiftedAngle > 180 {
+//		shiftedY *= -1
+//	}
+//	if shiftedAngle > 90 && shiftedAngle < 270 {
+//		shiftedX *= -1
+//	}
+//
+//	shiftedAngleInt := gofuncs.FloatToIntRound[int](shiftedAngle)
+//
+//	gofuncs.PrintDebug("Angle: %.2f->%.2f (%.2f), X: %.2f->%.2f, Y: %.2f->%.2f",
+//		angle, shiftedAngle, calcOneQuarterAngle(shiftedAngle), x, shiftedX, y, shiftedY)
+//
+//	_resAngle := gofuncs.FloatToIntRound[int](calcRawResolvedAngle(shiftedX, shiftedY))
+//	if _resAngle != shiftedAngleInt {
+//		gofuncs.Panic("Incorrect calculations with angle: %v", _resAngle)
+//	}
+//
+//	return shiftedX, shiftedY, shiftedAngleInt
+//}
+//
+//func calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (*Position, int) {
+//	//checkShiftCalculations(x, y, magnitude)
+//	shiftedX, shiftedY, shiftedAngle := _calcShiftedRotationPos(x, y, rotationShift, magnitude)
+//	return MakePosition(shiftedX, shiftedY), shiftedAngle
+//}
+//
+//func (pos *Position) CalcShiftedRotationPos(rotationShift float64) (*Position, int, float64) {
+//	magnitude := calcDistance(pos.x, pos.y)
+//	shiftedPos, shiftedAngle := calcShiftedRotationPos(pos.x, pos.y, rotationShift, magnitude)
+//	return shiftedPos, shiftedAngle, magnitude
+//}
+
 //func rp(x float64) float64 {
 //	return gofuncs.Round(x, 3)
 //}
@@ -357,4 +358,14 @@ func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 //	} else {
 //		gofuncs.Print("passed")
 //	}
+//}
+
+//func applyDeadzone(value float64) float64 {
+//	if gofuncs.IsNotInit(value) {
+//		return value
+//	}
+//	if math.Abs(value) < Cfg.StickDeadzone {
+//		value = 0
+//	}
+//	return value
 //}

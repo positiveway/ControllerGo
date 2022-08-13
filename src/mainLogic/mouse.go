@@ -25,8 +25,8 @@ func moveMouse() {
 
 	//RightPad.Lock()
 
-	moveX := calcMove(RightPad.shiftedPos.x, RightPad.prevMousePos.x)
-	moveY := calcMove(RightPad.shiftedPos.y, RightPad.prevMousePos.y)
+	moveX := calcMove(RightPad.transformedPos.x, RightPad.prevMousePos.x)
+	moveY := calcMove(RightPad.transformedPos.y, RightPad.prevMousePos.y)
 	RightPad.UpdatePrevMousePos()
 
 	//RightPad.Unlock()
@@ -74,7 +74,7 @@ func RunScrollThread() {
 
 		LeftPad.Lock()
 
-		hDir, vDir := getDirections(LeftPad.fromMaxPossiblePos.x, LeftPad.fromMaxPossiblePos.y)
+		hDir, vDir := getDirections(LeftPad.transformedPos.x, LeftPad.transformedPos.y)
 
 		scrollInterval = LeftPad.calcRefreshInterval(LeftPad.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
 
