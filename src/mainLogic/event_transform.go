@@ -5,13 +5,6 @@ import (
 	"strconv"
 )
 
-var PadsAxesOffsetMap = map[BtnOrAxisT]float64{
-	AxisLeftPadX:  0,
-	AxisLeftPadY:  0,
-	AxisRightPadX: 0,
-	AxisRightPadY: 0,
-}
-
 var PadAndStickAxes = []BtnOrAxisT{
 	AxisLeftPadX,
 	AxisLeftPadY,
@@ -27,12 +20,6 @@ type Event struct {
 	value     float64
 	codeType  CodeTypeT
 	code      CodeT
-}
-
-func (event *Event) applyPadAxesAdjustments() {
-	if event.eventType == EvAxisChanged {
-		event.value -= gofuncs.GetOrDefault(PadsAxesOffsetMap, event.btnOrAxis, 0)
-	}
 }
 
 func (event *Event) fixButtonNamesForSteamController() {
@@ -122,7 +109,7 @@ func (event *Event) transformAndFilter() {
 	event.transformToPadReleasedEvent()
 
 	if Cfg.ControllerInUse.SteamController {
-		event.applyPadAxesAdjustments()
+		//event.applyPadAxesAdjustments()
 		event.transformStickToDPad()
 	}
 
@@ -175,3 +162,16 @@ func (event *Event) print() {
 		gofuncs.TrimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
 		event.value)
 }
+
+//var PadsAxesOffsetMap = map[BtnOrAxisT]float64{
+//	AxisLeftPadX:  0,
+//	AxisLeftPadY:  0,
+//	AxisRightPadX: 0,
+//	AxisRightPadY: 0,
+//}
+
+//func (event *Event) applyPadAxesAdjustments() {
+//	if event.eventType == EvAxisChanged {
+//		event.value -= gofuncs.GetOrDefault(PadsAxesOffsetMap, event.btnOrAxis, 0)
+//	}
+//}

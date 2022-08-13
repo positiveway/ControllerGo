@@ -109,21 +109,6 @@ func calcDistance(x, y float64) float64 {
 	return math.Hypot(x, y)
 }
 
-//var maxMagnitude = 1.0
-//
-//func calcAndCheckMagnitude(x, y float64) float64 {
-//	magnitude := calcDistance(x, y)
-//	//gofuncs.Print("", magnitude)
-//	if magnitude > maxMagnitude {
-//		maxMagnitude = magnitude
-//		gofuncs.Print("New max magn: %.3f", maxMagnitude)
-//	}
-//	if magnitude > Cfg.MaxPossiblePadRadius {
-//		gofuncs.Panic("Magnitude is greater than Max Pad radius: %v", magnitude)
-//	}
-//	return magnitude
-//}
-
 const RadiansMultiplier float64 = 180 / math.Pi
 
 func resolveRawCircleAngle[T gofuncs.Number](angle T) float64 {
@@ -185,22 +170,6 @@ func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, f
 	}
 
 	return shiftedX, shiftedY, shiftedAngleInt
-}
-
-func rp(x float64) float64 {
-	return gofuncs.Round(x, 3)
-}
-
-func checkShiftCalculations(x, y, magnitude float64) {
-	if isEmptyPos(x, y) {
-		return
-	}
-	shiftedX, shiftedY, _ := _calcShiftedRotationPos(x, y, 0, magnitude)
-	if rp(x) != rp(shiftedX) || rp(y) != rp(shiftedY) {
-		gofuncs.Panic("Calculations error")
-	} else {
-		gofuncs.Print("passed")
-	}
 }
 
 func calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (*Position, int) {
@@ -302,16 +271,6 @@ func (pad *PadPosition) Reset() {
 	pad.ReCalculateValues()
 }
 
-//func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
-//	magnitude := calcDistance(x, y)
-//	if magnitude > PadRadius {
-//		x /= magnitude
-//		y /= magnitude
-//		magnitude = PadRadius
-//	}
-//	return x, y, magnitude
-//}
-
 func (pad *PadPosition) convertRange(input, outputMax float64) float64 {
 	gofuncs.PanicAnyNotInit(input)
 
@@ -358,3 +317,44 @@ func applyDeadzone(value float64) float64 {
 func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 	return T(math.Mod(float64(resolvedAngle), 90))
 }
+
+//var maxMagnitude = 1.0
+//
+//func calcAndCheckMagnitude(x, y float64) float64 {
+//	magnitude := calcDistance(x, y)
+//	//gofuncs.Print("", magnitude)
+//	if magnitude > maxMagnitude {
+//		maxMagnitude = magnitude
+//		gofuncs.Print("New max magn: %.3f", maxMagnitude)
+//	}
+//	if magnitude > Cfg.MaxPossiblePadRadius {
+//		gofuncs.Panic("Magnitude is greater than Max Pad radius: %v", magnitude)
+//	}
+//	return magnitude
+//}
+
+//func normalizeIncorrectEdgeValues(x, y float64) (float64, float64, float64) {
+//	magnitude := calcDistance(x, y)
+//	if magnitude > PadRadius {
+//		x /= magnitude
+//		y /= magnitude
+//		magnitude = PadRadius
+//	}
+//	return x, y, magnitude
+//}
+
+//func rp(x float64) float64 {
+//	return gofuncs.Round(x, 3)
+//}
+
+//func checkShiftCalculations(x, y, magnitude float64) {
+//	if isEmptyPos(x, y) {
+//		return
+//	}
+//	shiftedX, shiftedY, _ := _calcShiftedRotationPos(x, y, 0, magnitude)
+//	if rp(x) != rp(shiftedX) || rp(y) != rp(shiftedY) {
+//		gofuncs.Panic("Calculations error")
+//	} else {
+//		gofuncs.Print("passed")
+//	}
+//}
