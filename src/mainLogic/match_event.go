@@ -2,7 +2,7 @@ package mainLogic
 
 import "github.com/positiveway/gofuncs"
 
-func eventChanged() {
+func axisChanged() {
 	switch event.btnOrAxis {
 	case AxisLeftPadX:
 		LeftPad.SetX()
@@ -38,15 +38,11 @@ func matchEvent() {
 
 	switch event.eventType {
 	case EvAxisChanged:
-		eventChanged()
+		axisChanged()
 	case EvPadReleased:
 		padReleased()
 	case EvButtonChanged:
-		detectTriggers()
-	case EvButtonPressed:
-		buttonPressed()
-	case EvButtonReleased:
-		buttonReleased()
+		buttonChanged(event.btnOrAxis, event.value)
 	case EvDisconnected:
 		gamepadDisconnected()
 		gofuncs.Print("Gamepad disconnected")
@@ -54,5 +50,7 @@ func matchEvent() {
 		gofuncs.Print("Gamepad connected")
 	case EvDropped:
 		gofuncs.Panic("Event dropped")
+	default:
+		gofuncs.Panic("Unsupported event type: %v", event.eventType)
 	}
 }

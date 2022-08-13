@@ -81,7 +81,9 @@ func (event *Event) transformStickToDPad() {
 	if Stick.zoneChanged {
 		if curPressedStickButton != "" {
 			event.btnOrAxis = curPressedStickButton
-			event.eventType = EvButtonReleased
+			event.eventType = EvButtonChanged
+			event.value = 0
+
 			curPressedStickButton = ""
 			matchEvent()
 		}
@@ -90,7 +92,9 @@ func (event *Event) transformStickToDPad() {
 			curPressedStickButton = stickBtn
 
 			event.btnOrAxis = stickBtn
-			event.eventType = EvButtonPressed
+			event.eventType = EvButtonChanged
+			event.value = 1
+
 			matchEvent()
 		}
 	}
@@ -100,6 +104,11 @@ func (event *Event) transformStickToDPad() {
 func (event *Event) transformAndFilter() {
 	//printDebug("Before: ")
 	//event.print()
+
+	switch event.eventType {
+	case EvButtonPressed, EvButtonReleased:
+		return
+	}
 
 	if Cfg.ControllerInUse.SteamController {
 		event.fixButtonNamesForSteamController()
@@ -157,10 +166,10 @@ func (event *Event) update(msg string) {
 }
 
 func (event *Event) print() {
-	gofuncs.PrintDebug("%s \"%s\": %.2f",
+	gofuncs.Print("%s \"%s\": %.2f; %s: %v",
 		gofuncs.TrimAnyPrefix(string(event.eventType), "Ev"),
 		gofuncs.TrimAnyPrefix(string(event.btnOrAxis), "Btn", "Axis"),
-		event.value)
+		event.value, event.codeType, event.code)
 }
 
 //var PadsAxesOffsetMap = map[BtnOrAxisT]float64{

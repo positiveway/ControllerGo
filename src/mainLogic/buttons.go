@@ -90,9 +90,17 @@ type CommandToReleaseWithHoldStartTime struct {
 	alreadyPressed bool
 }
 
+func isEmptyCmd(command Command) bool {
+	return gofuncs.IsEmptySlice(command)
+}
+
+func commandNotExists(button BtnOrAxisT) bool {
+	return isEmptyCmd(pressCommandsLayout[button]) &&
+		isEmptyCmd(pressCommandsLayout[addHoldSuffix(button)])
+}
+
 func hasHoldCommand(button BtnOrAxisT) bool {
-	_, found := pressCommandsLayout[addHoldSuffix(button)]
-	return found
+	return !isEmptyCmd(pressCommandsLayout[addHoldSuffix(button)])
 }
 
 func getPressCommand(btn BtnOrAxisT, hold bool) Command {
@@ -110,14 +118,14 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 	}
 
 	command := getPressCommand(btn, hold)
-	if gofuncs.IsEmptySlice(command) {
-		return
-	}
+	//if isEmptyCmd(command) {
+	//	return
+	//}
 
 	firstCmdSymbol := command[0]
 	switch firstCmdSymbol {
 	case SwitchMode:
-		PutButton(btn, Command{}, true)
+		PutButton(btn, nil, true)
 		// don't do release all
 		Cfg.padsMode.SwitchMode()
 		return
@@ -130,17 +138,27 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 	pressSequence(command)
 }
 
-func buttonPressed() {
-	btn := event.btnOrAxis
-	if isTriggerBtn(btn) {
-		return
-	}
-
+func buttonPressed(btn BtnOrAxisT) {
 	if hasHoldCommand(btn) {
 		PutButton(btn, nil, false)
 	} else { //press immediately
 		pressButton(btn, false)
 	}
+}
+
+func buttonReleased(btn BtnOrAxisT) {
+	pressButton(btn, false)
+	releaseButton(btn)
+}
+
+func releaseButton(btn BtnOrAxisT) {
+	cmdWithTime := buttonsToRelease.Pop(btn)
+	command := cmdWithTime.command
+
+	//if isEmptyCmd(command) {
+	//	return
+	//}
+	releaseSequence(command)
 }
 
 func RunReleaseHoldThread() {
@@ -156,26 +174,6 @@ func RunReleaseHoldThread() {
 	}
 }
 
-func buttonReleased() {
-	btn := event.btnOrAxis
-	if isTriggerBtn(btn) {
-		return
-	}
-
-	pressButton(btn, false)
-	releaseButton(btn)
-}
-
-func releaseButton(btn BtnOrAxisT) {
-	cmdWithTime := buttonsToRelease.Pop(btn)
-	command := cmdWithTime.command
-
-	if gofuncs.IsEmptySlice(command) {
-		return
-	}
-	releaseSequence(command)
-}
-
 func releaseAll() {
 	buttonsToRelease.RangeOverCopy(func(btn BtnOrAxisT, cmdWithTime CommandToReleaseWithHoldStartTime) {
 		releaseButton(btn)
@@ -186,17 +184,29 @@ func isTriggerBtn(btn BtnOrAxisT) bool {
 	return btn == BtnLeftTrigger || btn == BtnRightTrigger
 }
 
-func detectTriggers() {
-	btn := event.btnOrAxis
-	if !isTriggerBtn(btn) {
-		return
-	}
-
-	value := event.value
-
+func handleTriggers(btn BtnOrAxisT, value float64) {
 	if value > Cfg.TriggerThreshold {
 		pressButton(btn, false)
 	} else if value < Cfg.TriggerThreshold {
 		releaseButton(btn)
+	}
+}
+
+func buttonChanged(btn BtnOrAxisT, value float64) {
+	if commandNotExists(btn) {
+		return
+	}
+
+	if isTriggerBtn(btn) {
+		handleTriggers(btn, value)
+	} else {
+		switch value {
+		case 1:
+			buttonPressed(btn)
+		case 0:
+			buttonReleased(btn)
+		default:
+			gofuncs.Panic("Unsupported value: \"%s\" %v", btn, value)
+		}
 	}
 }
