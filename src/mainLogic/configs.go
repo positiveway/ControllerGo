@@ -76,12 +76,14 @@ func (c *ConfigsT) setConfigVars() {
 	//Mode
 	c.PadsSticksMode = c.toPadsSticksModeCfg()
 
+	//c.mouseOnRightStickPad = c.toBoolConfig("mouseOnRightStickPad")
+
 	//Pads/Stick
 	switch c.ControllerInUse {
 	case SteamController:
-		c.StickAngleMarginSC = c.toIntConfig("StickAngleMarginSC")
-		c.StickThresholdSC = c.toPctConfig("StickThresholdPctSC")
-		c.StickEdgeThresholdSC = c.toPctConfig("StickEdgeThresholdPctSC")
+		c.StickAngleMarginSC = c.toIntConfig("StickAngleMargin")
+		c.StickThresholdSC = c.toPctConfig("StickThresholdPct")
+		c.StickEdgeThresholdSC = c.toPctConfig("StickEdgeThresholdPct")
 
 		c.StickBoundariesMapSC = genEqualThresholdBoundariesMap(false,
 			makeAngleMargin(0, c.StickAngleMarginSC, c.StickAngleMarginSC),
@@ -117,6 +119,8 @@ func (c *ConfigsT) setConfigVars() {
 var Cfg *ConfigsT
 
 type ConfigsT struct {
+	mouseOnRightStickPad bool
+
 	mousePadStick, scrollPadStick *PadStickPosition
 
 	// Math
