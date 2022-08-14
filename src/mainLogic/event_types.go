@@ -15,52 +15,28 @@ const (
 type CodeT int
 
 const (
-	//CodeStickX  CodeT = 0
-	//CodeStickY  CodeT = 1
-	//CodeLeftPadX  CodeT = 16
-	//CodeLeftPadY  CodeT = 17
-	//CodeRightPadX CodeT = 3
-	//CodeRightPadY CodeT = 4
-	CodeLeftWing  CodeT = 336
-	CodeRightWing CodeT = 337
+	//CodeStickXSC CodeT = 0
+	//CodeStickYSC   CodeT = 1
+	//CodeLeftPadXSC CodeT = 16
+	//CodeLeftPadYSC  CodeT = 17
+	//CodeRightPadXSC CodeT = 3
+	//CodeRightPadYSC CodeT = 4
+	CodeLeftWingSC  CodeT = 336
+	CodeRightWingSC CodeT = 337
 )
 
-var UnknownCodesResolvingMap = map[CodeT]BtnOrAxisT{
-	//CodeStickX: AxisStickX,
-	//CodeStickY: AxisStickY,
-	//CodeLeftPadX:  AxisLeftPadX,
-	//CodeLeftPadY:  AxisLeftPadY,
-	//CodeRightPadX: AxisRightPadX,
-	//CodeRightPadY: AxisRightPadY,
-	CodeLeftWing:  BtnLeftWing,
-	CodeRightWing: BtnRightWing,
+var UnknownCodesResolvingMapSC = map[CodeT]BtnOrAxisT{
+	//CodeStickXSC:    AxisLeftStickX,
+	//CodeStickYSC:    AxisLeftStickY,
+	//CodeLeftPadXSC:  AxisLeftPadX,
+	//CodeLeftPadYSC:  AxisLeftPadY,
+	//CodeRightPadXSC: AxisRightPadStickX,
+	//CodeRightPadYSC: AxisRightPadStickY,
+	CodeLeftWingSC:  BtnLeftWingSC,
+	CodeRightWingSC: BtnRightWingSC,
 }
 
 type BtnOrAxisT string
-
-const (
-	AxisStickX    BtnOrAxisT = "StickX"
-	AxisStickY    BtnOrAxisT = "StickY"
-	AxisStickZ    BtnOrAxisT = "StickZ"
-	AxisRightPadX BtnOrAxisT = "RightPadX"
-	AxisRightPadY BtnOrAxisT = "RightPadY"
-	AxisRightPadZ BtnOrAxisT = "RightPadZ"
-	AxisLeftPadX  BtnOrAxisT = "LeftPadX"
-	AxisLeftPadY  BtnOrAxisT = "LeftPadY"
-	AxisUnknown   BtnOrAxisT = "Unknown"
-)
-
-var _AxisMap = map[uint8]BtnOrAxisT{
-	'u': AxisStickX,
-	'v': AxisStickY,
-	'w': AxisStickZ,
-	'x': AxisRightPadX,
-	'y': AxisRightPadY,
-	'z': AxisRightPadZ,
-	'0': AxisLeftPadX,
-	'1': AxisLeftPadY,
-	'2': AxisUnknown,
-}
 
 const HoldSuffix = "_Hold"
 
@@ -72,9 +48,192 @@ func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 	return BtnOrAxisT(strings.TrimSuffix(string(btn), HoldSuffix))
 }
 
+type BtnAxisMapT map[uint8]BtnOrAxisT
+
+var BtnAxisMap BtnAxisMapT
+
+func genBtnAxisMap() BtnAxisMapT {
+	mapping := BtnAxisMapT{}
+	for k, v := range _AxisMap {
+		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
+	}
+	for k, v := range _BtnMap {
+		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
+	}
+	return mapping
+}
+
 const (
-	BtnLeftWing     BtnOrAxisT = "LeftWing"
-	BtnRightWing    BtnOrAxisT = "RightWing"
+	AxisLeftPadX BtnOrAxisT = "LeftPadX"
+	AxisLeftPadY BtnOrAxisT = "LeftPadY"
+	AxisUnknown  BtnOrAxisT = "Unknown"
+)
+
+var (
+	AxisLeftStickX,
+	AxisLeftStickY,
+	AxisLeftStickZ,
+	AxisRightPadStickX,
+	AxisRightPadStickY,
+	AxisRightPadStickZ BtnOrAxisT
+)
+
+var _AxisMap BtnAxisMapT
+
+func initAxisMap() {
+	_AxisMap = BtnAxisMapT{
+		'u': AxisLeftStickX,
+		'v': AxisLeftStickY,
+		'w': AxisLeftStickZ,
+		'x': AxisRightPadStickX,
+		'y': AxisRightPadStickY,
+		'z': AxisRightPadStickZ,
+		'0': AxisLeftPadX,
+		'1': AxisLeftPadY,
+		'2': AxisUnknown,
+	}
+}
+
+func initEventTypes() {
+	switch Cfg.ControllerInUse {
+	case SteamController:
+		//axis
+		AxisLeftStickX = "StickX"
+		AxisLeftStickY = "StickY"
+		AxisLeftStickZ = "StickZ"
+		AxisRightPadStickX = "RightPadX"
+		AxisRightPadStickY = "RightPadY"
+		AxisRightPadStickZ = "RightPadZ"
+
+		//buttons
+		BtnLeftStick = "Stick"
+		BtnRightPadStick = "RightPad"
+
+		BtnLeftWingSC = "LeftWing"
+		BtnRightWingSC = "RightWing"
+
+		BtnStickUpSC = "StickUp"
+		BtnStickDownSC = "StickDown"
+		BtnStickLeftSC = "StickLeft"
+		BtnStickRightSC = "StickRight"
+
+		BtnDPadUp = BtnLeftPad
+		BtnDPadDown = BtnLeftPad
+		BtnDPadLeft = BtnLeftPad
+		BtnDPadRight = BtnLeftPad
+	case DualShock:
+		//axis
+		AxisLeftStickX = "LeftStickX"
+		AxisLeftStickY = "LeftStickY"
+		AxisLeftStickZ = "LeftStickZ"
+		AxisRightPadStickX = "RightStickX"
+		AxisRightPadStickY = "RightStickY"
+		AxisRightPadStickZ = "RightStickZ"
+
+		//buttons
+		BtnLeftStick = "LeftStick"
+		BtnRightPadStick = "RightStick"
+
+		BtnDPadUp = "DPadUp"
+		BtnDPadDown = "DPadDown"
+		BtnDPadLeft = "DPadLeft"
+		BtnDPadRight = "DPadRight"
+	}
+
+	initAxisMap()
+	initAvailableButtons()
+	initBtnMap()
+	BtnAxisMap = genBtnAxisMap()
+}
+
+var (
+	BtnLeftStick,
+	BtnRightPadStick BtnOrAxisT
+
+	BtnLeftWingSC,
+	BtnRightWingSC BtnOrAxisT
+
+	BtnStickUpSC,
+	BtnStickDownSC,
+	BtnStickLeftSC,
+	BtnStickRightSC BtnOrAxisT
+
+	BtnDPadUp,
+	BtnDPadDown,
+	BtnDPadLeft,
+	BtnDPadRight BtnOrAxisT
+)
+
+var AllAvailableButtons []BtnOrAxisT
+
+func initAvailableButtons() {
+	_availableButtons := []BtnOrAxisT{
+		BtnLeftWingSC,
+		BtnRightWingSC,
+		BtnA,
+		BtnB,
+		BtnY,
+		BtnX,
+		BtnC,
+		BtnZ,
+		BtnLeftButton,
+		BtnLeftTrigger,
+		BtnRightButton,
+		BtnRightTrigger,
+		BtnSelect,
+		BtnStart,
+		BtnMode,
+
+		BtnLeftStick,
+		BtnRightPadStick,
+		BtnLeftPad,
+
+		BtnDPadUp,
+		BtnDPadDown,
+		BtnDPadLeft,
+		BtnDPadRight,
+
+		BtnStickUpSC,
+		BtnStickDownSC,
+		BtnStickLeftSC,
+		BtnStickRightSC,
+	}
+
+	for _, button := range _availableButtons {
+		if !gofuncs.IsEmptyStripStr(string(button)) {
+			AllAvailableButtons = append(AllAvailableButtons, button)
+		}
+	}
+}
+
+var _BtnMap BtnAxisMapT
+
+func initBtnMap() {
+	_BtnMap = BtnAxisMapT{
+		'a': BtnA,
+		'b': BtnB,
+		'c': BtnY,
+		'd': BtnX,
+		'e': BtnC,
+		'f': BtnZ,
+		'g': BtnLeftButton,
+		'h': BtnLeftTrigger,
+		'i': BtnRightButton,
+		'j': BtnRightTrigger,
+		'k': BtnSelect,
+		'l': BtnStart,
+		'm': BtnMode,
+		'n': BtnLeftStick,
+		'o': BtnRightPadStick,
+		'p': BtnDPadUp,
+		'q': BtnDPadDown,
+		'r': BtnDPadLeft,
+		's': BtnDPadRight,
+		't': BtnUnknown,
+	}
+}
+
+const (
 	BtnB            BtnOrAxisT = "B"
 	BtnY            BtnOrAxisT = "Y"
 	BtnX            BtnOrAxisT = "X"
@@ -88,19 +247,7 @@ const (
 	BtnSelect       BtnOrAxisT = "Select"
 	BtnStart        BtnOrAxisT = "Start"
 	BtnMode         BtnOrAxisT = "Mode"
-	BtnStick        BtnOrAxisT = "Stick"
-
-	BtnRightPad  BtnOrAxisT = "RightPad"
-	BtnLeftPad   BtnOrAxisT = "LeftPad"
-	BtnDPadUp               = BtnLeftPad
-	BtnDPadDown             = BtnLeftPad
-	BtnDPadLeft             = BtnLeftPad
-	BtnDPadRight            = BtnLeftPad
-
-	BtnStickUp    BtnOrAxisT = "StickUp"
-	BtnStickDown  BtnOrAxisT = "StickDown"
-	BtnStickLeft  BtnOrAxisT = "StickLeft"
-	BtnStickRight BtnOrAxisT = "StickRight"
+	BtnLeftPad      BtnOrAxisT = "LeftPad"
 
 	BtnUnknown BtnOrAxisT = "BtnUnknown"
 )
@@ -121,55 +268,6 @@ func genBtnSynonyms() Synonyms {
 }
 
 var BtnSynonyms = genBtnSynonyms()
-
-var AllAvailableButtons = []BtnOrAxisT{
-	BtnLeftWing,
-	BtnRightWing,
-	BtnA,
-	BtnB,
-	BtnY,
-	BtnX,
-	BtnC,
-	BtnZ,
-	BtnLeftButton,
-	BtnLeftTrigger,
-	BtnRightButton,
-	BtnRightTrigger,
-	BtnSelect,
-	BtnStart,
-	BtnMode,
-	BtnStick,
-	BtnLeftPad,
-	BtnRightPad,
-
-	BtnStickUp,
-	BtnStickDown,
-	BtnStickLeft,
-	BtnStickRight,
-}
-
-var _BtnMap = map[uint8]BtnOrAxisT{
-	'a': BtnA,
-	'b': BtnB,
-	'c': BtnY,
-	'd': BtnX,
-	'e': BtnC,
-	'f': BtnZ,
-	'g': BtnLeftButton,
-	'h': BtnLeftTrigger,
-	'i': BtnRightButton,
-	'j': BtnRightTrigger,
-	'k': BtnSelect,
-	'l': BtnStart,
-	'm': BtnMode,
-	'n': BtnStick,
-	'o': BtnRightPad,
-	'p': BtnDPadUp,
-	'q': BtnDPadDown,
-	'r': BtnDPadLeft,
-	's': BtnDPadRight,
-	't': BtnUnknown,
-}
 
 type EventTypeT string
 
@@ -195,16 +293,3 @@ var EventTypeMap = map[uint8]EventTypeT{
 	'g': EvDisconnected,
 	'h': EvDropped,
 }
-
-func genBtnAxisMap() map[uint8]BtnOrAxisT {
-	mapping := map[uint8]BtnOrAxisT{}
-	for k, v := range _AxisMap {
-		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
-	}
-	for k, v := range _BtnMap {
-		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
-	}
-	return mapping
-}
-
-var BtnAxisMap = genBtnAxisMap()

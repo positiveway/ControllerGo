@@ -48,19 +48,19 @@ func genTypingBoundariesMap() ZoneBoundariesMap {
 }
 
 func TypeLetter() {
-	if Cfg.padsMode.GetMode() != TypingMode {
+	if Cfg.PadsSticksMode.GetMode() != TypingMode {
 		return
 	}
 	LeftPad.ReCalculateZone(TypingBoundariesMap)
-	RightPad.ReCalculateZone(TypingBoundariesMap)
+	RightPadStick.ReCalculateZone(TypingBoundariesMap)
 
-	if LeftPad.zoneCanBeUsed && RightPad.zoneCanBeUsed {
-		if LeftPad.zoneChanged || RightPad.zoneChanged {
-			if !LeftPad.awaitingCentralPosition || !RightPad.awaitingCentralPosition {
+	if LeftPad.zoneCanBeUsed && RightPadStick.zoneCanBeUsed {
+		if LeftPad.zoneChanged || RightPadStick.zoneChanged {
+			if !LeftPad.awaitingCentralPosition || !RightPadStick.awaitingCentralPosition {
 				LeftPad.awaitingCentralPosition = true
-				RightPad.awaitingCentralPosition = true
+				RightPadStick.awaitingCentralPosition = true
 
-				position := SticksPosition{LeftPad.zone, RightPad.zone}
+				position := SticksPosition{LeftPad.zone, RightPadStick.zone}
 				if code, found := typingLayout[position]; found {
 					osSpec.TypeKey(code)
 				}

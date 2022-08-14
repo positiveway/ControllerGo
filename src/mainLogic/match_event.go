@@ -3,46 +3,46 @@ package mainLogic
 import "github.com/positiveway/gofuncs"
 
 func axisChanged() {
-	switch event.btnOrAxis {
+	switch Event.btnOrAxis {
 	case AxisLeftPadX:
 		LeftPad.SetX()
 	case AxisLeftPadY:
 		LeftPad.SetY()
-	case AxisRightPadX:
-		RightPad.SetX()
-	case AxisRightPadY:
-		RightPad.SetY()
+	case AxisRightPadStickX:
+		RightPadStick.SetX()
+	case AxisRightPadStickY:
+		RightPadStick.SetY()
 	}
 	TypeLetter()
 }
 
 func padReleased() {
-	switch event.btnOrAxis {
+	switch Event.btnOrAxis {
 	case AxisLeftPadX, AxisLeftPadY:
 		LeftPad.Reset()
-	case AxisRightPadX, AxisRightPadY:
-		RightPad.Reset()
+	case AxisRightPadStickX, AxisRightPadStickY:
+		RightPadStick.Reset()
 	}
 }
 
 func gamepadDisconnected() {
 	LeftPad.Reset()
-	RightPad.Reset()
-	Stick.Reset()
+	RightPadStick.Reset()
+	LeftStick.Reset()
 
 	releaseAll()
 }
 
 func matchEvent() {
-	//event.print()
+	//Event.print()
 
-	switch event.eventType {
+	switch Event.eventType {
 	case EvAxisChanged:
 		axisChanged()
 	case EvPadReleased:
 		padReleased()
 	case EvButtonChanged:
-		buttonChanged(event.btnOrAxis, event.value)
+		buttonChanged(Event.btnOrAxis, Event.value)
 	case EvDisconnected:
 		gamepadDisconnected()
 		gofuncs.Print("Gamepad disconnected")
@@ -51,6 +51,6 @@ func matchEvent() {
 	case EvDropped:
 		gofuncs.Panic("Event dropped")
 	default:
-		gofuncs.Panic("Unsupported event type: %v", event.eventType)
+		gofuncs.Panic("Unsupported event type: %v", Event.eventType)
 	}
 }

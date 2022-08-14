@@ -227,7 +227,7 @@ func detectZone(magnitude, radius float64, angle int, boundariesMap ZoneBoundari
 	}
 }
 
-func (pad *PadPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap) {
+func (pad *PadStickPosition) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMap) {
 	if pad.newValueHandled {
 		return
 	}

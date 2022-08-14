@@ -18,28 +18,32 @@ func calcMove(value, prevValue float64) int {
 	return pixels
 }
 
-func moveMouse() {
-	if Cfg.padsMode.GetMode() == TypingMode {
+func moveMouseSC() {
+	if Cfg.PadsSticksMode.GetMode() == TypingMode {
 		return
 	}
 
-	//RightPad.Lock()
+	if gofuncs.AnyNotInit(Cfg.mousePadStick.curPos.x, Cfg.mousePadStick.curPos.y) {
+		return
+	}
 
-	moveX := calcMove(RightPad.transformedPos.x, RightPad.prevMousePos.x)
-	moveY := calcMove(RightPad.transformedPos.y, RightPad.prevMousePos.y)
-	RightPad.UpdatePrevMousePos()
+	//Cfg.mousePadStick.Lock()
 
-	//RightPad.Unlock()
+	moveX := calcMove(Cfg.mousePadStick.transformedPos.x, Cfg.mousePadStick.prevMousePos.x)
+	moveY := calcMove(Cfg.mousePadStick.transformedPos.y, Cfg.mousePadStick.prevMousePos.y)
+	RightPadStick.UpdatePrevMousePos()
+
+	//Cfg.mousePadStick.Unlock()
 
 	if moveX != 0 || moveY != 0 {
 		osSpec.MoveMouse(moveX, moveY)
 	}
 }
 
-func RunMouseThread() {
+func RunMouseThreadDS() {
 	ticker := time.NewTicker(Cfg.mouseInterval)
 	for range ticker.C {
-		moveMouse()
+		//moveMouseSC()
 	}
 }
 
@@ -67,18 +71,18 @@ func RunScrollThread() {
 	for {
 		scrollInterval := gofuncs.NumberToMillis(Cfg.scrollFastestInterval)
 
-		if Cfg.padsMode.GetMode() != MouseMode {
+		if Cfg.PadsSticksMode.GetMode() != MouseMode {
 			time.Sleep(scrollInterval)
 			continue
 		}
 
-		LeftPad.Lock()
+		Cfg.scrollPadStick.Lock()
 
-		hDir, vDir := getDirections(LeftPad.transformedPos.x, LeftPad.transformedPos.y)
+		hDir, vDir := getDirections(Cfg.scrollPadStick.transformedPos.x, Cfg.scrollPadStick.transformedPos.y)
 
-		scrollInterval = LeftPad.calcRefreshInterval(LeftPad.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
+		scrollInterval = Cfg.scrollPadStick.calcRefreshInterval(Cfg.scrollPadStick.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
 
-		LeftPad.Unlock()
+		Cfg.scrollPadStick.Unlock()
 
 		if hDir != 0 {
 			osSpec.ScrollHorizontal(hDir)

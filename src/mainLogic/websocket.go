@@ -7,7 +7,7 @@ import (
 
 const gamepadConnectedMsg = "gamepadConnected"
 
-var event Event
+var Event EventT
 
 func RunWebSocket() {
 	addr := net.UDPAddr{
@@ -32,6 +32,6 @@ func RunWebSocket() {
 		//gofuncs.Print(nn)
 		//gofuncs.Print(string(p[:nn]))
 
-		event.update(string(p[:nn]))
+		Event.update(string(p[:nn]))
 	}
 }

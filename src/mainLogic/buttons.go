@@ -24,7 +24,7 @@ func initCommands() {
 
 func loadCommandsLayout() ButtonToCommand {
 	pressLayout := ButtonToCommand{}
-	linesParts := Cfg.ReadLayoutFile(path.Join(Cfg.LayoutInUse, "commands.csv"), 2)
+	linesParts := Cfg.ReadLayoutFile(path.Join(Cfg.LayoutInUse, "buttons.csv"), 2)
 	for _, parts := range linesParts {
 		btn := BtnOrAxisT(parts[0])
 		keys := parts[1:]
@@ -127,7 +127,7 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 	case SwitchMode:
 		PutButton(btn, nil, true)
 		// don't do release all
-		Cfg.padsMode.SwitchMode()
+		Cfg.PadsSticksMode.SwitchMode()
 		return
 
 	case EscLetter:

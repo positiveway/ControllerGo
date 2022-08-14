@@ -7,24 +7,24 @@ import (
 	"time"
 )
 
-type ModeType = int
+type ModeType string
 
 const (
-	TypingMode ModeType = 0
-	MouseMode  ModeType = 1
-	GamingMode ModeType = 2
+	TypingMode ModeType = "Typing"
+	MouseMode  ModeType = "Mouse"
+	GamingMode ModeType = "Gaming"
 )
 
-type PadsMode struct {
+type PadsSticksMode struct {
 	currentMode, defaultMode ModeType
 	lock                     sync.Mutex
 }
 
-func MakePadsMode(defaultMode ModeType) *PadsMode {
-	return &PadsMode{currentMode: defaultMode, defaultMode: defaultMode}
+func MakePadsSticksMode(defaultMode ModeType) *PadsSticksMode {
+	return &PadsSticksMode{currentMode: defaultMode, defaultMode: defaultMode}
 }
 
-func (mode *PadsMode) SwitchMode() {
+func (mode *PadsSticksMode) SwitchMode() {
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
 
@@ -35,7 +35,7 @@ func (mode *PadsMode) SwitchMode() {
 	}
 }
 
-func (mode *PadsMode) GetMode() ModeType {
+func (mode *PadsSticksMode) GetMode() ModeType {
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
 
@@ -43,15 +43,8 @@ func (mode *PadsMode) GetMode() ModeType {
 }
 
 var (
-	LeftPad, RightPad, Stick *PadPosition
+	LeftPad, RightPadStick, LeftStick *PadStickPosition
 )
-
-func initTouchpads() {
-	LeftPad = MakePadPosition(Cfg.LeftPadRotation)
-	RightPad = MakePadPosition(Cfg.RightPadRotation)
-	Stick = MakePadPosition(Cfg.StickRotation)
-
-}
 
 type Position struct {
 	x, y float64
@@ -124,7 +117,7 @@ func (pos *Position) CalcTransformedPos(rotationShift float64) (*Position, int, 
 	return MakePosition(pos.x, pos.y), shiftedAngle, magnitude
 }
 
-type PadPosition struct {
+type PadStickPosition struct {
 	curPos, prevMousePos, transformedPos *Position
 	magnitude                            float64
 	shiftedAngle                         int
@@ -136,27 +129,26 @@ type PadPosition struct {
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
 
-	//shiftedPos, fromMaxPossiblePos *Position
+	//fromMaxPossiblePos *Position
 	//normalizedMagnitude
 }
 
-func MakePadPosition(zoneRotation float64) *PadPosition {
-	pad := PadPosition{}
+func MakePadPosition() *PadStickPosition {
+	pad := PadStickPosition{}
 
 	pad.curPos = MakeEmptyPosition()
 	pad.prevMousePos = MakeEmptyPosition()
 	pad.transformedPos = MakeEmptyPosition()
 
-	//pad.shiftedPos = MakeEmptyPosition()
 	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
-	pad.zoneRotation = zoneRotation
+	pad.zoneRotation = gofuncs.NaN()
 	pad.Reset()
 
 	return &pad
 }
 
-func (pad *PadPosition) Reset() {
+func (pad *PadStickPosition) Reset() {
 	pad.Lock()
 	defer pad.Unlock()
 
@@ -165,13 +157,12 @@ func (pad *PadPosition) Reset() {
 	pad.prevMousePos.Reset()
 	pad.transformedPos.Reset()
 
-	//pad.shiftedPos.Reset()
 	//pad.fromMaxPossiblePos.Reset()
 
 	pad.ReCalculateValues()
 }
 
-func (pad *PadPosition) UpdatePrevMousePos() {
+func (pad *PadStickPosition) UpdatePrevMousePos() {
 	pad.prevMousePos.Update(pad.transformedPos)
 }
 
@@ -179,7 +170,7 @@ func calcRadius(magnitude float64) float64 {
 	return gofuncs.Max(magnitude, Cfg.MinStandardPadRadius)
 }
 
-func (pad *PadPosition) ReCalculateValues() {
+func (pad *PadStickPosition) ReCalculateValues() {
 	pad.newValueHandled = false
 
 	pad.transformedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcTransformedPos(pad.zoneRotation)
@@ -187,36 +178,37 @@ func (pad *PadPosition) ReCalculateValues() {
 	//pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible(pad.radius))
 }
 
-func (pad *PadPosition) setValue(fieldPointer *float64) {
+func (pad *PadStickPosition) setValue(fieldPointer *float64) {
 	pad.Lock()
 	defer pad.Unlock()
 
-	*fieldPointer = event.value
+	*fieldPointer = Event.value
 
 	pad.ReCalculateValues()
 
-	if !gofuncs.AnyNotInit(pad.curPos.x, pad.curPos.y) {
-		moveMouse()
+	switch Cfg.ControllerInUse {
+	case SteamController:
+		moveMouseSC()
 	}
 }
 
-func (pad *PadPosition) SetX() {
+func (pad *PadStickPosition) SetX() {
 	pad.setValue(&(pad.curPos.x))
 }
 
-func (pad *PadPosition) SetY() {
+func (pad *PadStickPosition) SetY() {
 	pad.setValue(&(pad.curPos.y))
 }
 
-func (pad *PadPosition) Lock() {
+func (pad *PadStickPosition) Lock() {
 	pad.lock.Lock()
 }
 
-func (pad *PadPosition) Unlock() {
+func (pad *PadStickPosition) Unlock() {
 	pad.lock.Unlock()
 }
 
-func (pad *PadPosition) convertRange(input, outputMax float64) float64 {
+func (pad *PadStickPosition) convertRange(input, outputMax float64) float64 {
 	gofuncs.PanicAnyNotInit(input)
 
 	if input == 0 {
@@ -229,13 +221,13 @@ func (pad *PadPosition) convertRange(input, outputMax float64) float64 {
 		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", pad.radius, input)
 	}
 
-	inputMin := Cfg.StickDeadzone
+	inputMin := Cfg.StickDeadzoneDS
 
 	output := Cfg.OutputMin + ((outputMax-Cfg.OutputMin)/(pad.radius-inputMin))*(input-inputMin)
 	return gofuncs.ApplySign(isNegative, output)
 }
 
-func (pad *PadPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
+func (pad *PadStickPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
 
 	//TODO: Check
@@ -251,6 +243,16 @@ func (pad *PadPosition) calcRefreshInterval(input, slowestInterval, fastestInter
 
 func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 	return T(math.Mod(float64(resolvedAngle), 90))
+}
+
+func applyDeadzone(value float64) float64 {
+	if gofuncs.IsNotInit(value) {
+		return value
+	}
+	if math.Abs(value) <= Cfg.StickDeadzoneDS {
+		value = 0
+	}
+	return value
 }
 
 //func calcFromMaxPossible(x, y, radius float64) float64 {
@@ -282,9 +284,6 @@ func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 //		maxMagnitude = magnitude
 //		gofuncs.Print("New max magn: %.3f", maxMagnitude)
 //	}
-//	if magnitude > Cfg.MaxPossiblePadRadius {
-//		gofuncs.Panic("Magnitude is greater than Max Pad radius: %v", magnitude)
-//	}
 //	return magnitude
 //}
 
@@ -296,76 +295,4 @@ func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 //		magnitude = PadRadius
 //	}
 //	return x, y, magnitude
-//}
-
-//func _calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (float64, float64, int) {
-//	if gofuncs.AnyNotInit(x, y) {
-//		return x, y, 0
-//	}
-//
-//	angle := calcRawAngle(x, y)
-//	shiftedAngle := angle + rotationShift
-//
-//	shiftedX := gofuncs.Sqrt(gofuncs.Sqr(magnitude) / (gofuncs.Sqr(math.Tan(shiftedAngle*math.Pi/180)) + 1))
-//	shiftedY := gofuncs.Sqrt(gofuncs.Sqr(magnitude) - gofuncs.Sqr(shiftedX))
-//
-//	angle = resolveRawCircleAngle(angle)
-//	shiftedAngle = resolveRawCircleAngle(shiftedAngle)
-//
-//	if shiftedAngle > 180 {
-//		shiftedY *= -1
-//	}
-//	if shiftedAngle > 90 && shiftedAngle < 270 {
-//		shiftedX *= -1
-//	}
-//
-//	shiftedAngleInt := gofuncs.FloatToIntRound[int](shiftedAngle)
-//
-//	gofuncs.PrintDebug("Angle: %.2f->%.2f (%.2f), X: %.2f->%.2f, Y: %.2f->%.2f",
-//		angle, shiftedAngle, calcOneQuarterAngle(shiftedAngle), x, shiftedX, y, shiftedY)
-//
-//	_resAngle := gofuncs.FloatToIntRound[int](calcRawResolvedAngle(shiftedX, shiftedY))
-//	if _resAngle != shiftedAngleInt {
-//		gofuncs.Panic("Incorrect calculations with angle: %v", _resAngle)
-//	}
-//
-//	return shiftedX, shiftedY, shiftedAngleInt
-//}
-//
-//func calcShiftedRotationPos(x, y, rotationShift, magnitude float64) (*Position, int) {
-//	//checkShiftCalculations(x, y, magnitude)
-//	shiftedX, shiftedY, shiftedAngle := _calcShiftedRotationPos(x, y, rotationShift, magnitude)
-//	return MakePosition(shiftedX, shiftedY), shiftedAngle
-//}
-//
-//func (pos *Position) CalcShiftedRotationPos(rotationShift float64) (*Position, int, float64) {
-//	magnitude := calcDistance(pos.x, pos.y)
-//	shiftedPos, shiftedAngle := calcShiftedRotationPos(pos.x, pos.y, rotationShift, magnitude)
-//	return shiftedPos, shiftedAngle, magnitude
-//}
-
-//func rp(x float64) float64 {
-//	return gofuncs.Round(x, 3)
-//}
-
-//func checkShiftCalculations(x, y, magnitude float64) {
-//	if isEmptyPos(x, y) {
-//		return
-//	}
-//	shiftedX, shiftedY, _ := _calcShiftedRotationPos(x, y, 0, magnitude)
-//	if rp(x) != rp(shiftedX) || rp(y) != rp(shiftedY) {
-//		gofuncs.Panic("Calculations error")
-//	} else {
-//		gofuncs.Print("passed")
-//	}
-//}
-
-//func applyDeadzone(value float64) float64 {
-//	if gofuncs.IsNotInit(value) {
-//		return value
-//	}
-//	if math.Abs(value) < Cfg.StickDeadzone {
-//		value = 0
-//	}
-//	return value
 //}

@@ -25,8 +25,9 @@ func MakeConfigs() *ConfigsT {
 
 func RunMain() {
 	Cfg = MakeConfigs()
+	Cfg.initTouchpads()
 
-	initTouchpads()
+	initEventTypes()
 	initCodeMapping()
 	initTyping()
 	initCommands()
@@ -35,7 +36,7 @@ func RunMain() {
 	defer osSpec.CloseInputResources()
 	defer releaseAll()
 
-	//go RunMouseThread()
+	//go RunMouseThreadDS()
 	go RunScrollThread()
 	go RunReleaseHoldThread()
 	go RunGameMovementThread()

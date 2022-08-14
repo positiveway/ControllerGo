@@ -1,0 +1,34 @@
+ControllerInUse = SteamController
+
+PadsSticksMode = Mouse
+
+//commands
+TriggerThresholdPct = 7
+holdingThresholdMs = 200
+
+//mouse
+mouseIntervalMs = 0.125
+mouseSpeed = 200
+mouseEdgeThresholdPct = 95
+
+//Pads/Stick
+LeftPadRotation = -10
+RightPadRotation = 12
+StickRotation = 0
+
+StickAngleMargin = 40
+StickThresholdPct = 35
+StickEdgeThresholdPct = 100
+
+StickDeadzone = 0.0
+
+//scroll
+scrollFastestIntervalMs = 40
+scrollSlowestIntervalMs = 280
+
+horizontalScrollThresholdPct = 75
+
+//typing
+TypingStraightAngleMargin = 21
+TypingDiagonalAngleMargin = 23
+TypingThresholdPct = 35

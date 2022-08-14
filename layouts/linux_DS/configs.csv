@@ -1,5 +1,6 @@
-//Mode
-PadsMode = 1
+ControllerInUse = DualShock
+
+PadsSticksMode = Mouse
 
 //commands
 TriggerThresholdPct = 7
@@ -11,15 +12,10 @@ mouseSpeed = 200
 mouseEdgeThresholdPct = 95
 
 //Pads/Stick
-LeftPadRotation = -10
-RightPadRotation = 12
-StickRotation = 0
+LeftStickRotation = 0
+RightStickRotation = 0
 
-StickAngleMargin = 40
-StickThresholdPct = 35
-StickEdgeThresholdPct = 100
-
-StickDeadzone = 0.0
+StickDeadzone = 0.11764706
 
 //scroll
 scrollFastestIntervalMs = 40

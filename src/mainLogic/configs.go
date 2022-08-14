@@ -5,12 +5,32 @@ import (
 	"time"
 )
 
-type ControllerInUseT struct {
-	SteamController, DualShock, SteamDeck bool
+type ControllerInUseT string
+
+const (
+	SteamController ControllerInUseT = "SteamController"
+	DualShock       ControllerInUseT = "DualShock"
+	SteamDeck       ControllerInUseT = "SteamDeck"
+)
+
+func checkEnumCfg[T comparable](allEnumVariants []T, cfgValue T) {
+	if !gofuncs.Contains(allEnumVariants, cfgValue) {
+		gofuncs.Panic("Incorrect enum type: %v", cfgValue)
+	}
 }
 
-func MakeControllerInUse(isSteamControllerInUse bool) *ControllerInUseT {
-	return &ControllerInUseT{SteamController: isSteamControllerInUse, DualShock: !isSteamControllerInUse, SteamDeck: !isSteamControllerInUse}
+func (c *ConfigsT) toControllerCfg() ControllerInUseT {
+	allControllers := []ControllerInUseT{SteamController, DualShock, SteamDeck}
+	controller := ControllerInUseT(c.getConfig("ControllerInUse"))
+	checkEnumCfg(allControllers, controller)
+	return controller
+}
+
+func (c *ConfigsT) toPadsSticksModeCfg() *PadsSticksMode {
+	allModes := []ModeType{MouseMode, GamingMode}
+	modeType := ModeType(c.getConfig("PadsSticksMode"))
+	checkEnumCfg(allModes, modeType)
+	return MakePadsSticksMode(modeType)
 }
 
 func (c *ConfigsT) setConfigConstants() {
@@ -20,20 +40,57 @@ func (c *ConfigsT) setConfigConstants() {
 	c.RunFromTerminal = false
 }
 
+func (c *ConfigsT) initTouchpads() {
+	LeftPad = MakePadPosition()
+	RightPadStick = MakePadPosition()
+	LeftStick = MakePadPosition()
+
+	switch c.ControllerInUse {
+	case SteamController:
+		RightPadStick.zoneRotation = c.toFloatConfig("RightPadRotation")
+		LeftStick.zoneRotation = c.toFloatConfig("StickRotation")
+		LeftPad.zoneRotation = c.toFloatConfig("LeftPadRotation")
+
+		c.mousePadStick = RightPadStick
+		c.scrollPadStick = LeftPad
+	case DualShock:
+		RightPadStick.zoneRotation = c.toFloatConfig("RightStickRotation")
+		LeftStick.zoneRotation = c.toFloatConfig("LeftStickRotation")
+
+		c.mousePadStick = RightPadStick
+		c.scrollPadStick = LeftStick
+	}
+}
+
 func (c *ConfigsT) setConfigVars() {
-	c.ControllerInUse = MakeControllerInUse(true)
+	c.ControllerInUse = c.toControllerCfg()
 
 	//Math
 	c.OutputMin = 0
 	c.MinStandardPadRadius = 1.0
-	//c.MaxPossiblePadRadius = 1.2
 
 	// web socket
 	c.SocketPort = 1234
 	c.SocketIP = "0.0.0.0"
 
 	//Mode
-	c.padsMode = MakePadsMode(c.toIntConfig("PadsMode"))
+	c.PadsSticksMode = c.toPadsSticksModeCfg()
+
+	//Pads/Stick
+	switch c.ControllerInUse {
+	case SteamController:
+		c.StickAngleMarginSC = c.toIntConfig("StickAngleMarginSC")
+		c.StickThresholdSC = c.toPctConfig("StickThresholdPctSC")
+		c.StickEdgeThresholdSC = c.toPctConfig("StickEdgeThresholdPctSC")
+
+		c.StickBoundariesMapSC = genEqualThresholdBoundariesMap(false,
+			makeAngleMargin(0, c.StickAngleMarginSC, c.StickAngleMarginSC),
+			c.StickThresholdSC,
+			c.StickEdgeThresholdSC)
+
+	case DualShock:
+		c.StickDeadzoneDS = c.toFloatConfig("StickDeadzone")
+	}
 
 	//commands
 	c.holdRefreshInterval = 15 * time.Millisecond
@@ -44,22 +101,6 @@ func (c *ConfigsT) setConfigVars() {
 	c.mouseInterval = c.toMillisConfig("mouseIntervalMs")
 	c.mouseSpeed = c.toFloatConfig("mouseSpeed")
 	c.mouseEdgeThreshold = c.toPctConfig("mouseEdgeThresholdPct")
-
-	//Pads/Stick
-	c.LeftPadRotation = c.toFloatConfig("LeftPadRotation")
-	c.RightPadRotation = c.toFloatConfig("RightPadRotation")
-	c.StickRotation = c.toFloatConfig("StickRotation")
-
-	c.StickAngleMargin = c.toIntConfig("StickAngleMargin")
-	c.StickThreshold = c.toPctConfig("StickThresholdPct")
-	c.StickEdgeThreshold = c.toPctConfig("StickEdgeThresholdPct")
-
-	c.StickBoundariesMap = genEqualThresholdBoundariesMap(false,
-		makeAngleMargin(0, c.StickAngleMargin, c.StickAngleMargin),
-		c.StickThreshold,
-		c.StickEdgeThreshold)
-
-	c.StickDeadzone = c.toFloatConfig("StickDeadzone")
 
 	//scroll
 	c.scrollFastestInterval = c.toIntToFloatConfig("scrollFastestIntervalMs")
@@ -76,15 +117,16 @@ func (c *ConfigsT) setConfigVars() {
 var Cfg *ConfigsT
 
 type ConfigsT struct {
+	mousePadStick, scrollPadStick *PadStickPosition
+
 	// Math
 	OutputMin            float64
 	MinStandardPadRadius float64
-	//MaxPossiblePadRadius float64
 
 	// Mode
 	RunFromTerminal bool
-	ControllerInUse *ControllerInUseT
-	padsMode        *PadsMode
+	ControllerInUse ControllerInUseT
+	PadsSticksMode  *PadsSticksMode
 
 	// commands
 	holdRefreshInterval time.Duration
@@ -96,20 +138,16 @@ type ConfigsT struct {
 	mouseSpeed         float64
 	mouseEdgeThreshold float64
 
-	// Pads/Stick
-	LeftPadRotation, RightPadRotation, StickRotation float64
+	StickAngleMarginSC                     int
+	StickThresholdSC, StickEdgeThresholdSC float64
 
-	StickAngleMargin                   int
-	StickThreshold, StickEdgeThreshold float64
+	StickBoundariesMapSC ZoneBoundariesMap
 
-	StickBoundariesMap ZoneBoundariesMap
-
-	StickDeadzone float64
+	StickDeadzoneDS float64
 
 	// scroll
 	scrollFastestInterval, scrollSlowestInterval float64
-
-	horizontalScrollThreshold float64
+	horizontalScrollThreshold                    float64
 
 	// typing
 	TypingStraightAngleMargin, TypingDiagonalAngleMargin int
