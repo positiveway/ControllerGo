@@ -82,7 +82,9 @@ func RunScrollThread() {
 
 		hDir, vDir := getDirections(transformedPos.x, transformedPos.y)
 
-		scrollInterval = scrollPadStick.calcRefreshInterval(scrollPadStick.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
+		if scrollPadStick.magnitude != 0 {
+			scrollInterval = scrollPadStick.calcRefreshInterval(scrollPadStick.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
+		}
 
 		scrollPadStick.Unlock()
 

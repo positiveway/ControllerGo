@@ -59,8 +59,14 @@ func MakePosition(x, y float64) *Position {
 }
 
 func (pos *Position) Reset() {
-	pos.x = gofuncs.NaN()
-	pos.y = gofuncs.NaN()
+	switch Cfg.ControllerInUse {
+	case SteamController:
+		pos.x = gofuncs.NaN()
+		pos.y = gofuncs.NaN()
+	case DualShock:
+		pos.x = 0
+		pos.y = 0
+	}
 }
 
 func (pos *Position) Update(newPos *Position) {
@@ -112,9 +118,13 @@ func calcRawResolvedAngle(x, y float64) float64 {
 }
 
 func (pos *Position) CalcTransformedPos(rotationShift float64) (*Position, int, float64) {
-	magnitude := calcDistance(pos.x, pos.y)
-	shiftedAngle := resolveCircleAngle(calcRawAngle(pos.x, pos.y) + rotationShift)
-	return MakePosition(pos.x, pos.y), shiftedAngle, magnitude
+	x, y := pos.x, pos.y
+
+	magnitude := calcDistance(x, y)
+	shiftedAngle := resolveCircleAngle(calcRawAngle(x, y) + rotationShift)
+	transformedPos := MakePosition(x, y)
+
+	return transformedPos, shiftedAngle, magnitude
 }
 
 type PadStickPosition struct {
@@ -218,18 +228,12 @@ func (pad *PadStickPosition) convertRange(input, outputMax float64) float64 {
 	}
 
 	inputMin := Cfg.StickDeadzoneDS
-
-	output := Cfg.OutputMin + ((outputMax-Cfg.OutputMin)/(pad.radius-inputMin))*(input-inputMin)
+	output := Cfg.OutputMin + (outputMax-Cfg.OutputMin)/(pad.radius-inputMin)*(input-inputMin)
 	return gofuncs.ApplySign(isNegative, output)
 }
 
 func (pad *PadStickPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
 	input = math.Abs(input)
-
-	//TODO: Check
-	if input == 0 {
-		return gofuncs.NumberToMillis(fastestInterval)
-	}
 
 	refreshInterval := pad.convertRange(input, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - refreshInterval
