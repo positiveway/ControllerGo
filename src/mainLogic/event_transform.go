@@ -85,17 +85,21 @@ func (event *EventT) transformStickToDPadSC() {
 	event.btnOrAxis = BtnUnknown
 }
 
-func (event *EventT) applyDeadzoneDS() {
+func (event *EventT) applyDeadzoneDS() bool {
 	if event.eventType == EvAxisChanged {
 		switch event.btnOrAxis {
-		case AxisLeftPadX, AxisLeftPadY, AxisRightPadStickX, AxisRightPadStickY:
+		case AxisLeftStickX, AxisLeftStickY, AxisRightPadStickX, AxisRightPadStickY:
 			event.value = applyDeadzone(event.value)
+			if event.value == 0 {
+				return true
+			}
 		}
 	}
+	return false
 }
 
 func (event *EventT) transformAndFilter() {
-	//printDebug("Before: ")
+	//gofuncs.Print("Before: ")
 	//Event.print()
 
 	switch event.eventType {
@@ -111,14 +115,14 @@ func (event *EventT) transformAndFilter() {
 		event.transformToWingsSC()
 		event.transformStickToDPadSC()
 	case DualShock:
-		event.applyDeadzoneDS()
+		if event.applyDeadzoneDS() {
+			return
+		}
 	}
 
 	if event.btnOrAxis == BtnUnknown {
 		return
 	}
-
-	//printDebug("After: ")
 
 	matchEvent()
 }

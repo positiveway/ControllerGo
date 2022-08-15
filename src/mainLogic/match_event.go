@@ -8,11 +8,18 @@ func axisChanged() {
 		LeftPad.SetX()
 	case AxisLeftPadY:
 		LeftPad.SetY()
+
 	case AxisRightPadStickX:
 		RightPadStick.SetX()
 	case AxisRightPadStickY:
 		RightPadStick.SetY()
+
+	case AxisLeftStickX:
+		LeftStick.SetX()
+	case AxisLeftStickY:
+		LeftStick.SetY()
 	}
+
 	TypeLetter()
 }
 
@@ -20,8 +27,12 @@ func padReleased() {
 	switch Event.btnOrAxis {
 	case AxisLeftPadX, AxisLeftPadY:
 		LeftPad.Reset()
+
 	case AxisRightPadStickX, AxisRightPadStickY:
 		RightPadStick.Reset()
+
+	case AxisLeftStickX, AxisLeftStickY:
+		LeftStick.Reset()
 	}
 }
 
@@ -34,6 +45,7 @@ func gamepadDisconnected() {
 }
 
 func matchEvent() {
+	//gofuncs.Print("After: ")
 	Event.print()
 
 	switch Event.eventType {
