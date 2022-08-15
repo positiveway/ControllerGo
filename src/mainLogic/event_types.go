@@ -25,17 +25,6 @@ const (
 	CodeRightWingSC CodeT = 337
 )
 
-var UnknownCodesResolvingMapSC = map[CodeT]BtnOrAxisT{
-	//CodeStickXSC:    AxisLeftStickX,
-	//CodeStickYSC:    AxisLeftStickY,
-	//CodeLeftPadXSC:  AxisLeftPadX,
-	//CodeLeftPadYSC:  AxisLeftPadY,
-	//CodeRightPadXSC: AxisRightPadStickX,
-	//CodeRightPadYSC: AxisRightPadStickY,
-	CodeLeftWingSC:  BtnLeftWingSC,
-	CodeRightWingSC: BtnRightWingSC,
-}
-
 type BtnOrAxisT string
 
 const HoldSuffix = "_Hold"
@@ -49,8 +38,6 @@ func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 }
 
 type BtnAxisMapT map[uint8]BtnOrAxisT
-
-var BtnAxisMap BtnAxisMapT
 
 func genBtnAxisMap() BtnAxisMapT {
 	mapping := BtnAxisMapT{}
@@ -69,17 +56,6 @@ const (
 	AxisUnknown  BtnOrAxisT = "Unknown"
 )
 
-var (
-	AxisLeftStickX,
-	AxisLeftStickY,
-	AxisLeftStickZ,
-	AxisRightPadStickX,
-	AxisRightPadStickY,
-	AxisRightPadStickZ BtnOrAxisT
-)
-
-var _AxisMap BtnAxisMapT
-
 func initAxisMap() {
 	_AxisMap = BtnAxisMapT{
 		'u': AxisLeftStickX,
@@ -91,6 +67,17 @@ func initAxisMap() {
 		'0': AxisLeftPadX,
 		'1': AxisLeftPadY,
 		'2': AxisUnknown,
+	}
+}
+
+func initPadAndStickAxes() {
+	PadAndStickAxes = []BtnOrAxisT{
+		AxisLeftPadX,
+		AxisLeftPadY,
+		AxisRightPadStickX,
+		AxisRightPadStickY,
+		AxisLeftStickX,
+		AxisLeftStickY,
 	}
 }
 
@@ -140,31 +127,63 @@ func initEventTypes() {
 		BtnDPadRight = "DPadRight"
 	}
 
-	initAxisMap()
-	initAvailableButtons()
-	initBtnMap()
-	BtnAxisMap = genBtnAxisMap()
+	initButtonsAndAxesFullSequence()
 }
 
-var (
-	BtnLeftStick,
-	BtnRightPadStick BtnOrAxisT
+func initButtonsAndAxesFullSequence() {
+	//event types
+	initEventTypeMap()
 
-	BtnLeftWingSC,
-	BtnRightWingSC BtnOrAxisT
+	//axis
+	initAxisMap()
+	initPadAndStickAxes()
 
-	BtnStickUpSC,
-	BtnStickDownSC,
-	BtnStickLeftSC,
-	BtnStickRightSC BtnOrAxisT
+	//buttons
+	BtnSynonyms = genBtnSynonyms()
+	initStickZoneBtnMap()
+	initAvailableButtons()
+	initBtnMap()
+	initUnknownCodesMapSC()
 
-	BtnDPadUp,
-	BtnDPadDown,
-	BtnDPadLeft,
-	BtnDPadRight BtnOrAxisT
-)
+	//axis and buttons
+	BtnAxisMap = genBtnAxisMap()
 
-var AllAvailableButtons []BtnOrAxisT
+}
+
+func initEventTypeMap() {
+	EventTypeMap = map[uint8]EventTypeT{
+		'a': EvAxisChanged,
+		'b': EvButtonChanged,
+		'c': EvButtonReleased,
+		'd': EvButtonPressed,
+		'e': EvButtonRepeated,
+		'f': EvConnected,
+		'g': EvDisconnected,
+		'h': EvDropped,
+	}
+}
+
+func initUnknownCodesMapSC() {
+	UnknownCodesResolvingMapSC = map[CodeT]BtnOrAxisT{
+		//CodeStickXSC:    AxisLeftStickX,
+		//CodeStickYSC:    AxisLeftStickY,
+		//CodeLeftPadXSC:  AxisLeftPadX,
+		//CodeLeftPadYSC:  AxisLeftPadY,
+		//CodeRightPadXSC: AxisRightPadStickX,
+		//CodeRightPadYSC: AxisRightPadStickY,
+		CodeLeftWingSC:  BtnLeftWingSC,
+		CodeRightWingSC: BtnRightWingSC,
+	}
+}
+
+func initStickZoneBtnMap() {
+	StickZoneToBtnMapSC = map[Zone]BtnOrAxisT{
+		ZoneRight: BtnStickRightSC,
+		ZoneUp:    BtnStickUpSC,
+		ZoneLeft:  BtnStickLeftSC,
+		ZoneDown:  BtnStickDownSC,
+	}
+}
 
 func initAvailableButtons() {
 	_availableButtons := []BtnOrAxisT{
@@ -205,8 +224,6 @@ func initAvailableButtons() {
 		}
 	}
 }
-
-var _BtnMap BtnAxisMapT
 
 func initBtnMap() {
 	_BtnMap = BtnAxisMapT{
@@ -267,8 +284,6 @@ func genBtnSynonyms() Synonyms {
 	return synonyms
 }
 
-var BtnSynonyms = genBtnSynonyms()
-
 type EventTypeT string
 
 const (
@@ -282,14 +297,3 @@ const (
 	EvDropped        EventTypeT = "Dropped"
 	EvPadReleased    EventTypeT = "PadReleased"
 )
-
-var EventTypeMap = map[uint8]EventTypeT{
-	'a': EvAxisChanged,
-	'b': EvButtonChanged,
-	'c': EvButtonReleased,
-	'd': EvButtonPressed,
-	'e': EvButtonRepeated,
-	'f': EvConnected,
-	'g': EvDisconnected,
-	'h': EvDropped,
-}

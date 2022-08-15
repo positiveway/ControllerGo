@@ -162,10 +162,6 @@ func (pad *PadStickPosition) Reset() {
 	pad.ReCalculateValues()
 }
 
-func (pad *PadStickPosition) UpdatePrevMousePos() {
-	pad.prevMousePos.Update(pad.transformedPos)
-}
-
 func calcRadius(magnitude float64) float64 {
 	return gofuncs.Max(magnitude, Cfg.MinStandardPadRadius)
 }

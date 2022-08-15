@@ -5,15 +5,6 @@ import (
 	"strconv"
 )
 
-var PadAndStickAxes = []BtnOrAxisT{
-	AxisLeftPadX,
-	AxisLeftPadY,
-	AxisRightPadStickX,
-	AxisRightPadStickY,
-	AxisLeftStickX,
-	AxisLeftStickY,
-}
-
 type EventT struct {
 	eventType EventTypeT
 	btnOrAxis BtnOrAxisT
@@ -47,13 +38,6 @@ func (event *EventT) transformToWingsSC() {
 			event.btnOrAxis = btn
 		}
 	}
-}
-
-var StickZoneToBtnMapSC = map[Zone]BtnOrAxisT{
-	ZoneRight: BtnStickRightSC,
-	ZoneUp:    BtnStickUpSC,
-	ZoneLeft:  BtnStickLeftSC,
-	ZoneDown:  BtnStickDownSC,
 }
 
 var curPressedStickButtonSC BtnOrAxisT
@@ -112,7 +96,7 @@ func (event *EventT) applyDeadzoneDS() {
 
 func (event *EventT) transformAndFilter() {
 	//printDebug("Before: ")
-	Event.print()
+	//Event.print()
 
 	switch event.eventType {
 	case EvButtonPressed, EvButtonReleased:

@@ -34,7 +34,7 @@ func gamepadDisconnected() {
 }
 
 func matchEvent() {
-	//Event.print()
+	Event.print()
 
 	switch Event.eventType {
 	case EvAxisChanged:

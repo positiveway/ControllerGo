@@ -8,7 +8,7 @@ import (
 )
 
 func calcMove(value, prevValue float64) int {
-	if gofuncs.IsNotInit(prevValue) {
+	if gofuncs.AnyNotInit(value, prevValue) {
 		return 0
 	}
 
@@ -23,15 +23,14 @@ func moveMouseSC() {
 		return
 	}
 
-	if gofuncs.AnyNotInit(Cfg.mousePadStick.curPos.x, Cfg.mousePadStick.curPos.y) {
-		return
-	}
+	transformedPos := Cfg.mousePadStick.transformedPos
+	prevMousePos := Cfg.mousePadStick.prevMousePos
 
 	//Cfg.mousePadStick.Lock()
 
-	moveX := calcMove(Cfg.mousePadStick.transformedPos.x, Cfg.mousePadStick.prevMousePos.x)
-	moveY := calcMove(Cfg.mousePadStick.transformedPos.y, Cfg.mousePadStick.prevMousePos.y)
-	RightPadStick.UpdatePrevMousePos()
+	moveX := calcMove(transformedPos.x, prevMousePos.x)
+	moveY := calcMove(transformedPos.y, prevMousePos.y)
+	prevMousePos.Update(transformedPos)
 
 	//Cfg.mousePadStick.Unlock()
 
@@ -76,13 +75,16 @@ func RunScrollThread() {
 			continue
 		}
 
-		Cfg.scrollPadStick.Lock()
+		scrollPadStick := Cfg.scrollPadStick
+		transformedPos := scrollPadStick.transformedPos
 
-		hDir, vDir := getDirections(Cfg.scrollPadStick.transformedPos.x, Cfg.scrollPadStick.transformedPos.y)
+		scrollPadStick.Lock()
 
-		scrollInterval = Cfg.scrollPadStick.calcRefreshInterval(Cfg.scrollPadStick.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
+		hDir, vDir := getDirections(transformedPos.x, transformedPos.y)
 
-		Cfg.scrollPadStick.Unlock()
+		scrollInterval = scrollPadStick.calcRefreshInterval(scrollPadStick.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
+
+		scrollPadStick.Unlock()
 
 		if hDir != 0 {
 			osSpec.ScrollHorizontal(hDir)
