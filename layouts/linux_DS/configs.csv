@@ -7,19 +7,20 @@ TriggerThresholdPct = 7
 holdingThresholdMs = 200
 
 //mouse
-mouseIntervalMs = 0.125
-mouseSpeed = 200
+mouseFastestIntervalMs = 1
+mouseSlowestIntervalMs = 7
+
 mouseEdgeThresholdPct = 95
+
+//scroll
+scrollFastestIntervalMs = 40
+scrollSlowestIntervalMs = 280
 
 //Pads/Stick
 LeftStickRotation = 0
 RightStickRotation = 0
 
 StickDeadzone = 0.11764706
-
-//scroll
-scrollFastestIntervalMs = 40
-scrollSlowestIntervalMs = 280
 
 horizontalScrollThresholdPct = 75
 

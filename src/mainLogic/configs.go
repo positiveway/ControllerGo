@@ -81,6 +81,11 @@ func (c *ConfigsT) setConfigVars() {
 	//Pads/Stick
 	switch c.ControllerInUse {
 	case SteamController:
+		//mouse
+		c.mouseIntervalSC = c.toMillisConfig("mouseIntervalMs")
+		c.mouseSpeedSC = c.toFloatConfig("mouseSpeed")
+
+		//stick
 		c.StickAngleMarginSC = c.toIntConfig("StickAngleMargin")
 		c.StickThresholdSC = c.toPctConfig("StickThresholdPct")
 		c.StickEdgeThresholdSC = c.toPctConfig("StickEdgeThresholdPct")
@@ -91,6 +96,11 @@ func (c *ConfigsT) setConfigVars() {
 			c.StickEdgeThresholdSC)
 
 	case DualShock:
+		//mouse
+		c.mouseFastestIntervalDS = c.toIntToFloatConfig("mouseFastestIntervalMs")
+		c.mouseSlowestIntervalDS = c.toIntToFloatConfig("mouseSlowestIntervalMs")
+
+		//stick
 		c.StickDeadzoneDS = c.toFloatConfig("StickDeadzone")
 	}
 
@@ -100,8 +110,6 @@ func (c *ConfigsT) setConfigVars() {
 	c.holdingThreshold = c.toMillisConfig("holdingThresholdMs")
 
 	//mouse
-	c.mouseInterval = c.toMillisConfig("mouseIntervalMs")
-	c.mouseSpeed = c.toFloatConfig("mouseSpeed")
 	c.mouseEdgeThreshold = c.toPctConfig("mouseEdgeThresholdPct")
 
 	//scroll
@@ -138,20 +146,24 @@ type ConfigsT struct {
 	holdingThreshold    time.Duration
 
 	// mouse
-	mouseInterval      time.Duration
-	mouseSpeed         float64
+	mouseFastestIntervalDS, mouseSlowestIntervalDS float64
+
+	mouseIntervalSC time.Duration
+	mouseSpeedSC    float64
+
 	mouseEdgeThreshold float64
 
+	// scroll
+	scrollFastestInterval, scrollSlowestInterval float64
+	horizontalScrollThreshold                    float64
+
+	//stick
 	StickAngleMarginSC                     int
 	StickThresholdSC, StickEdgeThresholdSC float64
 
 	StickBoundariesMapSC ZoneBoundariesMap
 
 	StickDeadzoneDS float64
-
-	// scroll
-	scrollFastestInterval, scrollSlowestInterval float64
-	horizontalScrollThreshold                    float64
 
 	// typing
 	TypingStraightAngleMargin, TypingDiagonalAngleMargin int

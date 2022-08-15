@@ -13,7 +13,7 @@ func calcMove(value, prevValue float64) int {
 	}
 
 	diff := value - prevValue
-	pixels := gofuncs.FloatToIntRound[int](diff * Cfg.mouseSpeed)
+	pixels := gofuncs.FloatToIntRound[int](diff * Cfg.mouseSpeedSC)
 
 	return pixels
 }
@@ -26,23 +26,54 @@ func moveMouseSC() {
 	transformedPos := Cfg.mousePadStick.transformedPos
 	prevMousePos := Cfg.mousePadStick.prevMousePos
 
-	//Cfg.mousePadStick.Lock()
-
 	moveX := calcMove(transformedPos.x, prevMousePos.x)
 	moveY := calcMove(transformedPos.y, prevMousePos.y)
 	prevMousePos.Update(transformedPos)
-
-	//Cfg.mousePadStick.Unlock()
 
 	if moveX != 0 || moveY != 0 {
 		osSpec.MoveMouse(moveX, moveY)
 	}
 }
 
-func RunMouseThreadDS() {
-	ticker := time.NewTicker(Cfg.mouseInterval)
-	for range ticker.C {
-		//moveMouseSC()
+func moveMouseDS(input float64, isX bool) {
+	mouseMoveInterval := gofuncs.NumberToMillis(Cfg.mouseFastestIntervalDS)
+
+	if Cfg.PadsSticksMode.GetMode() == TypingMode {
+		time.Sleep(mouseMoveInterval)
+	}
+
+	mousePadStick := Cfg.mousePadStick
+
+	mousePadStick.Lock()
+
+	if input != 0 {
+		moveMouse := gofuncs.SignAsInt(input)
+		mouseMoveInterval = mousePadStick.calcRefreshInterval(input, Cfg.mouseSlowestIntervalDS, Cfg.mouseFastestIntervalDS)
+		if isX {
+			osSpec.MoveMouse(moveMouse, 0)
+		} else {
+			osSpec.MoveMouse(0, moveMouse)
+		}
+	}
+
+	mousePadStick.Unlock()
+
+	time.Sleep(mouseMoveInterval)
+}
+
+func RunMouseThreadXDS() {
+	for {
+		transformedPos := Cfg.mousePadStick.transformedPos
+
+		moveMouseDS(transformedPos.x, true)
+	}
+}
+
+func RunMouseThreadYDS() {
+	for {
+		transformedPos := Cfg.mousePadStick.transformedPos
+
+		moveMouseDS(transformedPos.y, false)
 	}
 }
 

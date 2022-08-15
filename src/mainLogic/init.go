@@ -36,7 +36,11 @@ func RunMain() {
 	defer osSpec.CloseInputResources()
 	defer releaseAll()
 
-	//go RunMouseThreadDS()
+	switch Cfg.ControllerInUse {
+	case DualShock:
+		go RunMouseThreadXDS()
+		go RunMouseThreadYDS()
+	}
 	go RunScrollThread()
 	go RunReleaseHoldThread()
 	go RunGameMovementThread()
