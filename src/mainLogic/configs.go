@@ -27,8 +27,8 @@ func (c *ConfigsT) toControllerCfg() ControllerInUseT {
 }
 
 func (c *ConfigsT) toPadsSticksModeCfg() *PadsSticksMode {
-	allModes := []ModeType{MouseMode, GamingMode}
-	modeType := ModeType(c.getConfig("PadsSticksMode"))
+	allModes := []ModeT{MouseMode, GamingMode}
+	modeType := ModeT(c.getConfig("PadsSticksMode"))
 	checkEnumCfg(allModes, modeType)
 	return MakePadsSticksMode(modeType)
 }
@@ -41,21 +41,17 @@ func (c *ConfigsT) setConfigConstants() {
 }
 
 func (c *ConfigsT) initTouchpads() {
-	LeftPad = MakePadPosition()
-	RightPadStick = MakePadPosition()
-	LeftStick = MakePadPosition()
-
 	switch c.ControllerInUse {
 	case SteamController:
-		RightPadStick.zoneRotation = c.toFloatConfig("RightPadRotation")
-		LeftStick.zoneRotation = c.toFloatConfig("StickRotation")
-		LeftPad.zoneRotation = c.toFloatConfig("LeftPadRotation")
+		RightPadStick = MakePadPosition(c.toFloatConfig("RightPadRotation"))
+		LeftStick = MakePadPosition(c.toFloatConfig("StickRotation"))
+		LeftPad = MakePadPosition(c.toFloatConfig("LeftPadRotation"))
 
 		c.mousePadStick = RightPadStick
 		c.scrollPadStick = LeftPad
 	case DualShock:
-		RightPadStick.zoneRotation = c.toFloatConfig("RightStickRotation")
-		LeftStick.zoneRotation = c.toFloatConfig("LeftStickRotation")
+		RightPadStick = MakePadPosition(c.toFloatConfig("RightStickRotation"))
+		LeftStick = MakePadPosition(c.toFloatConfig("LeftStickRotation"))
 
 		c.mousePadStick = RightPadStick
 		c.scrollPadStick = LeftStick
@@ -76,6 +72,10 @@ func (c *ConfigsT) setConfigVars() {
 	//Mode
 	c.PadsSticksMode = c.toPadsSticksModeCfg()
 
+	//mouse/scroll
+	c.MouseAllowedMods = []ModeT{MouseMode, GamingMode}
+	c.ScrollAllowedMods = []ModeT{MouseMode}
+
 	//c.mouseOnRightStickPad = c.toBoolConfig("mouseOnRightStickPad")
 
 	//Pads/Stick
@@ -86,19 +86,21 @@ func (c *ConfigsT) setConfigVars() {
 		c.mouseSpeedSC = c.toFloatConfig("mouseSpeed")
 
 		//stick
-		c.StickAngleMarginSC = c.toIntConfig("StickAngleMargin")
-		c.StickThresholdSC = c.toPctConfig("StickThresholdPct")
-		c.StickEdgeThresholdSC = c.toPctConfig("StickEdgeThresholdPct")
+		stickAngleMarginSC := c.toIntConfig("StickAngleMargin")
+		stickThresholdSC := c.toPctConfig("StickThresholdPct")
+		stickEdgeThresholdSC := c.toPctConfig("StickEdgeThresholdPct")
 
+		//init Stick map
 		c.StickBoundariesMapSC = genEqualThresholdBoundariesMap(false,
-			makeAngleMargin(0, c.StickAngleMarginSC, c.StickAngleMarginSC),
-			c.StickThresholdSC,
-			c.StickEdgeThresholdSC)
+			makeAngleMargin(0, stickAngleMarginSC, stickAngleMarginSC),
+			stickThresholdSC,
+			stickEdgeThresholdSC)
 
 	case DualShock:
 		//mouse
-		c.mouseFastestIntervalDS = c.toIntToFloatConfig("mouseFastestIntervalMs")
-		c.mouseSlowestIntervalDS = c.toIntToFloatConfig("mouseSlowestIntervalMs")
+		c.mouseIntervalsDS = MakeRepetitionIntervals(
+			c.toIntToFloatConfig("mouseSlowestIntervalMs"),
+			c.toIntToFloatConfig("mouseFastestIntervalMs"))
 
 		//stick
 		c.StickDeadzoneDS = c.toFloatConfig("StickDeadzone")
@@ -113,10 +115,11 @@ func (c *ConfigsT) setConfigVars() {
 	c.mouseEdgeThreshold = c.toPctConfig("mouseEdgeThresholdPct")
 
 	//scroll
-	c.scrollFastestInterval = c.toIntToFloatConfig("scrollFastestIntervalMs")
-	c.scrollSlowestInterval = c.toIntToFloatConfig("scrollSlowestIntervalMs")
+	c.scrollIntervals = MakeRepetitionIntervals(
+		c.toIntToFloatConfig("scrollSlowestIntervalMs"),
+		c.toIntToFloatConfig("scrollFastestIntervalMs"))
 
-	c.horizontalScrollThreshold = c.toPctConfig("horizontalScrollThresholdPct")
+	c.scrollHorizontalThreshold = c.toPctConfig("scrollHorizontalThresholdPct")
 
 	//typing
 	c.TypingStraightAngleMargin = c.toIntConfig("TypingStraightAngleMargin")
@@ -146,7 +149,9 @@ type ConfigsT struct {
 	holdingThreshold    time.Duration
 
 	// mouse
-	mouseFastestIntervalDS, mouseSlowestIntervalDS float64
+	MouseAllowedMods []ModeT
+
+	mouseIntervalsDS *RepetitionIntervals
 
 	mouseIntervalSC time.Duration
 	mouseSpeedSC    float64
@@ -154,13 +159,12 @@ type ConfigsT struct {
 	mouseEdgeThreshold float64
 
 	// scroll
-	scrollFastestInterval, scrollSlowestInterval float64
-	horizontalScrollThreshold                    float64
+	ScrollAllowedMods []ModeT
+
+	scrollIntervals           *RepetitionIntervals
+	scrollHorizontalThreshold float64
 
 	//stick
-	StickAngleMarginSC                     int
-	StickThresholdSC, StickEdgeThresholdSC float64
-
 	StickBoundariesMapSC ZoneBoundariesMap
 
 	StickDeadzoneDS float64

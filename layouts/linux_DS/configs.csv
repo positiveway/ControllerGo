@@ -16,13 +16,13 @@ mouseEdgeThresholdPct = 95
 scrollFastestIntervalMs = 40
 scrollSlowestIntervalMs = 280
 
+scrollHorizontalThresholdPct = 65
+
 //Pads/Stick
 LeftStickRotation = 0
 RightStickRotation = 0
 
 StickDeadzone = 0.11764706
-
-horizontalScrollThresholdPct = 75
 
 //typing
 TypingStraightAngleMargin = 21

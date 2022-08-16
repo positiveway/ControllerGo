@@ -35,53 +35,101 @@ func moveMouseSC() {
 	}
 }
 
-func moveMouseDS(input float64, isX bool) {
-	mouseMoveInterval := gofuncs.NumberToMillis(Cfg.mouseFastestIntervalDS)
+//func RepetitionsToInterval(repetitions float64) float64 {
+//	return 1000 / repetitions
+//}
 
-	if Cfg.PadsSticksMode.GetMode() == TypingMode {
-		time.Sleep(mouseMoveInterval)
-	}
+type MoveByPixelFunc = func(moveByPixel int, isX bool)
+type FilterMoveFunc = func(input float64, isX bool, padStick *PadStickPosition) float64
 
-	mousePadStick := Cfg.mousePadStick
+func moveInInterval(isX bool,
+	padStick *PadStickPosition, position *Position,
+	repetitionIntervals *RepetitionIntervals,
+	allowedModes []ModeT, filterFunc FilterMoveFunc, moveFunc MoveByPixelFunc) {
 
-	mousePadStick.Lock()
+	for {
+		//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
+		//fastestInterval :=RepetitionsToInterval(maxRepetitionPerSec)
 
-	if input != 0 {
-		moveMouse := gofuncs.SignAsInt(input)
-		mouseMoveInterval = mousePadStick.calcRefreshInterval(input, Cfg.mouseSlowestIntervalDS, Cfg.mouseFastestIntervalDS)
-		if isX {
-			osSpec.MoveMouse(moveMouse, 0)
-		} else {
-			osSpec.MoveMouse(0, moveMouse)
+		moveInterval := gofuncs.NumberToMillis(repetitionIntervals.fastest)
+
+		if gofuncs.Contains(allowedModes, Cfg.PadsSticksMode.GetMode()) {
+			padStick.Lock()
+
+			var input float64
+			if isX {
+				input = position.x
+			} else {
+				input = position.y
+			}
+
+			if filterFunc != nil {
+				input = filterFunc(input, isX, padStick)
+			}
+
+			if !gofuncs.IsNotInitOrEmpty(input) {
+				moveByPixel := gofuncs.SignAsInt(input)
+				moveInterval = padStick.calcRefreshInterval(input, repetitionIntervals.slowest, repetitionIntervals.fastest)
+				moveFunc(moveByPixel, isX)
+			}
+
+			padStick.Unlock()
 		}
-	}
-
-	mousePadStick.Unlock()
-
-	time.Sleep(mouseMoveInterval)
-}
-
-func RunMouseThreadXDS() {
-	for {
-		transformedPos := Cfg.mousePadStick.transformedPos
-
-		moveMouseDS(transformedPos.x, true)
+		time.Sleep(moveInterval)
 	}
 }
 
-func RunMouseThreadYDS() {
-	for {
-		transformedPos := Cfg.mousePadStick.transformedPos
+func runMoveThreads(padStick *PadStickPosition, position *Position,
+	repetitionIntervals *RepetitionIntervals,
+	allowedModes []ModeT, filterFunc FilterMoveFunc, moveFunc MoveByPixelFunc) {
 
-		moveMouseDS(transformedPos.y, false)
+	go moveInInterval(true, padStick, position, repetitionIntervals, allowedModes, filterFunc, moveFunc)
+	go moveInInterval(false, padStick, position, repetitionIntervals, allowedModes, filterFunc, moveFunc)
+}
+
+func moveMouseByPixelDS(moveByPixel int, isX bool) {
+	if isX {
+		osSpec.MoveMouse(moveByPixel, 0)
+	} else {
+		osSpec.MoveMouse(0, moveByPixel)
 	}
+}
+
+func RunMouseThreadsDS() {
+	mousePadStick := Cfg.mousePadStick
+	transformedPos := mousePadStick.transformedPos
+
+	runMoveThreads(mousePadStick, transformedPos, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
+}
+
+func moveScrollByPixel(moveByPixel int, isX bool) {
+	if isX {
+		osSpec.ScrollHorizontal(moveByPixel)
+	} else {
+		osSpec.ScrollVertical(moveByPixel)
+	}
+}
+
+func filterScrollHorizontal(input float64, isX bool, padStick *PadStickPosition) float64 {
+	if isX && gofuncs.Abs(input) <= Cfg.scrollHorizontalThreshold*padStick.radius {
+		input = 0
+	}
+	return input
+}
+
+func RunScrollThreads() {
+	scrollPadStick := Cfg.scrollPadStick
+	transformedPos := scrollPadStick.transformedPos
+
+	runMoveThreads(scrollPadStick, transformedPos, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
+
 }
 
 func getDirection(val float64, horizontal bool) int {
 	if gofuncs.IsNotInit(val) {
 		return 0
 	}
-	if horizontal && math.Abs(val) < Cfg.horizontalScrollThreshold {
+	if horizontal && math.Abs(val) < Cfg.scrollHorizontalThreshold {
 		return 0
 	}
 	return gofuncs.SignAsInt(val)
@@ -95,37 +143,4 @@ func getDirections(x, y float64) (int, int) {
 		vDir = 0
 	}
 	return hDir, vDir
-}
-
-func RunScrollThread() {
-	for {
-		scrollInterval := gofuncs.NumberToMillis(Cfg.scrollFastestInterval)
-
-		if Cfg.PadsSticksMode.GetMode() != MouseMode {
-			time.Sleep(scrollInterval)
-			continue
-		}
-
-		scrollPadStick := Cfg.scrollPadStick
-		transformedPos := scrollPadStick.transformedPos
-
-		scrollPadStick.Lock()
-
-		hDir, vDir := getDirections(transformedPos.x, transformedPos.y)
-
-		if scrollPadStick.magnitude != 0 {
-			scrollInterval = scrollPadStick.calcRefreshInterval(scrollPadStick.magnitude, Cfg.scrollSlowestInterval, Cfg.scrollFastestInterval)
-		}
-
-		scrollPadStick.Unlock()
-
-		if hDir != 0 {
-			osSpec.ScrollHorizontal(hDir)
-		}
-		if vDir != 0 {
-			osSpec.ScrollVertical(vDir)
-		}
-
-		time.Sleep(scrollInterval)
-	}
 }

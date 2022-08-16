@@ -11,22 +11,22 @@ mouseIntervalMs = 0.125
 mouseSpeed = 200
 mouseEdgeThresholdPct = 95
 
+//scroll
+scrollFastestIntervalMs = 40
+scrollSlowestIntervalMs = 280
+
+scrollHorizontalThresholdPct = 65
+
 //Pads/Stick
 LeftPadRotation = -10
 RightPadRotation = 12
 StickRotation = 0
 
 StickAngleMargin = 40
-StickThresholdPct = 35
+StickThresholdPct = 25
 StickEdgeThresholdPct = 100
 
 StickDeadzone = 0.0
-
-//scroll
-scrollFastestIntervalMs = 40
-scrollSlowestIntervalMs = 280
-
-horizontalScrollThresholdPct = 75
 
 //typing
 TypingStraightAngleMargin = 21

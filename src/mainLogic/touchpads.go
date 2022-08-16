@@ -7,20 +7,20 @@ import (
 	"time"
 )
 
-type ModeType string
+type ModeT string
 
 const (
-	TypingMode ModeType = "Typing"
-	MouseMode  ModeType = "Mouse"
-	GamingMode ModeType = "Gaming"
+	TypingMode ModeT = "Typing"
+	MouseMode  ModeT = "Mouse"
+	GamingMode ModeT = "Gaming"
 )
 
 type PadsSticksMode struct {
-	currentMode, defaultMode ModeType
+	currentMode, defaultMode ModeT
 	lock                     sync.Mutex
 }
 
-func MakePadsSticksMode(defaultMode ModeType) *PadsSticksMode {
+func MakePadsSticksMode(defaultMode ModeT) *PadsSticksMode {
 	return &PadsSticksMode{currentMode: defaultMode, defaultMode: defaultMode}
 }
 
@@ -35,7 +35,7 @@ func (mode *PadsSticksMode) SwitchMode() {
 	}
 }
 
-func (mode *PadsSticksMode) GetMode() ModeType {
+func (mode *PadsSticksMode) GetMode() ModeT {
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
 
@@ -70,7 +70,11 @@ func (pos *Position) Reset() {
 }
 
 func (pos *Position) Update(newPos *Position) {
-	pos.x, pos.y = newPos.x, newPos.y
+	pos.UpdateRaw(newPos.x, newPos.y)
+}
+
+func (pos *Position) UpdateRaw(x, y float64) {
+	pos.x, pos.y = x, y
 }
 
 func (pos *Position) GetCopy() *Position {
@@ -143,7 +147,7 @@ type PadStickPosition struct {
 	//normalizedMagnitude
 }
 
-func MakePadPosition() *PadStickPosition {
+func MakePadPosition(zoneRotation float64) *PadStickPosition {
 	pad := PadStickPosition{}
 
 	pad.curPos = MakeEmptyPosition()
@@ -152,7 +156,7 @@ func MakePadPosition() *PadStickPosition {
 
 	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
-	pad.zoneRotation = gofuncs.NaN()
+	pad.zoneRotation = zoneRotation
 	pad.Reset()
 
 	return &pad
@@ -177,10 +181,16 @@ func calcRadius(magnitude float64) float64 {
 }
 
 func (pad *PadStickPosition) ReCalculateValues() {
+	//never assign position (pointer field) directly
+	var _transformedPos *Position
+
 	pad.newValueHandled = false
 
-	pad.transformedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcTransformedPos(pad.zoneRotation)
+	_transformedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcTransformedPos(pad.zoneRotation)
+	pad.transformedPos.Update(_transformedPos)
+
 	pad.radius = calcRadius(pad.magnitude)
+
 	//pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible(pad.radius))
 }
 
