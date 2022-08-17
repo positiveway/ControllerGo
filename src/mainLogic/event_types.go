@@ -95,6 +95,7 @@ func initEventTypes() {
 		AxisRightPadStickZ = "RightPadZ"
 
 		//buttons
+		BtnLeftPad = "LeftPad"
 		BtnLeftStick = "Stick"
 		BtnRightPadStick = "RightPad"
 
@@ -267,7 +268,6 @@ const (
 	BtnSelect       BtnOrAxisT = "Select"
 	BtnStart        BtnOrAxisT = "Start"
 	BtnMode         BtnOrAxisT = "Mode"
-	BtnLeftPad      BtnOrAxisT = "LeftPad"
 
 	BtnUnknown BtnOrAxisT = "BtnUnknown"
 )

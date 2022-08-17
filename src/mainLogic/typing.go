@@ -23,18 +23,18 @@ func loadTypingLayout() TypingLayout {
 
 	layout := TypingLayout{}
 	for _, parts := range linesParts {
-		leftStick, rightStick, letter := Zone(parts[0]), Zone(parts[1]), parts[2]
-		if !gofuncs.Contains(AllZones, leftStick) {
-			gofuncs.PanicMisspelled(leftStick)
+		leftPadStickZone, rightPadStickZone, letter := Zone(parts[0]), Zone(parts[1]), parts[2]
+		if !gofuncs.Contains(AllZones, leftPadStickZone) {
+			gofuncs.PanicMisspelled(leftPadStickZone)
 		}
-		if !gofuncs.Contains(AllZones, rightStick) {
-			gofuncs.PanicMisspelled(rightStick)
+		if !gofuncs.Contains(AllZones, rightPadStickZone) {
+			gofuncs.PanicMisspelled(rightPadStickZone)
 		}
 		if letter == NoneStr {
 			continue
 		}
 		code := getCodeFromLetter(letter)
-		position := SticksPosition{leftStick, rightStick}
+		position := SticksPosition{leftPadStickZone, rightPadStickZone}
 		gofuncs.AssignWithDuplicateCheck(layout, position, code)
 	}
 	return layout

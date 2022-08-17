@@ -22,6 +22,7 @@ var _AxisMap BtnAxisMapT
 var PadAndStickAxes []BtnOrAxisT
 
 var (
+	BtnLeftPad,
 	BtnLeftStick,
 	BtnRightPadStick BtnOrAxisT
 
