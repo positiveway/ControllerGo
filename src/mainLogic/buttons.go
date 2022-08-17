@@ -110,6 +110,24 @@ func getPressCommand(btn BtnOrAxisT, hold bool) Command {
 	return pressCommandsLayout[btn]
 }
 
+func getFirstCmdSymbol(command Command) int {
+	return command[0]
+}
+
+func isSwitchModeCmd(command Command) bool {
+	if isEmptyCmd(command) {
+		return false
+	}
+	return getFirstCmdSymbol(command) == SwitchMode
+}
+
+func isEscLetterCode(command Command) bool {
+	if isEmptyCmd(command) {
+		return false
+	}
+	return getFirstCmdSymbol(command) == EscLetterCode
+}
+
 func pressButton(btn BtnOrAxisT, hold bool) {
 	if cmdWithTime, found := buttonsToRelease.CheckAndGet(btn); found {
 		if cmdWithTime.alreadyPressed {
@@ -118,19 +136,16 @@ func pressButton(btn BtnOrAxisT, hold bool) {
 	}
 
 	command := getPressCommand(btn, hold)
-	//if isEmptyCmd(command) {
-	//	return
-	//}
+	if isEmptyCmd(command) {
+		return
+	}
 
-	firstCmdSymbol := command[0]
-	switch firstCmdSymbol {
-	case SwitchMode:
+	if isSwitchModeCmd(command) {
 		PutButton(btn, nil, true)
 		// don't do release all
 		Cfg.PadsSticksMode.SwitchMode()
 		return
-
-	case EscLetter:
+	} else if isEscLetterCode(command) {
 		releaseAll()
 	}
 
@@ -155,9 +170,14 @@ func releaseButton(btn BtnOrAxisT) {
 	cmdWithTime := buttonsToRelease.Pop(btn)
 	command := cmdWithTime.command
 
-	//if isEmptyCmd(command) {
-	//	return
-	//}
+	if isEmptyCmd(command) {
+		return
+	}
+
+	if isSwitchModeCmd(command) {
+		return
+	}
+
 	releaseSequence(command)
 }
 

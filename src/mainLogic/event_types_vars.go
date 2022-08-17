@@ -5,9 +5,13 @@ var UnknownCodesResolvingMapSC map[CodeT]BtnOrAxisT
 var BtnAxisMap BtnAxisMapT
 
 var (
+	AxisLeftPadX,
+	AxisLeftPadY,
+
 	AxisLeftStickX,
 	AxisLeftStickY,
 	AxisLeftStickZ,
+
 	AxisRightPadStickX,
 	AxisRightPadStickY,
 	AxisRightPadStickZ BtnOrAxisT

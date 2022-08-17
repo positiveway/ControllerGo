@@ -4,20 +4,27 @@ import "github.com/positiveway/gofuncs"
 
 func axisChanged() {
 	switch Event.btnOrAxis {
-	case AxisLeftPadX:
-		LeftPad.SetX()
-	case AxisLeftPadY:
-		LeftPad.SetY()
-
 	case AxisRightPadStickX:
 		RightPadStick.SetX()
 	case AxisRightPadStickY:
 		RightPadStick.SetY()
+	}
 
-	case AxisLeftStickX:
-		LeftStick.SetX()
-	case AxisLeftStickY:
-		LeftStick.SetY()
+	switch Cfg.ControllerInUse {
+	case SteamController:
+		switch Event.btnOrAxis {
+		case AxisLeftPadX:
+			LeftPad.SetX()
+		case AxisLeftPadY:
+			LeftPad.SetY()
+		}
+	case DualShock:
+		switch Event.btnOrAxis {
+		case AxisLeftStickX:
+			LeftStick.SetX()
+		case AxisLeftStickY:
+			LeftStick.SetY()
+		}
 	}
 
 	TypeLetter()
@@ -25,14 +32,21 @@ func axisChanged() {
 
 func padReleased() {
 	switch Event.btnOrAxis {
-	case AxisLeftPadX, AxisLeftPadY:
-		LeftPad.Reset()
-
 	case AxisRightPadStickX, AxisRightPadStickY:
 		RightPadStick.Reset()
+	}
 
-	case AxisLeftStickX, AxisLeftStickY:
-		LeftStick.Reset()
+	switch Cfg.ControllerInUse {
+	case SteamController:
+		switch Event.btnOrAxis {
+		case AxisLeftPadX, AxisLeftPadY:
+			LeftPad.Reset()
+		}
+	case DualShock:
+		switch Event.btnOrAxis {
+		case AxisLeftStickX, AxisLeftStickY:
+			LeftStick.Reset()
+		}
 	}
 }
 

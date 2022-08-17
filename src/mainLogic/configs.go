@@ -49,12 +49,18 @@ func (c *ConfigsT) initTouchpads() {
 
 		c.mousePadStick = RightPadStick
 		c.scrollPadStick = LeftPad
+
+		c.LeftTypingPS = LeftPad
+		c.RightTypingPS = RightPadStick
 	case DualShock:
 		RightPadStick = MakePadPosition(c.toFloatConfig("RightStickRotation"))
 		LeftStick = MakePadPosition(c.toFloatConfig("LeftStickRotation"))
 
 		c.mousePadStick = RightPadStick
 		c.scrollPadStick = LeftStick
+
+		c.LeftTypingPS = LeftStick
+		c.RightTypingPS = RightPadStick
 	}
 }
 
@@ -133,6 +139,7 @@ type ConfigsT struct {
 	mouseOnRightStickPad bool
 
 	mousePadStick, scrollPadStick *PadStickPosition
+	LeftTypingPS, RightTypingPS   *PadStickPosition
 
 	// Math
 	OutputMin            float64

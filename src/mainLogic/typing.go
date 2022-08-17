@@ -51,16 +51,16 @@ func TypeLetter() {
 	if Cfg.PadsSticksMode.GetMode() != TypingMode {
 		return
 	}
-	LeftPad.ReCalculateZone(TypingBoundariesMap)
-	RightPadStick.ReCalculateZone(TypingBoundariesMap)
+	Cfg.LeftTypingPS.ReCalculateZone(TypingBoundariesMap)
+	Cfg.RightTypingPS.ReCalculateZone(TypingBoundariesMap)
 
-	if LeftPad.zoneCanBeUsed && RightPadStick.zoneCanBeUsed {
-		if LeftPad.zoneChanged || RightPadStick.zoneChanged {
-			if !LeftPad.awaitingCentralPosition || !RightPadStick.awaitingCentralPosition {
-				LeftPad.awaitingCentralPosition = true
-				RightPadStick.awaitingCentralPosition = true
+	if Cfg.LeftTypingPS.zoneCanBeUsed && Cfg.RightTypingPS.zoneCanBeUsed {
+		if Cfg.LeftTypingPS.zoneChanged || Cfg.RightTypingPS.zoneChanged {
+			if !Cfg.LeftTypingPS.awaitingCentralPosition || !Cfg.RightTypingPS.awaitingCentralPosition {
+				Cfg.LeftTypingPS.awaitingCentralPosition = true
+				Cfg.RightTypingPS.awaitingCentralPosition = true
 
-				position := SticksPosition{LeftPad.zone, RightPadStick.zone}
+				position := SticksPosition{Cfg.LeftTypingPS.zone, Cfg.RightTypingPS.zone}
 				if code, found := typingLayout[position]; found {
 					osSpec.TypeKey(code)
 				}

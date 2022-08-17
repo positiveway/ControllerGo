@@ -44,9 +44,9 @@ func convertLetterToCodeMapping() {
 	}
 }
 
-var EscLetter int
+var EscLetterCode int
 
 func initCodeMapping() {
 	convertLetterToCodeMapping()
-	EscLetter = getCodeFromLetter("Esc")
+	EscLetterCode = getCodeFromLetter("Esc")
 }

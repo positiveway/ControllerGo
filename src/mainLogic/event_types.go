@@ -51,9 +51,7 @@ func genBtnAxisMap() BtnAxisMapT {
 }
 
 const (
-	AxisLeftPadX BtnOrAxisT = "LeftPadX"
-	AxisLeftPadY BtnOrAxisT = "LeftPadY"
-	AxisUnknown  BtnOrAxisT = "Unknown"
+	AxisUnknown BtnOrAxisT = "Unknown"
 )
 
 func initAxisMap() {
@@ -85,9 +83,13 @@ func initEventTypes() {
 	switch Cfg.ControllerInUse {
 	case SteamController:
 		//axis
+		AxisLeftPadX = "LeftPadX"
+		AxisLeftPadY = "LeftPadY"
+
 		AxisLeftStickX = "StickX"
 		AxisLeftStickY = "StickY"
 		AxisLeftStickZ = "StickZ"
+
 		AxisRightPadStickX = "RightPadX"
 		AxisRightPadStickY = "RightPadY"
 		AxisRightPadStickZ = "RightPadZ"
@@ -113,6 +115,7 @@ func initEventTypes() {
 		AxisLeftStickX = "LeftStickX"
 		AxisLeftStickY = "LeftStickY"
 		AxisLeftStickZ = "LeftStickZ"
+
 		AxisRightPadStickX = "RightStickX"
 		AxisRightPadStickY = "RightStickY"
 		AxisRightPadStickZ = "RightStickZ"
