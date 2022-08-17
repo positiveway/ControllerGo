@@ -64,6 +64,8 @@ func (c *ConfigsT) initTouchpads() {
 	}
 }
 
+const FloatEqualityMargin = 0.000000000000001
+
 func (c *ConfigsT) setConfigVars() {
 	c.ControllerInUse = c.toControllerCfg()
 
@@ -112,10 +114,20 @@ func (c *ConfigsT) setConfigVars() {
 		c.StickDeadzoneDS = c.toFloatConfig("StickDeadzone")
 	}
 
+	switch c.PadsSticksMode.GetMode() {
+	case GamingMode:
+		c.gamingMoveIntervals = MakeRepetitionIntervals(
+			c.toIntToFloatConfig("gamingMoveSlowestMs"),
+			c.toIntToFloatConfig("gamingMoveFastestMs"),
+		)
+	}
+
 	//commands
 	c.holdRefreshInterval = 15 * time.Millisecond
 	c.TriggerThreshold = c.toPctConfig("TriggerThresholdPct")
 	c.holdingThreshold = c.toMillisConfig("holdingThresholdMs")
+
+	//gaming
 
 	//mouse
 	c.mouseEdgeThreshold = c.toPctConfig("mouseEdgeThresholdPct")
@@ -154,6 +166,9 @@ type ConfigsT struct {
 	holdRefreshInterval time.Duration
 	TriggerThreshold    float64
 	holdingThreshold    time.Duration
+
+	//games
+	gamingMoveIntervals *RepetitionIntervals
 
 	// mouse
 	MouseAllowedMods []ModeT

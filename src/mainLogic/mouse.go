@@ -97,9 +97,9 @@ func moveMouseByPixelDS(moveByPixel int, isX bool) {
 
 func RunMouseThreadsDS() {
 	mousePadStick := Cfg.mousePadStick
-	transformedPos := mousePadStick.transformedPos
+	position := mousePadStick.transformedPos
 
-	runMoveThreads(mousePadStick, transformedPos, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
+	runMoveThreads(mousePadStick, position, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
 }
 
 func moveScrollByPixel(moveByPixel int, isX bool) {
@@ -119,9 +119,9 @@ func filterScrollHorizontal(input float64, isX bool, padStick *PadStickPosition)
 
 func RunScrollThreads() {
 	scrollPadStick := Cfg.scrollPadStick
-	transformedPos := scrollPadStick.transformedPos
+	position := scrollPadStick.transformedPos
 
-	runMoveThreads(scrollPadStick, transformedPos, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
+	runMoveThreads(scrollPadStick, position, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
 
 }
 

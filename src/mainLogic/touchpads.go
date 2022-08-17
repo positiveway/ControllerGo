@@ -143,7 +143,7 @@ type PadStickPosition struct {
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
 
-	//fromMaxPossiblePos *Position
+	fromMaxPossiblePos *Position
 	//normalizedMagnitude
 }
 
@@ -154,7 +154,7 @@ func MakePadPosition(zoneRotation float64) *PadStickPosition {
 	pad.prevMousePos = MakeEmptyPosition()
 	pad.transformedPos = MakeEmptyPosition()
 
-	//pad.fromMaxPossiblePos = MakeEmptyPosition()
+	pad.fromMaxPossiblePos = MakeEmptyPosition()
 
 	pad.zoneRotation = zoneRotation
 	pad.Reset()
@@ -171,13 +171,44 @@ func (pad *PadStickPosition) Reset() {
 	pad.prevMousePos.Reset()
 	pad.transformedPos.Reset()
 
-	//pad.fromMaxPossiblePos.Reset()
+	pad.fromMaxPossiblePos.Reset()
 
 	pad.ReCalculateValues()
 }
 
 func calcRadius(magnitude float64) float64 {
 	return gofuncs.Max(magnitude, Cfg.MinStandardPadRadius)
+}
+
+func calcFromMaxPossible(x, y, radius float64) float64 {
+	maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
+	if maxPossibleX == 0 {
+		return 0
+	}
+
+	ratioFromMaxPossible := x / maxPossibleX
+
+	if ratioFromMaxPossible > radius {
+		if ratioFromMaxPossible > radius+FloatEqualityMargin {
+			gofuncs.Panic("Incorrect calculations")
+		}
+		ratioFromMaxPossible = radius
+	}
+	return ratioFromMaxPossible
+}
+
+func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
+	//important to use temp values then assign
+	posFromMaxPossible := MakeEmptyPosition()
+	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
+	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x, radius)
+	if !gofuncs.AnyNotInit(pos.x, pos.y) {
+		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
+		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
+			gofuncs.Panic("Incorrect calculations")
+		}
+	}
+	return posFromMaxPossible
 }
 
 func (pad *PadStickPosition) ReCalculateValues() {
@@ -191,7 +222,7 @@ func (pad *PadStickPosition) ReCalculateValues() {
 
 	pad.radius = calcRadius(pad.magnitude)
 
-	//pad.fromMaxPossiblePos.Update(pad.shiftedPos.CalcFromMaxPossible(pad.radius))
+	pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
 }
 
 func (pad *PadStickPosition) setValue(fieldPointer *float64) {
@@ -264,26 +295,6 @@ func applyDeadzone(value float64) float64 {
 	}
 	return value
 }
-
-//func calcFromMaxPossible(x, y, radius float64) float64 {
-//	maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
-//	ratioFromMaxPossible := x / maxPossibleX
-//	return ratioFromMaxPossible * radius
-//}
-//
-//func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
-//	//important to use temp values then assign
-//	posFromMaxPossible := MakeEmptyPosition()
-//	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
-//	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x, radius)
-//	if !gofuncs.AnyNotInit(pos.x, pos.y) {
-//		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
-//		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
-//			gofuncs.Panic("Incorrect calculations")
-//		}
-//	}
-//	return posFromMaxPossible
-//}
 
 //var maxMagnitude = 1.0
 //
