@@ -39,74 +39,78 @@ func moveMouseSC() {
 //	return 1000 / repetitions
 //}
 
-type MoveByPixelFunc = func(moveByPixel int, isX bool)
+type MoveByPixelFunc = func(moveByPixelX, moveByPixelY int)
 type FilterMoveFunc = func(input float64, isX bool, padStick *PadStickPosition) float64
 
-func moveInInterval(isX bool,
+func calcMovement(input float64, isX bool, moveInterval, tickerInterval float64,
+	padStick *PadStickPosition, repetitionIntervals *RepetitionIntervals,
+	filterFunc FilterMoveFunc) (float64, int) {
+
+	var moveByPixel int
+
+	moveInterval -= tickerInterval
+	if moveInterval <= 0 {
+		moveInterval = repetitionIntervals.fastest
+
+		if filterFunc != nil {
+			input = filterFunc(input, isX, padStick)
+		}
+
+		if !gofuncs.IsNotInitOrEmpty(input) {
+			moveByPixel = gofuncs.SignAsInt(input)
+			moveInterval = padStick.calcRefreshInterval(input, repetitionIntervals.slowest, repetitionIntervals.fastest)
+		}
+	}
+	return moveInterval, moveByPixel
+}
+func RunMoveInIntervalThread(
 	padStick *PadStickPosition, position *Position,
 	repetitionIntervals *RepetitionIntervals,
 	allowedModes []ModeT, filterFunc FilterMoveFunc, moveFunc MoveByPixelFunc) {
 
-	for {
-		//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
-		//fastestInterval :=RepetitionsToInterval(maxRepetitionPerSec)
+	go func() {
+		var moveIntervalX, moveIntervalY float64
+		var tickerInterval float64 = 1
 
-		moveInterval := gofuncs.NumberToMillis(repetitionIntervals.fastest)
+		ticker := time.NewTicker(gofuncs.NumberToMillis(tickerInterval))
 
-		if gofuncs.Contains(allowedModes, Cfg.PadsSticksMode.GetMode()) {
-			padStick.Lock()
+		for range ticker.C {
+			if gofuncs.Contains(allowedModes, Cfg.PadsSticksMode.GetMode()) {
+				//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
+				//fastestInterval :=RepetitionsToInterval(maxRepetitionPerSec)
 
-			var input float64
-			if isX {
-				input = position.x
-			} else {
-				input = position.y
+				var moveByPixelX, moveByPixelY int
+
+				padStick.Lock()
+
+				moveIntervalX, moveByPixelX = calcMovement(position.x, true, moveIntervalX, tickerInterval, padStick, repetitionIntervals, filterFunc)
+				moveIntervalY, moveByPixelY = calcMovement(position.y, false, moveIntervalY, tickerInterval, padStick, repetitionIntervals, filterFunc)
+
+				padStick.Unlock()
+
+				moveFunc(moveByPixelX, moveByPixelY)
 			}
-
-			if filterFunc != nil {
-				input = filterFunc(input, isX, padStick)
-			}
-
-			if !gofuncs.IsNotInitOrEmpty(input) {
-				moveByPixel := gofuncs.SignAsInt(input)
-				moveInterval = padStick.calcRefreshInterval(input, repetitionIntervals.slowest, repetitionIntervals.fastest)
-				moveFunc(moveByPixel, isX)
-			}
-
-			padStick.Unlock()
 		}
-		time.Sleep(moveInterval)
-	}
+	}()
 }
 
-func runMoveThreads(padStick *PadStickPosition, position *Position,
-	repetitionIntervals *RepetitionIntervals,
-	allowedModes []ModeT, filterFunc FilterMoveFunc, moveFunc MoveByPixelFunc) {
-
-	go moveInInterval(true, padStick, position, repetitionIntervals, allowedModes, filterFunc, moveFunc)
-	go moveInInterval(false, padStick, position, repetitionIntervals, allowedModes, filterFunc, moveFunc)
-}
-
-func moveMouseByPixelDS(moveByPixel int, isX bool) {
-	if isX {
-		osSpec.MoveMouse(moveByPixel, 0)
-	} else {
-		osSpec.MoveMouse(0, moveByPixel)
-	}
+func moveMouseByPixelDS(moveByPixelX, moveByPixelY int) {
+	osSpec.MoveMouse(moveByPixelX, moveByPixelY)
 }
 
 func RunMouseThreadsDS() {
 	mousePadStick := Cfg.mousePadStick
 	position := mousePadStick.transformedPos
 
-	runMoveThreads(mousePadStick, position, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
+	RunMoveInIntervalThread(mousePadStick, position, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
 }
 
-func moveScrollByPixel(moveByPixel int, isX bool) {
-	if isX {
-		osSpec.ScrollHorizontal(moveByPixel)
-	} else {
-		osSpec.ScrollVertical(moveByPixel)
+func moveScrollByPixel(moveByPixelX, moveByPixelY int) {
+	if moveByPixelX != 0 {
+		osSpec.ScrollHorizontal(moveByPixelX)
+	}
+	if moveByPixelY != 0 {
+		osSpec.ScrollVertical(moveByPixelY)
 	}
 }
 
@@ -121,7 +125,7 @@ func RunScrollThreads() {
 	scrollPadStick := Cfg.scrollPadStick
 	position := scrollPadStick.transformedPos
 
-	runMoveThreads(scrollPadStick, position, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
+	RunMoveInIntervalThread(scrollPadStick, position, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
 
 }
 

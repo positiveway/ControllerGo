@@ -4,7 +4,6 @@ import (
 	"github.com/positiveway/gofuncs"
 	"math"
 	"sync"
-	"time"
 )
 
 type ModeT string
@@ -143,7 +142,7 @@ type PadStickPosition struct {
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
 
-	fromMaxPossiblePos *Position
+	//fromMaxPossiblePos *Position
 	//normalizedMagnitude
 }
 
@@ -154,7 +153,7 @@ func MakePadPosition(zoneRotation float64) *PadStickPosition {
 	pad.prevMousePos = MakeEmptyPosition()
 	pad.transformedPos = MakeEmptyPosition()
 
-	pad.fromMaxPossiblePos = MakeEmptyPosition()
+	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
 	pad.zoneRotation = zoneRotation
 	pad.Reset()
@@ -171,7 +170,7 @@ func (pad *PadStickPosition) Reset() {
 	pad.prevMousePos.Reset()
 	pad.transformedPos.Reset()
 
-	pad.fromMaxPossiblePos.Reset()
+	//pad.fromMaxPossiblePos.Reset()
 
 	pad.ReCalculateValues()
 }
@@ -222,7 +221,7 @@ func (pad *PadStickPosition) ReCalculateValues() {
 
 	pad.radius = calcRadius(pad.magnitude)
 
-	pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
+	//pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
 }
 
 func (pad *PadStickPosition) setValue(fieldPointer *float64) {
@@ -273,13 +272,13 @@ func (pad *PadStickPosition) convertRange(input, outputMax float64) float64 {
 	return gofuncs.ApplySign(isNegative, output)
 }
 
-func (pad *PadStickPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) time.Duration {
+func (pad *PadStickPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) float64 {
 	input = math.Abs(input)
 
 	refreshInterval := pad.convertRange(input, slowestInterval-fastestInterval)
 	refreshInterval = slowestInterval - refreshInterval
 
-	return time.Duration(gofuncs.FloatToIntRound[int64](refreshInterval)) * time.Millisecond
+	return float64(gofuncs.FloatToIntRound[int64](refreshInterval))
 }
 
 func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
