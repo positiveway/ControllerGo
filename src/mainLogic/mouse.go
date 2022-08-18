@@ -95,7 +95,9 @@ func RunMoveInIntervalThread(
 }
 
 func moveMouseByPixelDS(moveByPixelX, moveByPixelY int) {
-	osSpec.MoveMouse(moveByPixelX, moveByPixelY)
+	if moveByPixelX != 0 || moveByPixelY != 0 {
+		osSpec.MoveMouse(moveByPixelX, moveByPixelY)
+	}
 }
 
 func RunMouseThreadsDS() {

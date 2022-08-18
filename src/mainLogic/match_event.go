@@ -60,7 +60,7 @@ func gamepadDisconnected() {
 
 func matchEvent() {
 	//gofuncs.Print("After: ")
-	Event.print()
+	//Event.print()
 
 	switch Event.eventType {
 	case EvAxisChanged:
