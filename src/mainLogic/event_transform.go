@@ -40,9 +40,9 @@ func (event *EventT) transformToWingsSC() {
 	}
 }
 
-var curPressedStickButtonSC BtnOrAxisT
+var CurPressedStickButtonSC = new(BtnOrAxisT)
 
-func (event *EventT) transformStickToDPadSC() {
+func (event *EventT) transformStickToDPadSC(curPressedStickButton *BtnOrAxisT, boundariesMap ZoneBoundariesMap, zoneToBtnMap ZoneToBtnMap) {
 	isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
 		(event.btnOrAxis == AxisLeftStickX || event.btnOrAxis == AxisLeftStickY)
 	if !isStickEvent {
@@ -60,20 +60,20 @@ func (event *EventT) transformStickToDPadSC() {
 		}
 	}
 
-	LeftStick.ReCalculateZone(Cfg.StickBoundariesMapSC)
+	LeftStick.ReCalculateZone(boundariesMap)
 
 	if LeftStick.zoneChanged {
-		if curPressedStickButtonSC != "" {
-			event.btnOrAxis = curPressedStickButtonSC
+		if *curPressedStickButton != "" {
+			event.btnOrAxis = *curPressedStickButton
 			event.eventType = EvButtonChanged
 			event.value = 0
 
-			curPressedStickButtonSC = ""
+			*curPressedStickButton = ""
 			matchEvent()
 		}
 		if LeftStick.zoneCanBeUsed {
-			stickBtn := StickZoneToBtnMapSC[LeftStick.zone]
-			curPressedStickButtonSC = stickBtn
+			stickBtn := gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
+			*curPressedStickButton = stickBtn
 
 			event.btnOrAxis = stickBtn
 			event.eventType = EvButtonChanged
@@ -113,7 +113,7 @@ func (event *EventT) transformAndFilter() {
 	case SteamController:
 		event.fixButtonNamesForSteamController()
 		event.transformToWingsSC()
-		event.transformStickToDPadSC()
+		event.transformStickToDPadSC(CurPressedStickButtonSC, Cfg.StickBoundariesMapSC, StickZoneToBtnMapSC)
 	case DualShock:
 		if event.applyDeadzoneDS() {
 			return

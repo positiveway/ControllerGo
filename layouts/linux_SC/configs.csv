@@ -20,7 +20,7 @@ scrollHorizontalThresholdPct = 65
 //Pads/Stick
 LeftPadRotation = -10
 RightPadRotation = 12
-StickRotation = 0
+StickRotation = -10
 
 StickAngleMargin = 40
 StickThresholdPct = 25

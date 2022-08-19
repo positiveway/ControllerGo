@@ -181,7 +181,7 @@ func initUnknownCodesMapSC() {
 }
 
 func initStickZoneBtnMap() {
-	StickZoneToBtnMapSC = map[Zone]BtnOrAxisT{
+	StickZoneToBtnMapSC = ZoneToBtnMap{
 		ZoneRight: BtnStickRightSC,
 		ZoneUp:    BtnStickUpSC,
 		ZoneLeft:  BtnStickLeftSC,

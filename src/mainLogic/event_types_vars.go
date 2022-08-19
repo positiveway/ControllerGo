@@ -40,7 +40,9 @@ var (
 	BtnDPadRight BtnOrAxisT
 )
 
-var StickZoneToBtnMapSC map[Zone]BtnOrAxisT
+type ZoneToBtnMap = map[Zone]BtnOrAxisT
+
+var StickZoneToBtnMapSC ZoneToBtnMap
 
 var AllAvailableButtons []BtnOrAxisT
 
