@@ -1,5 +1,7 @@
 package mainLogic
 
+var CurPressedStickButtonSC *BtnOrAxisT
+
 var UnknownCodesResolvingMapSC map[CodeT]BtnOrAxisT
 
 var BtnAxisMap BtnAxisMapT

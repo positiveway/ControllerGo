@@ -40,8 +40,6 @@ func (event *EventT) transformToWingsSC() {
 	}
 }
 
-var CurPressedStickButtonSC = new(BtnOrAxisT)
-
 func (event *EventT) transformStickToDPadSC(curPressedStickButton *BtnOrAxisT, boundariesMap ZoneBoundariesMap, zoneToBtnMap ZoneToBtnMap) {
 	isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
 		(event.btnOrAxis == AxisLeftStickX || event.btnOrAxis == AxisLeftStickY)
@@ -125,6 +123,20 @@ func (event *EventT) transformAndFilter() {
 	}
 
 	matchEvent()
+}
+
+func fullReset() {
+	RightPadStick.Reset()
+	LeftStick.Reset()
+
+	switch Cfg.ControllerInUse {
+	case SteamController:
+		LeftPad.Reset()
+	}
+
+	*CurPressedStickButtonSC = ""
+
+	releaseAll()
 }
 
 func (event *EventT) update(msg string) {

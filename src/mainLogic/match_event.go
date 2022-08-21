@@ -51,15 +51,7 @@ func padReleased() {
 }
 
 func gamepadDisconnected() {
-	RightPadStick.Reset()
-	LeftStick.Reset()
-
-	switch Cfg.ControllerInUse {
-	case SteamController:
-		LeftPad.Reset()
-	}
-
-	releaseAll()
+	fullReset()
 }
 
 func matchEvent() {

@@ -37,6 +37,10 @@ func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 	return BtnOrAxisT(strings.TrimSuffix(string(btn), HoldSuffix))
 }
 
+func initCurStickButton() {
+	CurPressedStickButtonSC = new(BtnOrAxisT)
+}
+
 type BtnAxisMapT map[uint8]BtnOrAxisT
 
 func genBtnAxisMap() BtnAxisMapT {
@@ -144,14 +148,16 @@ func initButtonsAndAxesFullSequence() {
 
 	//buttons
 	BtnSynonyms = genBtnSynonyms()
+	//stick
 	initStickZoneBtnMap()
+	initCurStickButton()
+
 	initAvailableButtons()
 	initBtnMap()
 	initUnknownCodesMapSC()
 
 	//axis and buttons
 	BtnAxisMap = genBtnAxisMap()
-
 }
 
 func initEventTypeMap() {
