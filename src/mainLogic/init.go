@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -23,7 +24,7 @@ func MakeConfigs() *ConfigsT {
 	return c
 }
 
-func RunMain() {
+func RunFreshInitSequence() {
 	Cfg = MakeConfigs()
 	Cfg.initTouchpads()
 
@@ -31,6 +32,10 @@ func RunMain() {
 	initCodeMapping()
 	initTyping()
 	initCommands()
+}
+
+func RunMain() {
+	RunFreshInitSequence()
 
 	osSpec.InitInput()
 	defer osSpec.CloseInputResources()
@@ -44,7 +49,7 @@ func RunMain() {
 	go RunReleaseHoldThread()
 
 	runtime.GC()
-	//debug.SetGCPercent(100)
+	debug.SetGCPercent(Cfg.GCPercent)
 
 	RunWebSocket()
 }
