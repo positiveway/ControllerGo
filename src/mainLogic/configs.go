@@ -67,6 +67,7 @@ func (c *ConfigsT) initTouchpads() {
 const FloatEqualityMargin = 0.000000000000001
 
 func (c *ConfigsT) setConfigVars() {
+	c.tickerInterval = 1
 	c.GCPercent = 10000
 
 	c.ControllerInUse = c.toControllerCfg()
@@ -150,7 +151,8 @@ func (c *ConfigsT) setConfigVars() {
 var Cfg *ConfigsT
 
 type ConfigsT struct {
-	GCPercent int
+	tickerInterval float64
+	GCPercent      int
 
 	mouseOnRightStickPad bool
 

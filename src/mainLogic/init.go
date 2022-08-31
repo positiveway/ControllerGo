@@ -41,12 +41,7 @@ func RunMain() {
 	defer osSpec.CloseInputResources()
 	defer releaseAll("")
 
-	switch Cfg.ControllerInUse {
-	case DualShock:
-		RunMouseThreadsDS()
-	}
-	RunScrollThreads()
-	go RunRepeatCommandThread()
+	go RunGlobalEventsThread()
 
 	runtime.GC()
 	debug.SetGCPercent(Cfg.GCPercent)

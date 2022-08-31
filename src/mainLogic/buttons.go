@@ -5,7 +5,6 @@ import (
 	"github.com/positiveway/gofuncs"
 	"path"
 	"sync"
-	"time"
 )
 
 const NoAction = -1
@@ -72,36 +71,6 @@ func PutButton(btn BtnOrAxisT, commandInfo *CommandInfo) bool {
 	}
 	buttonsToRelease.Put(btn, commandInfo)
 	return true
-}
-
-type Interval struct {
-	repeatInterval, intervalLeft float64
-}
-
-func MakeInterval(repeatInterval float64) *Interval {
-	interval := &Interval{}
-	interval.SetInterval(repeatInterval)
-	return interval
-}
-
-func (i *Interval) SetInterval(repeatInterval float64) {
-	gofuncs.PanicAnyNotInitOrEmpty(repeatInterval)
-
-	i.repeatInterval = repeatInterval
-	i.intervalLeft = repeatInterval
-}
-
-func (i *Interval) ResetInterval() bool {
-	if i.intervalLeft <= 0 {
-		i.intervalLeft = i.repeatInterval
-		return true
-	}
-	return false
-}
-
-func (i *Interval) DecreaseInterval(tickerInterval float64) bool {
-	i.intervalLeft -= tickerInterval
-	return i.ResetInterval()
 }
 
 type CommandInfo struct {
@@ -251,30 +220,26 @@ func releaseButton(btn BtnOrAxisT) {
 	releaseSequence(commandInfo.command)
 }
 
-func RunRepeatCommandThread() {
-	var tickerInterval float64 = 1
-	ticker := time.NewTicker(gofuncs.NumberToMillis(tickerInterval))
-	for range ticker.C {
-		ButtonsLock.Lock()
-		//Esc button's releaseAll will break state (changing map over iteration)
-		//RangeOverCopy prevents this: states will be restored, esc command executed,
-		//and then states will be properly released
-		buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfo) {
-			if isEmptyCmd(commandInfo.command) {
-				//if hold state Interval passed
-				if commandInfo.DecreaseInterval(tickerInterval) {
-					//assign hold command, reset interval
-					commandInfo.CopyFromOther(getCommandInfo(btn, true))
-					pressSequence(btn, commandInfo)
-				}
-			} else { //if command already assigned to hold or immediate
-				if commandInfo.DecreaseInterval(tickerInterval) {
-					pressSequence(btn, commandInfo)
-				}
+func RepeatCommand() {
+	ButtonsLock.Lock()
+	//Esc button's releaseAll will break state (changing map over iteration)
+	//RangeOverCopy prevents this: states will be restored, esc command executed,
+	//and then states will be properly released
+	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfo) {
+		if isEmptyCmd(commandInfo.command) {
+			//if hold state Interval passed
+			if commandInfo.DecreaseInterval() {
+				//assign hold command, reset interval
+				commandInfo.CopyFromOther(getCommandInfo(btn, true))
+				pressSequence(btn, commandInfo)
 			}
-		})
-		ButtonsLock.Unlock()
-	}
+		} else { //if command already assigned to hold or immediate
+			if commandInfo.DecreaseInterval() {
+				pressSequence(btn, commandInfo)
+			}
+		}
+	})
+	ButtonsLock.Unlock()
 }
 
 func releaseAll(curButton BtnOrAxisT) {
