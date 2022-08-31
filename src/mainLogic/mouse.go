@@ -64,13 +64,13 @@ func calcMovement(input float64, isX bool, moveInterval, tickerInterval float64,
 	return moveInterval, moveByPixel
 }
 func RunMoveInIntervalThread(
+	tickerInterval float64,
 	padStick *PadStickPosition, position *Position,
 	repetitionIntervals *RepetitionIntervals,
 	allowedModes []ModeT, filterFunc FilterMoveFunc, moveFunc MoveByPixelFunc) {
 
 	go func() {
 		var moveIntervalX, moveIntervalY float64
-		var tickerInterval float64 = 1
 
 		ticker := time.NewTicker(gofuncs.NumberToMillis(tickerInterval))
 
@@ -104,7 +104,7 @@ func RunMouseThreadsDS() {
 	mousePadStick := Cfg.mousePadStick
 	position := mousePadStick.transformedPos
 
-	RunMoveInIntervalThread(mousePadStick, position, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
+	RunMoveInIntervalThread(1, mousePadStick, position, Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods, nil, moveMouseByPixelDS)
 }
 
 func moveScrollByPixel(moveByPixelX, moveByPixelY int) {
@@ -127,7 +127,7 @@ func RunScrollThreads() {
 	scrollPadStick := Cfg.scrollPadStick
 	position := scrollPadStick.transformedPos
 
-	RunMoveInIntervalThread(scrollPadStick, position, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
+	RunMoveInIntervalThread(10, scrollPadStick, position, Cfg.scrollIntervals, Cfg.ScrollAllowedMods, filterScrollHorizontal, moveScrollByPixel)
 
 }
 
