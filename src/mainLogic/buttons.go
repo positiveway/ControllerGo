@@ -74,6 +74,42 @@ func PutButton(btn BtnOrAxisT, commandInfo *CommandInfo) bool {
 	return true
 }
 
+type Interval struct {
+	repeatInterval, intervalLeft float64
+}
+
+func MakeInterval(repeatInterval float64) *Interval {
+	interval := &Interval{}
+	interval.SetInterval(repeatInterval)
+	return interval
+}
+
+func (i *Interval) SetInterval(repeatInterval float64) {
+	gofuncs.PanicAnyNotInitOrEmpty(repeatInterval)
+
+	i.repeatInterval = repeatInterval
+	i.intervalLeft = repeatInterval
+}
+
+func (i *Interval) ResetInterval() bool {
+	if i.intervalLeft <= 0 {
+		i.intervalLeft = i.repeatInterval
+		return true
+	}
+	return false
+}
+
+func (i *Interval) DecreaseInterval(tickerInterval float64) bool {
+	i.intervalLeft -= tickerInterval
+	return i.ResetInterval()
+}
+
+type CommandInfo struct {
+	Interval
+	command              Command
+	specialCaseIsHandled bool
+}
+
 func MakeCommandInfo(command Command, repeatInterval float64) *CommandInfo {
 	if gofuncs.IsNotInit(repeatInterval) {
 		repeatInterval = Cfg.holdRepeatInterval
@@ -88,12 +124,6 @@ func MakeUndeterminedCommandInfo() *CommandInfo {
 	return MakeCommandInfo(nil, Cfg.holdingStateThreshold)
 }
 
-type CommandInfo struct {
-	command                      Command
-	repeatInterval, intervalLeft float64
-	specialCaseIsHandled         bool
-}
-
 func (c *CommandInfo) GetCopy() *CommandInfo {
 	return MakeCommandInfo(c.command, c.repeatInterval)
 }
@@ -101,26 +131,6 @@ func (c *CommandInfo) GetCopy() *CommandInfo {
 func (c *CommandInfo) CopyFromOther(other *CommandInfo) {
 	c.command = other.command
 	c.SetInterval(other.repeatInterval)
-}
-
-func (c *CommandInfo) SetInterval(repeatInterval float64) {
-	gofuncs.PanicAnyNotInitOrEmpty(repeatInterval)
-
-	c.repeatInterval = repeatInterval
-	c.intervalLeft = repeatInterval
-}
-
-func (c *CommandInfo) ResetInterval() bool {
-	if c.intervalLeft <= 0 {
-		c.intervalLeft = c.repeatInterval
-		return true
-	}
-	return false
-}
-
-func (c *CommandInfo) DecreaseInterval(tickerInterval float64) bool {
-	c.intervalLeft -= tickerInterval
-	return c.ResetInterval()
 }
 
 func isEmptyCommandInfo(commandInfo *CommandInfo) bool {
@@ -242,7 +252,7 @@ func releaseButton(btn BtnOrAxisT) {
 }
 
 func RunRepeatCommandThread() {
-	var tickerInterval float64 = 10
+	var tickerInterval float64 = 1
 	ticker := time.NewTicker(gofuncs.NumberToMillis(tickerInterval))
 	for range ticker.C {
 		ButtonsLock.Lock()
