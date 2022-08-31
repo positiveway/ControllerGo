@@ -62,22 +62,12 @@ func (event *EventT) transformStickToDPadSC(curPressedStickButton *BtnOrAxisT, b
 
 	if LeftStick.zoneChanged {
 		if *curPressedStickButton != "" {
-			event.btnOrAxis = *curPressedStickButton
-			event.eventType = EvButtonChanged
-			event.value = 0
-
+			releaseButton(*curPressedStickButton)
 			*curPressedStickButton = ""
-			matchEvent()
 		}
 		if LeftStick.zoneCanBeUsed {
-			stickBtn := gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
-			*curPressedStickButton = stickBtn
-
-			event.btnOrAxis = stickBtn
-			event.eventType = EvButtonChanged
-			event.value = 1
-
-			matchEvent()
+			*curPressedStickButton = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
+			pressButton(*curPressedStickButton)
 		}
 	}
 	event.btnOrAxis = BtnUnknown
