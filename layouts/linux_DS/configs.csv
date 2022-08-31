@@ -4,7 +4,7 @@ PadsSticksMode = Mouse
 
 //commands
 TriggerThresholdPct = 7
-holdingThresholdMs = 200
+holdingStateThresholdMs = 200
 
 //mouse
 mouseFastestIntervalMs = 1

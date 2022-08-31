@@ -85,10 +85,10 @@ func MakeCommandInfo(command Command, repeatInterval float64) *CommandInfo {
 	}
 }
 
-func MakeEmptyCommandInfo() *CommandInfo {
+func MakeUndeterminedCommandInfo() *CommandInfo {
 	return &CommandInfo{
 		command:        nil,
-		repeatInterval: gofuncs.NaN(),
+		repeatInterval: Cfg.holdingStateThreshold,
 	}
 }
 
@@ -212,7 +212,7 @@ func pressImmediately(btn BtnOrAxisT) {
 
 func pressButton(btn BtnOrAxisT) {
 	if hasHoldCommand(btn) {
-		PutButton(btn, MakeEmptyCommandInfo())
+		PutButton(btn, MakeUndeterminedCommandInfo())
 	} else {
 		pressImmediately(btn)
 	}
@@ -239,7 +239,7 @@ func releaseButton(btn BtnOrAxisT) {
 }
 
 func RunRepeatCommandThread() {
-	var tickerInterval float64 = 1
+	var tickerInterval float64 = 10
 	ticker := time.NewTicker(gofuncs.NumberToMillis(tickerInterval))
 	for range ticker.C {
 		ButtonsLock.Lock()
@@ -248,7 +248,15 @@ func RunRepeatCommandThread() {
 		//and then states will be properly released
 		buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfo) {
 			if isEmptyCmd(commandInfo.command) {
-				commandInfo.CopyFromOther(getCommandInfo(btn, true))
+				if commandInfo.DecreaseInterval(tickerInterval) {
+					//repeat Interval is copied. Interval left is <= 0
+					//hold command will be immediately executed
+					commandInfo.CopyFromOther(getCommandInfo(btn, true))
+				} else {
+					//don't press an empty button
+					//if hold has not occurred yet
+					return
+				}
 			}
 			if commandInfo.DecreaseInterval(tickerInterval) {
 				pressSequence(btn, commandInfo)
