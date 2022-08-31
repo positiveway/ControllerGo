@@ -35,6 +35,8 @@ func RunFreshInitSequence() {
 }
 
 func RunMain() {
+	//run as maximum priority process
+
 	RunFreshInitSequence()
 
 	osSpec.InitInput()
