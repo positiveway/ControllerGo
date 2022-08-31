@@ -50,10 +50,6 @@ func padReleased() {
 	}
 }
 
-func gamepadDisconnected() {
-	fullReset()
-}
-
 func matchEvent() {
 	//gofuncs.Print("After: ")
 	//Event.print()
@@ -66,7 +62,7 @@ func matchEvent() {
 	case EvButtonChanged:
 		buttonChanged(Event.btnOrAxis, Event.value)
 	case EvDisconnected:
-		gamepadDisconnected()
+		fullReset()
 		gofuncs.Print("Gamepad disconnected")
 	case EvConnected:
 		gofuncs.Print("Gamepad connected")

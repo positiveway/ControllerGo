@@ -136,7 +136,7 @@ func fullReset() {
 
 	*CurPressedStickButtonSC = ""
 
-	releaseAll()
+	releaseAll("")
 }
 
 func (event *EventT) update(msg string) {

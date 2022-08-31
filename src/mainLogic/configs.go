@@ -125,7 +125,7 @@ func (c *ConfigsT) setConfigVars() {
 	}
 
 	//commands
-	c.holdRefreshInterval = 15 * time.Millisecond
+	c.holdRepeatInterval = 40
 	c.TriggerThreshold = c.toPctConfig("TriggerThresholdPct")
 	c.holdingThreshold = c.toMillisConfig("holdingThresholdMs")
 
@@ -167,9 +167,9 @@ type ConfigsT struct {
 	PadsSticksMode  *PadsSticksMode
 
 	// commands
-	holdRefreshInterval time.Duration
-	TriggerThreshold    float64
-	holdingThreshold    time.Duration
+	holdRepeatInterval float64
+	TriggerThreshold   float64
+	holdingThreshold   time.Duration
 
 	//games
 	gamingMoveIntervals *RepetitionIntervals
