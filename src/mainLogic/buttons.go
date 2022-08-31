@@ -150,6 +150,7 @@ func getCommandInfo(btn BtnOrAxisT, hold bool) *CommandInfo {
 	}
 	//Have only one point of access. Don't forget to copy
 	commandInfo := pressCommandsLayout[btn]
+	//nil can't be copied
 	if !isEmptyCommandInfo(commandInfo) {
 		commandInfo = commandInfo.GetCopy()
 	}
