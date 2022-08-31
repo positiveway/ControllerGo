@@ -79,24 +79,19 @@ func MakeCommandInfo(command Command, repeatInterval float64) *CommandInfo {
 		repeatInterval = Cfg.holdRepeatInterval
 	}
 
-	return &CommandInfo{
-		command:        command,
-		repeatInterval: repeatInterval,
-	}
+	commandInfo := &CommandInfo{command: command}
+	commandInfo.SetInterval(repeatInterval)
+	return commandInfo
 }
 
 func MakeUndeterminedCommandInfo() *CommandInfo {
-	return &CommandInfo{
-		command:        nil,
-		repeatInterval: Cfg.holdingStateThreshold,
-	}
+	return MakeCommandInfo(nil, Cfg.holdingStateThreshold)
 }
 
 type CommandInfo struct {
-	command              Command
-	repeatInterval       float64
-	intervalLeft         float64
-	specialCaseIsHandled bool
+	command                      Command
+	repeatInterval, intervalLeft float64
+	specialCaseIsHandled         bool
 }
 
 func (c *CommandInfo) GetCopy() *CommandInfo {
@@ -105,7 +100,14 @@ func (c *CommandInfo) GetCopy() *CommandInfo {
 
 func (c *CommandInfo) CopyFromOther(other *CommandInfo) {
 	c.command = other.command
-	c.repeatInterval = other.repeatInterval
+	c.SetInterval(other.repeatInterval)
+}
+
+func (c *CommandInfo) SetInterval(repeatInterval float64) {
+	gofuncs.PanicAnyNotInitOrEmpty(repeatInterval)
+
+	c.repeatInterval = repeatInterval
+	c.intervalLeft = repeatInterval
 }
 
 func (c *CommandInfo) ResetInterval() bool {
@@ -248,18 +250,16 @@ func RunRepeatCommandThread() {
 		//and then states will be properly released
 		buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfo) {
 			if isEmptyCmd(commandInfo.command) {
+				//if hold state Interval passed
 				if commandInfo.DecreaseInterval(tickerInterval) {
-					//repeat Interval is copied. Interval left is <= 0
-					//hold command will be immediately executed
+					//assign hold command, reset interval
 					commandInfo.CopyFromOther(getCommandInfo(btn, true))
-				} else {
-					//don't press an empty button
-					//if hold has not occurred yet
-					return
+					pressSequence(btn, commandInfo)
 				}
-			}
-			if commandInfo.DecreaseInterval(tickerInterval) {
-				pressSequence(btn, commandInfo)
+			} else { //if command already assigned to hold or immediate
+				if commandInfo.DecreaseInterval(tickerInterval) {
+					pressSequence(btn, commandInfo)
+				}
 			}
 		})
 		ButtonsLock.Unlock()
