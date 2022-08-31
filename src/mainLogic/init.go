@@ -43,12 +43,18 @@ func RunMain() {
 	defer osSpec.CloseInputResources()
 	defer releaseAll("")
 
-	go RunGlobalEventsThread()
-
 	runtime.GC()
 	debug.SetGCPercent(Cfg.GCPercent)
 
-	RunWebSocket()
+	switch Cfg.ControllerInUse {
+	//go thread should always come first
+	case DualShock:
+		go RunWebSocket()
+		RunGlobalEventsThread()
+	case SteamController:
+		go RunGlobalEventsThread()
+		RunWebSocket()
+	}
 }
 
 type RepetitionIntervals struct {

@@ -66,34 +66,28 @@ func MoveInInterval(
 	moveIntervals *Intervals2,
 	padStick *PadStickPosition, position *Position,
 	repetitionIntervals *RepetitionIntervals,
-	allowedModes []ModeT, filterFunc FilterMoveFunc,
-	moveFunc MoveByPixelFunc) {
+	moveFunc MoveByPixelFunc, filterFunc FilterMoveFunc) {
 
-	if gofuncs.Contains(allowedModes, Cfg.PadsSticksMode.GetMode()) {
-		//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
-		//fastestInterval :=RepetitionsToInterval(maxRepetitionPerSec)
+	//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
+	//fastestInterval :=RepetitionsToInterval(maxRepetitionPerSec)
 
-		var moveByPixelX, moveByPixelY int
+	padStick.Lock()
 
-		padStick.Lock()
+	moveByPixelX := calcMovement(position.x, true, moveIntervals.X, padStick, repetitionIntervals, filterFunc)
+	moveByPixelY := calcMovement(position.y, false, moveIntervals.Y, padStick, repetitionIntervals, filterFunc)
 
-		moveByPixelX = calcMovement(position.x, true, moveIntervals.X, padStick, repetitionIntervals, filterFunc)
-		moveByPixelY = calcMovement(position.y, false, moveIntervals.Y, padStick, repetitionIntervals, filterFunc)
+	padStick.Unlock()
 
-		padStick.Unlock()
+	moveFunc(moveByPixelX, moveByPixelY)
 
-		moveFunc(moveByPixelX, moveByPixelY)
-	}
 }
 
 func MoveMouse(moveIntervals *Intervals2) {
 	mousePadStick := Cfg.mousePadStick
 	position := mousePadStick.transformedPos
 
-	MoveInInterval(moveIntervals,
-		mousePadStick, position,
-		Cfg.mouseIntervalsDS, Cfg.MouseAllowedMods,
-		nil, moveMouseByPixelDS)
+	MoveInInterval(moveIntervals, mousePadStick, position,
+		Cfg.mouseIntervalsDS, moveMouseByPixelDS, nil)
 }
 
 func moveMouseByPixelDS(moveByPixelX, moveByPixelY int) {
@@ -122,10 +116,8 @@ func MoveScroll(moveIntervals *Intervals2) {
 	scrollPadStick := Cfg.scrollPadStick
 	position := scrollPadStick.transformedPos
 
-	MoveInInterval(moveIntervals,
-		scrollPadStick, position,
-		Cfg.scrollIntervals, Cfg.ScrollAllowedMods,
-		filterScrollHorizontal, moveScrollByPixel)
+	MoveInInterval(moveIntervals, scrollPadStick, position,
+		Cfg.scrollIntervals, moveScrollByPixel, filterScrollHorizontal)
 }
 
 func getDirection(val float64, horizontal bool) int {

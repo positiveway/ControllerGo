@@ -84,9 +84,6 @@ func (c *ConfigsT) setConfigVars() {
 	c.PadsSticksMode = c.toPadsSticksModeCfg()
 
 	//mouse/scroll
-	c.MouseAllowedMods = []ModeT{MouseMode, GamingMode}
-	c.ScrollAllowedMods = []ModeT{MouseMode}
-
 	//c.mouseOnRightStickPad = c.toBoolConfig("mouseOnRightStickPad")
 
 	//Pads/Stick
@@ -176,8 +173,6 @@ type ConfigsT struct {
 	gamingMoveIntervals *RepetitionIntervals
 
 	// mouse
-	MouseAllowedMods []ModeT
-
 	mouseIntervalsDS *RepetitionIntervals
 
 	mouseIntervalSC time.Duration
@@ -186,8 +181,6 @@ type ConfigsT struct {
 	mouseEdgeThreshold float64
 
 	// scroll
-	ScrollAllowedMods []ModeT
-
 	scrollIntervals           *RepetitionIntervals
 	scrollHorizontalThreshold float64
 

@@ -53,11 +53,17 @@ func RunGlobalEventsThread() {
 	scrollIntervals := MakeIntervals2()
 
 	for range ticker.C {
-		switch Cfg.ControllerInUse {
-		case DualShock:
-			MoveMouse(mouseIntervals)
+		switch Cfg.PadsSticksMode.GetMode() {
+		case MouseMode:
+			MoveScroll(scrollIntervals)
+			fallthrough
+		case GamingMode:
+			switch Cfg.ControllerInUse {
+			case DualShock:
+				MoveMouse(mouseIntervals)
+			}
 		}
-		MoveScroll(scrollIntervals)
+
 		RepeatCommand()
 	}
 }
