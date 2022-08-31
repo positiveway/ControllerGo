@@ -60,5 +60,4 @@ func RunGlobalEventsThread() {
 		MoveScroll(scrollIntervals)
 		RepeatCommand()
 	}
-
 }
