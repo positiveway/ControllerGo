@@ -7,23 +7,23 @@ import (
 
 const NoneStr = "None"
 
-type SticksPosition [2]Zone
-type TypingLayout map[SticksPosition]int
+type SticksPositionT [2]ZoneT
+type TypingLayoutT map[SticksPositionT]int
 
-var TypingBoundariesMap ZoneBoundariesMap
-var typingLayout TypingLayout
+var TypingBoundariesMap ZoneBoundariesMapT
+var typingLayout TypingLayoutT
 
 func initTyping() {
 	TypingBoundariesMap = genTypingBoundariesMap()
 	typingLayout = loadTypingLayout()
 }
 
-func loadTypingLayout() TypingLayout {
+func loadTypingLayout() TypingLayoutT {
 	linesParts := Cfg.ReadLayoutFile("typing.csv", 2)
 
-	layout := TypingLayout{}
+	layout := TypingLayoutT{}
 	for _, parts := range linesParts {
-		leftPadStickZone, rightPadStickZone, letter := Zone(parts[0]), Zone(parts[1]), parts[2]
+		leftPadStickZone, rightPadStickZone, letter := ZoneT(parts[0]), ZoneT(parts[1]), parts[2]
 		if !gofuncs.Contains(AllZones, leftPadStickZone) {
 			gofuncs.PanicMisspelled(leftPadStickZone)
 		}
@@ -34,13 +34,13 @@ func loadTypingLayout() TypingLayout {
 			continue
 		}
 		code := getCodeFromLetter(letter)
-		position := SticksPosition{leftPadStickZone, rightPadStickZone}
+		position := SticksPositionT{leftPadStickZone, rightPadStickZone}
 		gofuncs.AssignWithDuplicateCheck(layout, position, code)
 	}
 	return layout
 }
 
-func genTypingBoundariesMap() ZoneBoundariesMap {
+func genTypingBoundariesMap() ZoneBoundariesMapT {
 	return genEqualThresholdBoundariesMap(true,
 		makeAngleMargin(Cfg.TypingDiagonalAngleMargin, Cfg.TypingStraightAngleMargin, Cfg.TypingStraightAngleMargin),
 		Cfg.TypingThreshold,
@@ -60,7 +60,7 @@ func TypeLetter() {
 				Cfg.LeftTypingPS.awaitingCentralPosition = true
 				Cfg.RightTypingPS.awaitingCentralPosition = true
 
-				position := SticksPosition{Cfg.LeftTypingPS.zone, Cfg.RightTypingPS.zone}
+				position := SticksPositionT{Cfg.LeftTypingPS.zone, Cfg.RightTypingPS.zone}
 				if code, found := typingLayout[position]; found {
 					osSpec.TypeKey(code)
 				}

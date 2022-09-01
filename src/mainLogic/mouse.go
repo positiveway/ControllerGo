@@ -39,10 +39,10 @@ func moveMouseSC() {
 //}
 
 type MoveByPixelFunc = func(moveByPixelX, moveByPixelY int)
-type FilterMoveFunc = func(input float64, isX bool, padStick *PadStickPosition) float64
+type FilterMoveFunc = func(input float64, isX bool, padStick *PadStickPositionT) float64
 
-func calcMovement(input float64, isX bool, moveInterval *Interval,
-	padStick *PadStickPosition, repetitionIntervals *RepetitionIntervals,
+func calcMovement(input float64, isX bool, moveInterval *IntervalTimerT,
+	padStick *PadStickPositionT, repetitionIntervals *IntervalRangeT,
 	filterFunc FilterMoveFunc) int {
 
 	var moveByPixel int
@@ -63,9 +63,9 @@ func calcMovement(input float64, isX bool, moveInterval *Interval,
 }
 
 func MoveInInterval(
-	moveIntervals *Intervals2,
-	padStick *PadStickPosition, position *Position,
-	repetitionIntervals *RepetitionIntervals,
+	moveIntervals *IntervalTimers2T,
+	padStick *PadStickPositionT, position *PositionT,
+	repetitionIntervals *IntervalRangeT,
 	moveFunc MoveByPixelFunc, filterFunc FilterMoveFunc) {
 
 	//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
@@ -82,7 +82,7 @@ func MoveInInterval(
 
 }
 
-func MoveMouse(moveIntervals *Intervals2) {
+func MoveMouse(moveIntervals *IntervalTimers2T) {
 	mousePadStick := Cfg.mousePadStick
 	position := mousePadStick.transformedPos
 
@@ -105,14 +105,14 @@ func moveScrollByPixel(moveByPixelX, moveByPixelY int) {
 	}
 }
 
-func filterScrollHorizontal(input float64, isX bool, padStick *PadStickPosition) float64 {
+func filterScrollHorizontal(input float64, isX bool, padStick *PadStickPositionT) float64 {
 	if isX && gofuncs.Abs(input) <= Cfg.scrollHorizontalThreshold*padStick.radius {
 		input = 0
 	}
 	return input
 }
 
-func MoveScroll(moveIntervals *Intervals2) {
+func MoveScroll(moveIntervals *IntervalTimers2T) {
 	scrollPadStick := Cfg.scrollPadStick
 	position := scrollPadStick.transformedPos
 

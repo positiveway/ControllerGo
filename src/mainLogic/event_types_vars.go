@@ -19,8 +19,6 @@ var (
 	AxisRightPadStickZ BtnOrAxisT
 )
 
-var _AxisMap BtnAxisMapT
-
 var PadAndStickAxes []BtnOrAxisT
 
 var (
@@ -42,14 +40,10 @@ var (
 	BtnDPadRight BtnOrAxisT
 )
 
-type ZoneToBtnMap = map[Zone]BtnOrAxisT
+type ZoneToBtnMapT = map[ZoneT]BtnOrAxisT
 
-var StickZoneToBtnMapSC ZoneToBtnMap
+var StickZoneToBtnMapSC ZoneToBtnMapT
 
-var AllAvailableButtons []BtnOrAxisT
-
-var _BtnMap BtnAxisMapT
-
-var BtnSynonyms Synonyms
+type AvailableButtonsT []BtnOrAxisT
 
 var EventTypeMap map[uint8]EventTypeT

@@ -6,58 +6,25 @@ import (
 	"sync"
 )
 
-type ModeT string
-
-const (
-	TypingMode ModeT = "Typing"
-	MouseMode  ModeT = "Mouse"
-	GamingMode ModeT = "Gaming"
-)
-
-type PadsSticksMode struct {
-	currentMode, defaultMode ModeT
-	lock                     sync.Mutex
-}
-
-func MakePadsSticksMode(defaultMode ModeT) *PadsSticksMode {
-	return &PadsSticksMode{currentMode: defaultMode, defaultMode: defaultMode}
-}
-
-func (mode *PadsSticksMode) SwitchMode() {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
-
-	if mode.currentMode == mode.defaultMode {
-		mode.currentMode = TypingMode
-	} else {
-		mode.currentMode = mode.defaultMode
-	}
-}
-
-func (mode *PadsSticksMode) GetMode() ModeT {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
-
-	return mode.currentMode
-}
-
 var (
-	LeftPad, RightPadStick, LeftStick *PadStickPosition
+	LeftPad, RightPadStick, LeftStick *PadStickPositionT
 )
 
-type Position struct {
+type PositionT struct {
 	x, y float64
 }
 
-func MakeEmptyPosition() *Position {
-	return MakePosition(0, 0)
+func MakeEmptyPosition() *PositionT {
+	position := &PositionT{}
+	position.Reset()
+	return position
 }
 
-func MakePosition(x, y float64) *Position {
-	return &Position{x: x, y: y}
+func MakePosition(x, y float64) *PositionT {
+	return &PositionT{x: x, y: y}
 }
 
-func (pos *Position) Reset() {
+func (pos *PositionT) Reset() {
 	switch Cfg.ControllerInUse {
 	case SteamController:
 		pos.x = gofuncs.NaN()
@@ -68,15 +35,15 @@ func (pos *Position) Reset() {
 	}
 }
 
-func (pos *Position) Update(newPos *Position) {
+func (pos *PositionT) Update(newPos *PositionT) {
 	pos.UpdateRaw(newPos.x, newPos.y)
 }
 
-func (pos *Position) UpdateRaw(x, y float64) {
+func (pos *PositionT) UpdateRaw(x, y float64) {
 	pos.x, pos.y = x, y
 }
 
-func (pos *Position) GetCopy() *Position {
+func (pos *PositionT) GetCopy() *PositionT {
 	return MakePosition(pos.x, pos.y)
 }
 
@@ -120,7 +87,7 @@ func calcRawResolvedAngle(x, y float64) float64 {
 	return resolveRawCircleAngle(calcRawAngle(x, y))
 }
 
-func (pos *Position) CalcTransformedPos(rotationShift float64) (*Position, int, float64) {
+func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, int, float64) {
 	x, y := pos.x, pos.y
 
 	magnitude := calcDistance(x, y)
@@ -130,24 +97,24 @@ func (pos *Position) CalcTransformedPos(rotationShift float64) (*Position, int, 
 	return transformedPos, shiftedAngle, magnitude
 }
 
-type PadStickPosition struct {
-	curPos, prevMousePos, transformedPos *Position
+type PadStickPositionT struct {
+	curPos, prevMousePos, transformedPos *PositionT
 	magnitude                            float64
 	shiftedAngle                         int
 	radius                               float64
 	newValueHandled                      bool
 	lock                                 sync.Mutex
-	zone                                 Zone
+	zone                                 ZoneT
 	zoneCanBeUsed, zoneChanged           bool
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
 
-	//fromMaxPossiblePos *Position
+	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude
 }
 
-func MakePadPosition(zoneRotation float64) *PadStickPosition {
-	pad := PadStickPosition{}
+func MakePadPosition(zoneRotation float64) *PadStickPositionT {
+	pad := PadStickPositionT{}
 
 	pad.curPos = MakeEmptyPosition()
 	pad.prevMousePos = MakeEmptyPosition()
@@ -161,7 +128,7 @@ func MakePadPosition(zoneRotation float64) *PadStickPosition {
 	return &pad
 }
 
-func (pad *PadStickPosition) Reset() {
+func (pad *PadStickPositionT) Reset() {
 	pad.Lock()
 	defer pad.Unlock()
 
@@ -196,7 +163,7 @@ func calcFromMaxPossible(x, y, radius float64) float64 {
 	return ratioFromMaxPossible
 }
 
-func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
+func (pos *PositionT) CalcFromMaxPossible(radius float64) *PositionT {
 	//important to use temp values then assign
 	posFromMaxPossible := MakeEmptyPosition()
 	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
@@ -210,9 +177,9 @@ func (pos *Position) CalcFromMaxPossible(radius float64) *Position {
 	return posFromMaxPossible
 }
 
-func (pad *PadStickPosition) ReCalculateValues() {
+func (pad *PadStickPositionT) ReCalculateValues() {
 	//never assign position (pointer field) directly
-	var _transformedPos *Position
+	var _transformedPos *PositionT
 
 	pad.newValueHandled = false
 
@@ -224,7 +191,7 @@ func (pad *PadStickPosition) ReCalculateValues() {
 	//pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
 }
 
-func (pad *PadStickPosition) setValue(fieldPointer *float64) {
+func (pad *PadStickPositionT) setValue(fieldPointer *float64) {
 	pad.Lock()
 	defer pad.Unlock()
 
@@ -238,23 +205,23 @@ func (pad *PadStickPosition) setValue(fieldPointer *float64) {
 	}
 }
 
-func (pad *PadStickPosition) SetX() {
+func (pad *PadStickPositionT) SetX() {
 	pad.setValue(&(pad.curPos.x))
 }
 
-func (pad *PadStickPosition) SetY() {
+func (pad *PadStickPositionT) SetY() {
 	pad.setValue(&(pad.curPos.y))
 }
 
-func (pad *PadStickPosition) Lock() {
+func (pad *PadStickPositionT) Lock() {
 	pad.lock.Lock()
 }
 
-func (pad *PadStickPosition) Unlock() {
+func (pad *PadStickPositionT) Unlock() {
 	pad.lock.Unlock()
 }
 
-func (pad *PadStickPosition) convertRange(input, outputMax float64) float64 {
+func (pad *PadStickPositionT) convertRange(input, outputMax float64) float64 {
 	gofuncs.PanicAnyNotInit(input)
 
 	if input == 0 {
@@ -272,7 +239,7 @@ func (pad *PadStickPosition) convertRange(input, outputMax float64) float64 {
 	return gofuncs.ApplySign(isNegative, output)
 }
 
-func (pad *PadStickPosition) calcRefreshInterval(input, slowestInterval, fastestInterval float64) float64 {
+func (pad *PadStickPositionT) calcRefreshInterval(input, slowestInterval, fastestInterval float64) float64 {
 	input = math.Abs(input)
 
 	refreshInterval := pad.convertRange(input, slowestInterval-fastestInterval)

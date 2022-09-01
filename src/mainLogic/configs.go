@@ -26,7 +26,7 @@ func (c *ConfigsT) toControllerCfg() ControllerInUseT {
 	return controller
 }
 
-func (c *ConfigsT) toPadsSticksModeCfg() *PadsSticksMode {
+func (c *ConfigsT) toPadsSticksModeCfg() *PadsSticksModeT {
 	allModes := []ModeT{MouseMode, GamingMode}
 	modeType := ModeT(c.getConfig("PadsSticksMode"))
 	checkEnumCfg(allModes, modeType)
@@ -82,6 +82,7 @@ func (c *ConfigsT) setConfigVars() {
 
 	//Mode
 	c.PadsSticksMode = c.toPadsSticksModeCfg()
+	c.HighPrecisionMode = MakeHighPrecisionMode()
 
 	//mouse/scroll
 	//c.mouseOnRightStickPad = c.toBoolConfig("mouseOnRightStickPad")
@@ -106,7 +107,7 @@ func (c *ConfigsT) setConfigVars() {
 
 	case DualShock:
 		//mouse
-		c.mouseIntervalsDS = MakeRepetitionIntervals(
+		c.mouseIntervalsDS = MakeIntervalRange(
 			c.toIntToFloatConfig("mouseSlowestIntervalMs"),
 			c.toIntToFloatConfig("mouseFastestIntervalMs"))
 
@@ -116,7 +117,7 @@ func (c *ConfigsT) setConfigVars() {
 
 	switch c.PadsSticksMode.GetMode() {
 	case GamingMode:
-		c.gamingMoveIntervals = MakeRepetitionIntervals(
+		c.gamingMoveIntervals = MakeIntervalRange(
 			c.toIntToFloatConfig("gamingMoveSlowestMs"),
 			c.toIntToFloatConfig("gamingMoveFastestMs"),
 		)
@@ -133,7 +134,7 @@ func (c *ConfigsT) setConfigVars() {
 	c.mouseEdgeThreshold = c.toPctConfig("mouseEdgeThresholdPct")
 
 	//scroll
-	c.scrollIntervals = MakeRepetitionIntervals(
+	c.scrollIntervals = MakeIntervalRange(
 		c.toIntToFloatConfig("scrollSlowestIntervalMs"),
 		c.toIntToFloatConfig("scrollFastestIntervalMs"))
 
@@ -153,8 +154,8 @@ type ConfigsT struct {
 
 	mouseOnRightStickPad bool
 
-	mousePadStick, scrollPadStick *PadStickPosition
-	LeftTypingPS, RightTypingPS   *PadStickPosition
+	mousePadStick, scrollPadStick *PadStickPositionT
+	LeftTypingPS, RightTypingPS   *PadStickPositionT
 
 	// Math
 	OutputMin            float64
@@ -163,17 +164,19 @@ type ConfigsT struct {
 	// Mode
 	RunFromTerminal bool
 	ControllerInUse ControllerInUseT
-	PadsSticksMode  *PadsSticksMode
+
+	PadsSticksMode    *PadsSticksModeT
+	HighPrecisionMode *HighPrecisionModeT
 
 	// commands
 	holdRepeatInterval, holdingStateThreshold float64
 	TriggerThreshold                          float64
 
 	//games
-	gamingMoveIntervals *RepetitionIntervals
+	gamingMoveIntervals *IntervalRangeT
 
 	// mouse
-	mouseIntervalsDS *RepetitionIntervals
+	mouseIntervalsDS *IntervalRangeT
 
 	mouseIntervalSC time.Duration
 	mouseSpeedSC    float64
@@ -181,11 +184,11 @@ type ConfigsT struct {
 	mouseEdgeThreshold float64
 
 	// scroll
-	scrollIntervals           *RepetitionIntervals
+	scrollIntervals           *IntervalRangeT
 	scrollHorizontalThreshold float64
 
 	//stick
-	StickBoundariesMapSC ZoneBoundariesMap
+	StickBoundariesMapSC ZoneBoundariesMapT
 
 	StickDeadzoneDS float64
 

@@ -45,10 +45,10 @@ type BtnAxisMapT map[uint8]BtnOrAxisT
 
 func genBtnAxisMap() BtnAxisMapT {
 	mapping := BtnAxisMapT{}
-	for k, v := range _AxisMap {
+	for k, v := range initAxisMap() {
 		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
 	}
-	for k, v := range _BtnMap {
+	for k, v := range initBtnMap() {
 		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
 	}
 	return mapping
@@ -58,8 +58,8 @@ const (
 	AxisUnknown BtnOrAxisT = "Unknown"
 )
 
-func initAxisMap() {
-	_AxisMap = BtnAxisMapT{
+func initAxisMap() BtnAxisMapT {
+	return BtnAxisMapT{
 		'u': AxisLeftStickX,
 		'v': AxisLeftStickY,
 		'w': AxisLeftStickZ,
@@ -147,7 +147,6 @@ func initButtonsAndAxesFullSequence() {
 	initPadAndStickAxes()
 
 	//buttons
-	BtnSynonyms = genBtnSynonyms()
 	//stick
 	initStickZoneBtnMap()
 	initCurStickButton()
@@ -187,7 +186,7 @@ func initUnknownCodesMapSC() {
 }
 
 func initStickZoneBtnMap() {
-	StickZoneToBtnMapSC = ZoneToBtnMap{
+	StickZoneToBtnMapSC = ZoneToBtnMapT{
 		ZoneRight: BtnStickRightSC,
 		ZoneUp:    BtnStickUpSC,
 		ZoneLeft:  BtnStickLeftSC,
@@ -195,8 +194,8 @@ func initStickZoneBtnMap() {
 	}
 }
 
-func initAvailableButtons() {
-	_availableButtons := []BtnOrAxisT{
+func initAvailableButtons() AvailableButtonsT {
+	_availableButtons := AvailableButtonsT{
 		BtnLeftWingSC,
 		BtnRightWingSC,
 		BtnA,
@@ -228,15 +227,19 @@ func initAvailableButtons() {
 		BtnStickRightSC,
 	}
 
+	//filter empty
+	var NonEmptyAvailableButtons AvailableButtonsT
 	for _, button := range _availableButtons {
 		if !gofuncs.IsEmptyStripStr(string(button)) {
-			AllAvailableButtons = append(AllAvailableButtons, button)
+			NonEmptyAvailableButtons = append(NonEmptyAvailableButtons, button)
 		}
 	}
+
+	return NonEmptyAvailableButtons
 }
 
-func initBtnMap() {
-	_BtnMap = BtnAxisMapT{
+func initBtnMap() BtnAxisMapT {
+	return BtnAxisMapT{
 		'a': BtnA,
 		'b': BtnB,
 		'c': BtnY,
@@ -278,19 +281,19 @@ const (
 	BtnUnknown BtnOrAxisT = "BtnUnknown"
 )
 
-type Synonyms map[BtnOrAxisT]BtnOrAxisT
+type SynonymsT map[BtnOrAxisT]BtnOrAxisT
 
-func genBtnSynonyms() Synonyms {
-	synonyms := Synonyms{
-		"LeftButton":   BtnLeftButton,
+func genBtnSynonyms() SynonymsT {
+	return SynonymsT{
+		"LeftButton":                BtnLeftButton,
+		addHoldSuffix("LeftButton"): addHoldSuffix(BtnLeftButton),
+
+		"RightButton":                BtnRightButton,
+		addHoldSuffix("RightButton"): addHoldSuffix(BtnRightButton),
+
 		"LeftTrigger":  BtnLeftTrigger,
-		"RightButton":  BtnRightButton,
 		"RightTrigger": BtnRightTrigger,
 	}
-	for key, val := range synonyms {
-		synonyms[addHoldSuffix(key)] = addHoldSuffix(val)
-	}
-	return synonyms
 }
 
 type EventTypeT string

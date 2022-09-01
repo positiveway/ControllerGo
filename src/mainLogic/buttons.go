@@ -7,23 +7,33 @@ import (
 	"sync"
 )
 
-const NoAction = -1
-const SwitchMode = -2
-
-var commonCmdMapping = map[string]int{
-	"NoAction":    NoAction,
-	"LeftMouse":   osSpec.LeftMouse,
-	"RightMouse":  osSpec.RightMouse,
-	"MiddleMouse": osSpec.MiddleMouse,
-	"SwitchMode":  SwitchMode,
-}
+const (
+	NoAction                = -1
+	SwitchMode              = -2
+	SwitchHighPrecisionMode = -3
+)
 
 func initCommands() {
 	pressCommandsLayout = loadCommandsLayout()
 }
 
-func loadCommandsLayout() ButtonToCommand {
-	pressLayout := ButtonToCommand{}
+func initCommonCmdMapping() map[string]int {
+	return map[string]int{
+		"NoAction":      NoAction,
+		"LeftMouse":     osSpec.LeftMouse,
+		"RightMouse":    osSpec.RightMouse,
+		"MiddleMouse":   osSpec.MiddleMouse,
+		"SwitchMode":    SwitchMode,
+		"HighPrecision": SwitchHighPrecisionMode,
+	}
+}
+
+func loadCommandsLayout() ButtonToCommandT {
+	commonCmdMapping := initCommonCmdMapping()
+	BtnSynonyms := genBtnSynonyms()
+	AllAvailableButtons := initAvailableButtons()
+
+	pressLayout := ButtonToCommandT{}
 	linesParts := Cfg.ReadLayoutFile(path.Join(Cfg.LayoutInUse, "buttons.csv"), 2)
 	for _, parts := range linesParts {
 		btn := BtnOrAxisT(parts[0])
@@ -40,6 +50,8 @@ func loadCommandsLayout() ButtonToCommand {
 			if code, found := commonCmdMapping[key]; found {
 				codes = append(codes, code)
 			} else {
+				//Be careful! It probably works because variable was reassigned
+				//and original map key isn't broken
 				code := getCodeFromLetter(key)
 				codes = append(codes, code)
 			}
@@ -55,17 +67,17 @@ func loadCommandsLayout() ButtonToCommand {
 	return pressLayout
 }
 
-type Command []int
+type CommandT []int
 
-type ButtonToCommand map[BtnOrAxisT]*CommandInfo
+type ButtonToCommandT map[BtnOrAxisT]*CommandInfoT
 
-var pressCommandsLayout ButtonToCommand
+var pressCommandsLayout ButtonToCommandT
 
-var buttonsToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfo]()
+var buttonsToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfoT]()
 
 var ButtonsLock sync.Mutex
 
-func PutButton(btn BtnOrAxisT, commandInfo *CommandInfo) bool {
+func PutButton(btn BtnOrAxisT, commandInfo *CommandInfoT) bool {
 	if _, exist := buttonsToRelease.CheckAndGet(btn); exist {
 		return false
 	}
@@ -73,36 +85,36 @@ func PutButton(btn BtnOrAxisT, commandInfo *CommandInfo) bool {
 	return true
 }
 
-type CommandInfo struct {
-	Interval
-	command              Command
+type CommandInfoT struct {
+	IntervalTimerT
+	command              CommandT
 	specialCaseIsHandled bool
 }
 
-func MakeCommandInfo(command Command, repeatInterval float64) *CommandInfo {
+func MakeCommandInfo(command CommandT, repeatInterval float64) *CommandInfoT {
 	if gofuncs.IsNotInit(repeatInterval) {
 		repeatInterval = Cfg.holdRepeatInterval
 	}
 
-	commandInfo := &CommandInfo{command: command}
+	commandInfo := &CommandInfoT{command: command}
 	commandInfo.SetInterval(repeatInterval)
 	return commandInfo
 }
 
-func MakeUndeterminedCommandInfo() *CommandInfo {
+func MakeUndeterminedCommandInfo() *CommandInfoT {
 	return MakeCommandInfo(nil, Cfg.holdingStateThreshold)
 }
 
-func (c *CommandInfo) GetCopy() *CommandInfo {
+func (c *CommandInfoT) GetCopy() *CommandInfoT {
 	return MakeCommandInfo(c.command, c.repeatInterval)
 }
 
-func (c *CommandInfo) CopyFromOther(other *CommandInfo) {
+func (c *CommandInfoT) CopyFromOther(other *CommandInfoT) {
 	c.command = other.command
 	c.SetInterval(other.repeatInterval)
 }
 
-func isEmptyCommandInfo(commandInfo *CommandInfo) bool {
+func isEmptyCommandInfo(commandInfo *CommandInfoT) bool {
 	return commandInfo == nil
 }
 
@@ -110,7 +122,7 @@ func isEmptyCommandForButton(btn BtnOrAxisT, hold bool) bool {
 	return isEmptyCommandInfo(getCommandInfo(btn, hold))
 }
 
-func isEmptyCmd(command Command) bool {
+func isEmptyCmd(command CommandT) bool {
 	return gofuncs.IsEmptySlice(command)
 }
 
@@ -123,7 +135,7 @@ func hasHoldCommand(btn BtnOrAxisT) bool {
 	return !isEmptyCommandForButton(btn, true)
 }
 
-func getCommandInfo(btn BtnOrAxisT, hold bool) *CommandInfo {
+func getCommandInfo(btn BtnOrAxisT, hold bool) *CommandInfoT {
 	if hold {
 		btn = addHoldSuffix(btn)
 	}
@@ -136,25 +148,25 @@ func getCommandInfo(btn BtnOrAxisT, hold bool) *CommandInfo {
 	return commandInfo
 }
 
-func getFirstCmdSymbol(command Command) int {
+func getFirstCmdSymbol(command CommandT) int {
 	return command[0]
 }
 
-func isSwitchModeCmd(command Command) bool {
+func isSwitchModeCmd(command CommandT) bool {
 	if isEmptyCmd(command) {
 		return false
 	}
 	return getFirstCmdSymbol(command) == SwitchMode
 }
 
-func isEscLetterCode(command Command) bool {
+func isEscLetterCode(command CommandT) bool {
 	if isEmptyCmd(command) {
 		return false
 	}
 	return getFirstCmdSymbol(command) == EscLetterCode
 }
 
-func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfo) {
+func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 	command := commandInfo.command
 
 	if !commandInfo.specialCaseIsHandled {
@@ -174,7 +186,7 @@ func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfo) {
 	}
 }
 
-func releaseSequence(command Command) {
+func releaseSequence(command CommandT) {
 	if isSwitchModeCmd(command) {
 		return
 	}
@@ -225,7 +237,7 @@ func RepeatCommand() {
 	//Esc button's releaseAll will break state (changing map over iteration)
 	//RangeOverCopy prevents this: states will be restored, esc command executed,
 	//and then states will be properly released
-	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfo) {
+	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 		if isEmptyCmd(commandInfo.command) {
 			//if hold state Interval passed
 			if commandInfo.DecreaseInterval() {
@@ -243,7 +255,7 @@ func RepeatCommand() {
 }
 
 func releaseAll(curButton BtnOrAxisT) {
-	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfo) {
+	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 		//current button should stay in map
 		if btn != curButton {
 			releaseButton(btn)

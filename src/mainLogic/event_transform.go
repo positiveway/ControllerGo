@@ -40,7 +40,7 @@ func (event *EventT) transformToWingsSC() {
 	}
 }
 
-func (event *EventT) transformStickToDPadSC(curPressedStickButton *BtnOrAxisT, boundariesMap ZoneBoundariesMap, zoneToBtnMap ZoneToBtnMap) {
+func (event *EventT) transformStickToDPadSC(curPressedStickButton *BtnOrAxisT, boundariesMap ZoneBoundariesMapT, zoneToBtnMap ZoneToBtnMapT) {
 	isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
 		(event.btnOrAxis == AxisLeftStickX || event.btnOrAxis == AxisLeftStickY)
 	if !isStickEvent {

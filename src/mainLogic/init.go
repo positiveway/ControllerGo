@@ -57,24 +57,6 @@ func RunMain() {
 	}
 }
 
-type RepetitionIntervals struct {
-	slowest, fastest float64
-}
-
-func checkIntervals(slowest, fastest float64) {
-	if fastest >= slowest {
-		gofuncs.Panic("Fastest interval can't be greater than slowest")
-	}
-}
-
-func MakeRepetitionIntervals(slowest, fastest float64) *RepetitionIntervals {
-
-	repIntervals := &RepetitionIntervals{}
-	repIntervals.slowest, repIntervals.fastest = slowest, fastest
-	checkIntervals(repIntervals.slowest, repIntervals.fastest)
-	return repIntervals
-}
-
 func (c *ConfigsT) InitBasePath() {
 	if c.RunFromTerminal {
 		c.BaseDir = filepath.Dir(filepath.Dir(GetCurFileDir()))
