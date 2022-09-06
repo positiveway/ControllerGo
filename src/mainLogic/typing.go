@@ -19,7 +19,8 @@ func initTyping() {
 }
 
 func loadTypingLayout() TypingLayoutT {
-	linesParts := Cfg.ReadLayoutFile("typing.csv", 2)
+	linesParts := gofuncs.ReadLayoutFile(2,
+		[]string{Cfg.Path.AllLayoutsDir, "typing.csv"})
 
 	layout := TypingLayoutT{}
 	for _, parts := range linesParts {
@@ -42,25 +43,28 @@ func loadTypingLayout() TypingLayoutT {
 
 func genTypingBoundariesMap() ZoneBoundariesMapT {
 	return genEqualThresholdBoundariesMap(true,
-		makeAngleMargin(Cfg.TypingDiagonalAngleMargin, Cfg.TypingStraightAngleMargin, Cfg.TypingStraightAngleMargin),
-		Cfg.TypingThreshold,
-		Cfg.MinStandardPadRadius)
+		MakeAngleMargin(
+			Cfg.Typing.AngleMargin.Diagonal,
+			Cfg.Typing.AngleMargin.Straight,
+			Cfg.Typing.AngleMargin.Straight),
+		Cfg.Typing.ThresholdPct,
+		1.0)
 }
 
 func TypeLetter() {
-	if Cfg.PadsSticksMode.GetMode() != TypingMode {
+	if Cfg.PadsSticks.Mode.GetMode() != TypingMode {
 		return
 	}
-	Cfg.LeftTypingPS.ReCalculateZone(TypingBoundariesMap)
-	Cfg.RightTypingPS.ReCalculateZone(TypingBoundariesMap)
+	Cfg.Typing.LeftPS.ReCalculateZone(TypingBoundariesMap)
+	Cfg.Typing.RightPS.ReCalculateZone(TypingBoundariesMap)
 
-	if Cfg.LeftTypingPS.zoneCanBeUsed && Cfg.RightTypingPS.zoneCanBeUsed {
-		if Cfg.LeftTypingPS.zoneChanged || Cfg.RightTypingPS.zoneChanged {
-			if !Cfg.LeftTypingPS.awaitingCentralPosition || !Cfg.RightTypingPS.awaitingCentralPosition {
-				Cfg.LeftTypingPS.awaitingCentralPosition = true
-				Cfg.RightTypingPS.awaitingCentralPosition = true
+	if Cfg.Typing.LeftPS.zoneCanBeUsed && Cfg.Typing.RightPS.zoneCanBeUsed {
+		if Cfg.Typing.LeftPS.zoneChanged || Cfg.Typing.RightPS.zoneChanged {
+			if !Cfg.Typing.LeftPS.awaitingCentralPosition || !Cfg.Typing.RightPS.awaitingCentralPosition {
+				Cfg.Typing.LeftPS.awaitingCentralPosition = true
+				Cfg.Typing.RightPS.awaitingCentralPosition = true
 
-				position := SticksPositionT{Cfg.LeftTypingPS.zone, Cfg.RightTypingPS.zone}
+				position := SticksPositionT{Cfg.Typing.LeftPS.zone, Cfg.Typing.RightPS.zone}
 				if code, found := typingLayout[position]; found {
 					osSpec.TypeKey(code)
 				}

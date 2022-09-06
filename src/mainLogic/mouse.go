@@ -3,7 +3,6 @@ package mainLogic
 import (
 	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
-	"math"
 )
 
 func calcMove(value, prevValue float64) int {
@@ -12,18 +11,18 @@ func calcMove(value, prevValue float64) int {
 	}
 
 	diff := value - prevValue
-	pixels := gofuncs.FloatToIntRound[int](diff * Cfg.mouseSpeedSC)
+	pixels := gofuncs.FloatToIntRound[int](diff * Cfg.PadsSticks.HighPrecisionMode.curMouseSpeed)
 
 	return pixels
 }
 
 func moveMouseSC() {
-	if Cfg.PadsSticksMode.GetMode() == TypingMode {
+	if Cfg.PadsSticks.Mode.GetMode() == TypingMode {
 		return
 	}
 
-	transformedPos := Cfg.mousePadStick.transformedPos
-	prevMousePos := Cfg.mousePadStick.prevMousePos
+	transformedPos := Cfg.PadsSticks.MousePS.transformedPos
+	prevMousePos := Cfg.PadsSticks.MousePS.prevMousePos
 
 	moveX := calcMove(transformedPos.x, prevMousePos.x)
 	moveY := calcMove(transformedPos.y, prevMousePos.y)
@@ -48,33 +47,33 @@ func calcMovement(input float64, isX bool, moveInterval *IntervalTimerT,
 	var moveByPixel int
 
 	if moveInterval.DecreaseInterval() {
-		moveInterval.SetInterval(repetitionIntervals.fastest)
+		moveInterval.SetInterval(repetitionIntervals.Fastest)
 
 		if filterFunc != nil {
 			input = filterFunc(input, isX, padStick)
 		}
 
-		if !gofuncs.IsNotInitOrEmpty(input) {
+		if !gofuncs.IsEmptyOrNotInit(input) {
 			moveByPixel = gofuncs.SignAsInt(input)
-			moveInterval.SetInterval(padStick.calcRefreshInterval(input, repetitionIntervals.slowest, repetitionIntervals.fastest))
+			moveInterval.SetInterval(padStick.calcRefreshInterval(input, repetitionIntervals.Slowest, repetitionIntervals.Fastest))
 		}
 	}
 	return moveByPixel
 }
 
 func MoveInInterval(
-	moveIntervals *IntervalTimers2T,
+	intervalTimers *IntervalTimers2T,
 	padStick *PadStickPositionT, position *PositionT,
 	repetitionIntervals *IntervalRangeT,
 	moveFunc MoveByPixelFunc, filterFunc FilterMoveFunc) {
 
 	//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
-	//fastestInterval :=RepetitionsToInterval(maxRepetitionPerSec)
+	//fastestInterval := RepetitionsToInterval(maxRepetitionPerSec)
 
 	padStick.Lock()
 
-	moveByPixelX := calcMovement(position.x, true, moveIntervals.X, padStick, repetitionIntervals, filterFunc)
-	moveByPixelY := calcMovement(position.y, false, moveIntervals.Y, padStick, repetitionIntervals, filterFunc)
+	moveByPixelX := calcMovement(position.x, true, intervalTimers.X, padStick, repetitionIntervals, filterFunc)
+	moveByPixelY := calcMovement(position.y, false, intervalTimers.Y, padStick, repetitionIntervals, filterFunc)
 
 	padStick.Unlock()
 
@@ -82,13 +81,14 @@ func MoveInInterval(
 
 }
 
-func MoveMouse(moveIntervals *IntervalTimers2T) {
-	mousePadStick := Cfg.mousePadStick
-	position := mousePadStick.transformedPos
-
-	MoveInInterval(moveIntervals, mousePadStick, position,
-		Cfg.mouseIntervalsDS, moveMouseByPixelDS, nil)
-}
+//
+//func MoveMouse(intervalTimers *IntervalTimers2T, moveIntervalRange *IntervalRangeT) {
+//	mousePadStick := Cfg.PadsSticks.MousePS
+//	mousePosition := mousePadStick.transformedPos
+//
+//	MoveInInterval(intervalTimers, mousePadStick, mousePosition,
+//		moveIntervalRange, moveMouseByPixelDS, nil)
+//}
 
 func moveMouseByPixelDS(moveByPixelX, moveByPixelY int) {
 	if moveByPixelX != 0 || moveByPixelY != 0 {
@@ -106,36 +106,17 @@ func moveScrollByPixel(moveByPixelX, moveByPixelY int) {
 }
 
 func filterScrollHorizontal(input float64, isX bool, padStick *PadStickPositionT) float64 {
-	if isX && gofuncs.Abs(input) <= Cfg.scrollHorizontalThreshold*padStick.radius {
+	if isX && gofuncs.Abs(input) <= Cfg.Scroll.HorizontalThresholdPct*padStick.radius {
 		input = 0
 	}
 	return input
 }
 
-func MoveScroll(moveIntervals *IntervalTimers2T) {
-	scrollPadStick := Cfg.scrollPadStick
-	position := scrollPadStick.transformedPos
-
-	MoveInInterval(moveIntervals, scrollPadStick, position,
-		Cfg.scrollIntervals, moveScrollByPixel, filterScrollHorizontal)
-}
-
-func getDirection(val float64, horizontal bool) int {
-	if gofuncs.IsNotInit(val) {
-		return 0
-	}
-	if horizontal && math.Abs(val) < Cfg.scrollHorizontalThreshold {
-		return 0
-	}
-	return gofuncs.SignAsInt(val)
-}
-
-func getDirections(x, y float64) (int, int) {
-	hDir := getDirection(x, true)
-	vDir := getDirection(y, false)
-
-	if hDir != 0 {
-		vDir = 0
-	}
-	return hDir, vDir
-}
+//
+//func MoveScroll(intervalTimers *IntervalTimers2T, moveIntervalRange *IntervalRangeT) {
+//	scrollPadStick := Cfg.PadsSticks.ScrollPS
+//	scrollPosition := scrollPadStick.transformedPos
+//
+//	MoveInInterval(intervalTimers, scrollPadStick, scrollPosition,
+//		moveIntervalRange, moveScrollByPixel, filterScrollHorizontal)
+//}

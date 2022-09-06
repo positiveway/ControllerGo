@@ -1,0 +1,48 @@
+{
+  "ControllerInUse": "SteamController",
+  "Pads/Sticks": {
+    "Mode": "Mouse",
+    "Rotation": {
+      "LeftPad": 10,
+      "RightPad": 12,
+      "Stick": 10
+    },
+    "Stick": {
+      "AngleMargin": 40,
+      "ThresholdPct": 25,
+      "EdgeThresholdPct": 100
+    }
+  },
+  "Mouse": {
+    "OnRightStickPad": true,
+    "EdgeThresholdPct": 95,
+    "Speed": {
+      "Normal": 200,
+      "HighPrecision": 200
+    }
+  },
+  "Scroll": {
+    "HorizontalThresholdPct": 65,
+    "Intervals": {
+      "Normal": {
+        "FastestMs": 40,
+        "SlowestMs": 280
+      },
+      "HighPrecision": {
+        "FastestMs": 40,
+        "SlowestMs": 280
+      }
+    }
+  },
+  "Buttons": {
+    "TriggerThresholdPct": 7,
+    "HoldingStateThresholdMs": 200
+  },
+  "Typing": {
+    "ThresholdPct": 35,
+    "AngleMargin": {
+      "Straight": 21,
+      "Diagonal": 23
+    }
+  }
+}

@@ -101,7 +101,7 @@ func (event *EventT) transformAndFilter() {
 	case SteamController:
 		event.fixButtonNamesForSteamController()
 		event.transformToWingsSC()
-		event.transformStickToDPadSC(CurPressedStickButtonSC, Cfg.StickBoundariesMapSC, StickZoneToBtnMapSC)
+		event.transformStickToDPadSC(CurPressedStickButtonSC, Cfg.PadsSticks.Stick.BoundariesMapSC, StickZoneToBtnMapSC)
 	case DualShock:
 		if event.applyDeadzoneDS() {
 			return

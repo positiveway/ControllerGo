@@ -10,7 +10,8 @@ A:         MiddleMouse
 A_Hold:     Control, Z
 LeftButton:   SwitchMode
 LeftTrigger:  RightMouse
-RightButton:  Rightalt
+RightButton:  HighPrecision
+RightButton_Hold:  Rightalt
 RightTrigger: LeftMouse
 Select:        Windows
 Start:         Esc

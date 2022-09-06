@@ -3,13 +3,10 @@ package mainLogic
 import (
 	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
-	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"strings"
-	"time"
 )
 
 func MakeConfigs() *ConfigsT {
@@ -26,7 +23,7 @@ func MakeConfigs() *ConfigsT {
 
 func RunFreshInitSequence() {
 	Cfg = MakeConfigs()
-	Cfg.initTouchpads()
+	Cfg.initDependentOnCfg()
 
 	initEventTypes()
 	initCodeMapping()
@@ -44,7 +41,7 @@ func RunMain() {
 	defer releaseAll("")
 
 	runtime.GC()
-	debug.SetGCPercent(Cfg.GCPercent)
+	debug.SetGCPercent(Cfg.System.GCPercent)
 
 	switch Cfg.ControllerInUse {
 	//go thread should always come first
@@ -58,90 +55,26 @@ func RunMain() {
 }
 
 func (c *ConfigsT) InitBasePath() {
-	if c.RunFromTerminal {
-		c.BaseDir = filepath.Dir(filepath.Dir(GetCurFileDir()))
-	} else {
-		c.BaseDir = osSpec.DefaultProjectDir
-	}
-	c.LayoutsDir = filepath.Join(c.BaseDir, "layouts")
+	BaseDir := func() string {
+		if c.System.RunFromTerminal {
+			return filepath.Dir(filepath.Dir(gofuncs.GetCurFileDir()))
+		} else {
+			return osSpec.DefaultProjectDir
+		}
+	}()
+
+	c.Path.AllLayoutsDir = gofuncs.JoinPathCheckIfExists(BaseDir, "layouts")
 }
 
 func (c *ConfigsT) loadLayoutDir() {
-	c.LayoutInUse = gofuncs.ReadFile(filepath.Join(c.LayoutsDir, "layout_to_use.txt"))
-	c.LayoutInUse = strings.TrimSpace(c.LayoutInUse)
+	layoutInUse := gofuncs.ReadFile[string](filepath.Join(c.Path.AllLayoutsDir, "layout_to_use.txt"))
+	layoutInUse = strings.TrimSpace(layoutInUse)
 
-	curLayoutDir := path.Join(c.LayoutsDir, c.LayoutInUse)
-	if _, err := os.Stat(curLayoutDir); os.IsNotExist(err) {
-		gofuncs.Panic("Layout folder with such name doesn't exist: %s", c.LayoutInUse)
-	}
+	c.Path.CurLayoutDir = gofuncs.JoinPathCheckIfExists(c.Path.AllLayoutsDir, layoutInUse)
 }
 
 func (c *ConfigsT) loadConfigs() {
-	c.RawStrConfigs = map[string]string{}
+	_RawCfg = &RawConfigsT{}
 
-	linesParts := c.ReadLayoutFile(path.Join(c.LayoutInUse, "configs.csv"), 0)
-	for _, parts := range linesParts {
-		constName := parts[0]
-		constValue := parts[1]
-
-		constName = strings.ToLower(constName)
-		gofuncs.AssignWithDuplicateCheck(c.RawStrConfigs, constName, constValue)
-	}
-}
-
-func GetCurFileDir() string {
-	ex, err := os.Executable()
-	gofuncs.CheckErr(err)
-	exPath := filepath.Dir(ex)
-	gofuncs.Print("Exec path: %s", exPath)
-	return exPath
-}
-
-func (c *ConfigsT) ReadLayoutFile(pathFromLayoutsDir string, skipLines int) [][]string {
-	file := filepath.Join(c.LayoutsDir, pathFromLayoutsDir)
-	lines := gofuncs.ReadLines(file)
-	lines = lines[skipLines:]
-
-	var linesParts [][]string
-	for _, line := range lines {
-		line = gofuncs.Strip(line)
-		if gofuncs.IsEmptyStripStr(line) || gofuncs.StartsWithAnyOf(line, ";", "//") {
-			continue
-		}
-		parts := gofuncs.SplitByAnyOf(line, "&|>:,=")
-		for ind, part := range parts {
-			parts[ind] = gofuncs.Strip(part)
-		}
-		linesParts = append(linesParts, parts)
-	}
-	return linesParts
-}
-
-func (c *ConfigsT) getConfig(constName string) string {
-	constName = strings.ToLower(constName)
-	return gofuncs.GetOrPanic(c.RawStrConfigs, constName, "No such name in config")
-}
-
-func (c *ConfigsT) toBoolConfig(name string) bool {
-	return gofuncs.StrToBool(c.getConfig(name))
-}
-
-func (c *ConfigsT) toIntConfig(name string) int {
-	return gofuncs.StrToInt(c.getConfig(name))
-}
-
-func (c *ConfigsT) toMillisConfig(name string) time.Duration {
-	return gofuncs.StrToMillis(c.getConfig(name))
-}
-
-func (c *ConfigsT) toFloatConfig(name string) float64 {
-	return gofuncs.StrToFloat(c.getConfig(name))
-}
-
-func (c *ConfigsT) toIntToFloatConfig(name string) float64 {
-	return gofuncs.StrToIntToFloat(c.getConfig(name))
-}
-
-func (c *ConfigsT) toPctConfig(name string) float64 {
-	return gofuncs.StrToPct(c.getConfig(name))
+	gofuncs.ReadJson(_RawCfg, []string{c.Path.CurLayoutDir, "configs.json"})
 }

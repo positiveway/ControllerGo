@@ -3,13 +3,12 @@ package mainLogic
 import (
 	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
-	"path"
 	"sync"
 )
 
 const (
 	NoAction                = -1
-	SwitchMode              = -2
+	SwitchPadStickMode      = -2
 	SwitchHighPrecisionMode = -3
 )
 
@@ -23,7 +22,7 @@ func initCommonCmdMapping() map[string]int {
 		"LeftMouse":     osSpec.LeftMouse,
 		"RightMouse":    osSpec.RightMouse,
 		"MiddleMouse":   osSpec.MiddleMouse,
-		"SwitchMode":    SwitchMode,
+		"SwitchMode":    SwitchPadStickMode,
 		"HighPrecision": SwitchHighPrecisionMode,
 	}
 }
@@ -34,7 +33,9 @@ func loadCommandsLayout() ButtonToCommandT {
 	AllAvailableButtons := initAvailableButtons()
 
 	pressLayout := ButtonToCommandT{}
-	linesParts := Cfg.ReadLayoutFile(path.Join(Cfg.LayoutInUse, "buttons.csv"), 2)
+	linesParts := gofuncs.ReadLayoutFile(2,
+		[]string{Cfg.Path.CurLayoutDir, "buttons.csv"})
+
 	for _, parts := range linesParts {
 		btn := BtnOrAxisT(parts[0])
 		keys := parts[1:]
@@ -93,16 +94,16 @@ type CommandInfoT struct {
 
 func MakeCommandInfo(command CommandT, repeatInterval float64) *CommandInfoT {
 	if gofuncs.IsNotInit(repeatInterval) {
-		repeatInterval = Cfg.holdRepeatInterval
+		repeatInterval = Cfg.Buttons.HoldRepeatInterval
 	}
 
 	commandInfo := &CommandInfoT{command: command}
-	commandInfo.SetInterval(repeatInterval)
+	commandInfo.InitIntervalTimer(repeatInterval)
 	return commandInfo
 }
 
 func MakeUndeterminedCommandInfo() *CommandInfoT {
-	return MakeCommandInfo(nil, Cfg.holdingStateThreshold)
+	return MakeCommandInfo(nil, Cfg.Buttons.HoldingStateThreshold)
 }
 
 func (c *CommandInfoT) GetCopy() *CommandInfoT {
@@ -153,17 +154,7 @@ func getFirstCmdSymbol(command CommandT) int {
 }
 
 func isSwitchModeCmd(command CommandT) bool {
-	if isEmptyCmd(command) {
-		return false
-	}
-	return getFirstCmdSymbol(command) == SwitchMode
-}
-
-func isEscLetterCode(command CommandT) bool {
-	if isEmptyCmd(command) {
-		return false
-	}
-	return getFirstCmdSymbol(command) == EscLetterCode
+	return getFirstCmdSymbol(command) == SwitchPadStickMode
 }
 
 func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfoT) {
@@ -172,11 +163,14 @@ func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 	if !commandInfo.specialCaseIsHandled {
 		commandInfo.specialCaseIsHandled = true
 
-		if isSwitchModeCmd(command) {
+		switch getFirstCmdSymbol(command) {
+		case SwitchPadStickMode:
 			// don't do release all
-			Cfg.PadsSticksMode.SwitchMode()
+			Cfg.PadsSticks.Mode.SwitchMode()
 			return
-		} else if isEscLetterCode(command) {
+		case SwitchHighPrecisionMode:
+			Cfg.PadsSticks.HighPrecisionMode.SwitchMode()
+		case EscLetterCode:
 			releaseAll(btn)
 		}
 	}
@@ -268,9 +262,9 @@ func isTriggerBtn(btn BtnOrAxisT) bool {
 }
 
 func handleTriggers(btn BtnOrAxisT, value float64) {
-	if value > Cfg.TriggerThreshold {
+	if value > Cfg.Buttons.TriggerThreshold {
 		pressImmediately(btn)
-	} else if value < Cfg.TriggerThreshold {
+	} else if value < Cfg.Buttons.TriggerThreshold {
 		releaseButton(btn)
 	}
 }

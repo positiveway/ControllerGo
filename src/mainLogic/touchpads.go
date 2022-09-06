@@ -64,9 +64,9 @@ func resolveRawCircleAngle[T gofuncs.Number](angle T) float64 {
 	return math.Mod(float64(angle)+360, 360)
 }
 
-func resolveCircleAngle[T gofuncs.Number](angle T) int {
+func resolveCircleAngle[T gofuncs.Number](angle T) uint {
 	resolvedAngle := resolveRawCircleAngle(angle)
-	return gofuncs.FloatToIntRound[int](resolvedAngle)
+	return gofuncs.FloatToIntRound[uint](resolvedAngle)
 }
 
 func calcRawAngle(x, y float64) float64 {
@@ -79,7 +79,7 @@ func calcRawAngle(x, y float64) float64 {
 	return angleInDegrees
 }
 
-func calcResolvedAngle(x, y float64) int {
+func calcResolvedAngle(x, y float64) uint {
 	return resolveCircleAngle(calcRawAngle(x, y))
 }
 
@@ -87,7 +87,7 @@ func calcRawResolvedAngle(x, y float64) float64 {
 	return resolveRawCircleAngle(calcRawAngle(x, y))
 }
 
-func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, int, float64) {
+func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, uint, float64) {
 	x, y := pos.x, pos.y
 
 	magnitude := calcDistance(x, y)
@@ -100,7 +100,7 @@ func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, int
 type PadStickPositionT struct {
 	curPos, prevMousePos, transformedPos *PositionT
 	magnitude                            float64
-	shiftedAngle                         int
+	shiftedAngle                         uint
 	radius                               float64
 	newValueHandled                      bool
 	lock                                 sync.Mutex
@@ -113,19 +113,33 @@ type PadStickPositionT struct {
 	//normalizedMagnitude
 }
 
-func MakePadPosition(zoneRotation float64) *PadStickPositionT {
+func MakePadPosition(zoneRotation float64, isOnLeftSide bool) *PadStickPositionT {
 	pad := PadStickPositionT{}
 
 	pad.curPos = MakeEmptyPosition()
 	pad.prevMousePos = MakeEmptyPosition()
 	pad.transformedPos = MakeEmptyPosition()
-
 	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
+	if isOnLeftSide {
+		zoneRotation *= -1
+	}
 	pad.zoneRotation = zoneRotation
+
 	pad.Reset()
+	pad.Validate()
 
 	return &pad
+}
+
+func checkRotation(rotation float64) {
+	if gofuncs.Abs(rotation) > 360 {
+		gofuncs.Panic("Incorrect rotation: %v", rotation)
+	}
+}
+
+func (pad *PadStickPositionT) Validate() {
+	checkRotation(pad.zoneRotation)
 }
 
 func (pad *PadStickPositionT) Reset() {
@@ -136,14 +150,13 @@ func (pad *PadStickPositionT) Reset() {
 	//don't reset prev value to calc proper delta from prev to zero
 	pad.prevMousePos.Reset()
 	pad.transformedPos.Reset()
-
 	//pad.fromMaxPossiblePos.Reset()
 
 	pad.ReCalculateValues()
 }
 
 func calcRadius(magnitude float64) float64 {
-	return gofuncs.Max(magnitude, Cfg.MinStandardPadRadius)
+	return gofuncs.Max(magnitude, Cfg.PadsSticks.MinStandardRadius)
 }
 
 func calcFromMaxPossible(x, y, radius float64) float64 {
@@ -155,7 +168,7 @@ func calcFromMaxPossible(x, y, radius float64) float64 {
 	ratioFromMaxPossible := x / maxPossibleX
 
 	if ratioFromMaxPossible > radius {
-		if ratioFromMaxPossible > radius+FloatEqualityMargin {
+		if ratioFromMaxPossible > radius+Cfg.Math.FloatEqualityMargin {
 			gofuncs.Panic("Incorrect calculations")
 		}
 		ratioFromMaxPossible = radius
@@ -234,8 +247,10 @@ func (pad *PadStickPositionT) convertRange(input, outputMax float64) float64 {
 		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", pad.radius, input)
 	}
 
-	inputMin := Cfg.StickDeadzoneDS
-	output := Cfg.OutputMin + (outputMax-Cfg.OutputMin)/(pad.radius-inputMin)*(input-inputMin)
+	inputMin := Cfg.PadsSticks.Stick.DeadzoneDS
+	outputMin := Cfg.Math.OutputMin
+
+	output := outputMin + (outputMax-outputMin)/(pad.radius-inputMin)*(input-inputMin)
 	return gofuncs.ApplySign(isNegative, output)
 }
 
@@ -256,7 +271,7 @@ func applyDeadzone(value float64) float64 {
 	if gofuncs.IsNotInit(value) {
 		return value
 	}
-	if math.Abs(value) <= Cfg.StickDeadzoneDS {
+	if math.Abs(value) <= Cfg.PadsSticks.Stick.DeadzoneDS {
 		value = 0
 	}
 	return value

@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	AngleRight     int = 0
-	AngleUpRight   int = 45
-	AngleUp        int = 90
-	AngleUpLeft    int = 135
-	AngleLeft      int = 180
-	AngleDownLeft  int = 225
-	AngleDown      int = 270
-	AngleDownRight int = 315
+	AngleRight     uint = 0
+	AngleUpRight   uint = 45
+	AngleUp        uint = 90
+	AngleUpLeft    uint = 135
+	AngleLeft      uint = 180
+	AngleDownLeft  uint = 225
+	AngleDown      uint = 270
+	AngleDownRight uint = 315
 )
 
 type ZoneT string
@@ -51,39 +51,41 @@ type DirectionT struct {
 	zone                               ZoneT
 }
 
-func makeDirection(zone ZoneT, zoneThresholdPct, edgeThresholdPct float64) DirectionT {
-	return DirectionT{zone: zone, zoneThresholdPct: zoneThresholdPct, edgeThresholdPct: edgeThresholdPct}
+func MakeDirection(zone ZoneT, zoneThresholdPct, edgeThresholdPct float64) *DirectionT {
+	return &DirectionT{zone: zone, zoneThresholdPct: zoneThresholdPct, edgeThresholdPct: edgeThresholdPct}
 }
 
-type ZoneBoundariesMapT map[int]DirectionT
+type ZoneBoundariesMapT map[uint]*DirectionT
 
-type InitBoundariesT map[int]ZoneT
+type InitBoundariesT map[uint]ZoneT
 
-type ThresholdT struct {
+type ThresholdPctT struct {
 	diagonal, horizontal, vertical float64
 }
 
-func makeThreshold(diagonal, horizontal, vertical float64) ThresholdT {
-	return ThresholdT{diagonal: diagonal, horizontal: horizontal, vertical: vertical}
+func MakeThresholdPct(diagonal, horizontal, vertical float64) *ThresholdPctT {
+	return &ThresholdPctT{diagonal: diagonal, horizontal: horizontal, vertical: vertical}
 }
 
 type AngleMarginT struct {
-	diagonal, horizontal, vertical int
+	Diagonal   uint `json:"Diagonal"`
+	Horizontal uint `json:"Horizontal"`
+	Vertical   uint `json:"Vertical"`
 }
 
-func makeAngleMargin(diagonal, horizontal, vertical int) AngleMarginT {
-	return AngleMarginT{diagonal: diagonal, horizontal: horizontal, vertical: vertical}
+func MakeAngleMargin(diagonal, horizontal, vertical uint) *AngleMarginT {
+	return &AngleMarginT{Diagonal: diagonal, Horizontal: horizontal, Vertical: vertical}
 }
 
-func isDiagonal(angle int) bool {
+func isDiagonal(angle uint) bool {
 	return math.Mod(float64(angle), 90) == 45
 }
 
-func isHorizontal(angle int) bool {
+func isHorizontal(angle uint) bool {
 	return angle == 0 || angle == 180
 }
 
-func isVertical(angle int) bool {
+func isVertical(angle uint) bool {
 	return angle == 90 || angle == 270
 }
 
@@ -91,7 +93,7 @@ func isEdgeZone(zone ZoneT) bool {
 	return gofuncs.EndsWith(string(zone), string(EdgeZoneSuffix))
 }
 
-func resolveThreeDirectionalValue[T gofuncs.Number](angle int, diagonal, horizontal, vertical T) T {
+func resolveThreeDirectionalValue[T gofuncs.Number](angle uint, diagonal, horizontal, vertical T) T {
 	if isDiagonal(angle) {
 		return diagonal
 	}
@@ -105,25 +107,22 @@ func resolveThreeDirectionalValue[T gofuncs.Number](angle int, diagonal, horizon
 	panic("")
 }
 
-func getThresholdValue(angle int, threshold ThresholdT) float64 {
+func getThresholdValue(angle uint, threshold *ThresholdPctT) float64 {
 	return resolveThreeDirectionalValue(angle, threshold.diagonal, threshold.horizontal, threshold.vertical)
 }
 
-func getAngleMargin(angle int, angleMargin AngleMarginT) int {
-	return resolveThreeDirectionalValue(angle, angleMargin.diagonal, angleMargin.horizontal, angleMargin.vertical)
+func getAngleMargin(angle uint, angleMargin *AngleMarginT) uint {
+	return resolveThreeDirectionalValue(angle, angleMargin.Diagonal, angleMargin.Horizontal, angleMargin.Vertical)
 }
 
-func checkZoneThreshold(zoneThreshold ThresholdT) {
-	if gofuncs.AnyEqual([][]float64{
-		{zoneThreshold.diagonal, 0},
-		{zoneThreshold.vertical, 0},
-		{zoneThreshold.horizontal, 0},
-	}) {
-		gofuncs.Panic("Threshold can't be zero")
-	}
+func (zoneThreshold *ThresholdPctT) Validate() {
+	gofuncs.PanicAnyNotPositive(
+		zoneThreshold.diagonal,
+		zoneThreshold.vertical,
+		zoneThreshold.horizontal)
 }
 
-func checkEdgeThreshold(zoneThreshold, edgeThreshold ThresholdT) {
+func (zoneThreshold *ThresholdPctT) ValidateEdgeThreshold(edgeThreshold *ThresholdPctT) {
 	if gofuncs.AnyGreaterOrEqual([][]float64{
 		{zoneThreshold.diagonal, edgeThreshold.diagonal},
 		{zoneThreshold.vertical, edgeThreshold.vertical},
@@ -133,22 +132,24 @@ func checkEdgeThreshold(zoneThreshold, edgeThreshold ThresholdT) {
 	}
 }
 
-func checkAngleMargin(angleMargin AngleMarginT) {
-	if gofuncs.AnyGreaterOrEqual([][]int{
-		{angleMargin.diagonal + angleMargin.horizontal, 45},
-		{angleMargin.diagonal + angleMargin.vertical, 45},
+func (angleMargin *AngleMarginT) Validate() {
+	gofuncs.PanicAnyNotPositive(angleMargin.Horizontal, angleMargin.Vertical)
+
+	if gofuncs.AnyGreaterOrEqual([][]uint{
+		{angleMargin.Diagonal + angleMargin.Horizontal, 45},
+		{angleMargin.Diagonal + angleMargin.Vertical, 45},
 	}) {
 		gofuncs.Panic("With this margin of angle areas will overlap")
 	}
 }
 
-func genRange(lowerBound, upperBound int, _boundariesMap ZoneBoundariesMapT, zone ZoneT, zoneThreshold, edgeThreshold float64) {
+func genRange(lowerBound, upperBound uint, _boundariesMap ZoneBoundariesMapT, zone ZoneT, zoneThreshold, edgeThreshold float64) {
 	lowerBound += 360
 	upperBound += 360
 
 	for angle := lowerBound; angle <= upperBound; angle++ {
 		resolvedAngle := resolveCircleAngle(angle)
-		gofuncs.AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, makeDirection(zone, zoneThreshold, edgeThreshold))
+		gofuncs.AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, MakeDirection(zone, zoneThreshold, edgeThreshold))
 	}
 }
 
@@ -173,16 +174,16 @@ func genInitBoundaries(includeDiagonalZones bool) InitBoundariesT {
 	return resBoundaries
 }
 
-func genEqualThresholdBoundariesMap(includeDiagonalZones bool, angleMargin AngleMarginT, zoneThreshold, edgeThreshold float64) ZoneBoundariesMapT {
+func genEqualThresholdBoundariesMap(includeDiagonalZones bool, angleMargin *AngleMarginT, zoneThreshold, edgeThreshold float64) ZoneBoundariesMapT {
 	return genBoundariesMap(includeDiagonalZones, angleMargin,
-		makeThreshold(zoneThreshold, zoneThreshold, zoneThreshold),
-		makeThreshold(edgeThreshold, edgeThreshold, edgeThreshold))
+		MakeThresholdPct(zoneThreshold, zoneThreshold, zoneThreshold),
+		MakeThresholdPct(edgeThreshold, edgeThreshold, edgeThreshold))
 }
 
-func genBoundariesMap(includeDiagonalZones bool, angleMargin AngleMarginT, zoneThreshold, edgeThreshold ThresholdT) ZoneBoundariesMapT {
-	checkZoneThreshold(zoneThreshold)
-	checkEdgeThreshold(zoneThreshold, edgeThreshold)
-	checkAngleMargin(angleMargin)
+func genBoundariesMap(includeDiagonalZones bool, angleMargin *AngleMarginT, zoneThreshold, edgeThreshold *ThresholdPctT) ZoneBoundariesMapT {
+	angleMargin.Validate()
+	zoneThreshold.Validate()
+	zoneThreshold.ValidateEdgeThreshold(edgeThreshold)
 
 	_boundariesMap := ZoneBoundariesMapT{}
 	for baseAngle, direction := range genInitBoundaries(includeDiagonalZones) {
@@ -201,7 +202,7 @@ func printAnglesForZones(_boundariesMap ZoneBoundariesMapT) {
 		var needAngles []int
 		for angle, dir := range _boundariesMap {
 			if dir.zone == zone {
-				needAngles = append(needAngles, angle)
+				needAngles = append(needAngles, int(angle))
 			}
 		}
 		sort.Ints(needAngles)
@@ -209,7 +210,7 @@ func printAnglesForZones(_boundariesMap ZoneBoundariesMapT) {
 	}
 }
 
-func detectZone(magnitude, radius float64, angle int, boundariesMap ZoneBoundariesMapT) ZoneT {
+func detectZone(magnitude, radius float64, angle uint, boundariesMap ZoneBoundariesMapT) ZoneT {
 	if direction, found := boundariesMap[angle]; found {
 		if magnitude > direction.zoneThresholdPct*radius {
 			zone := direction.zone

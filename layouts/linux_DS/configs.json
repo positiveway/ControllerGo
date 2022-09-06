@@ -1,0 +1,51 @@
+{
+  "ControllerInUse": "DualShock",
+  "Pads/Sticks": {
+    "Mode": "Mouse",
+    "Rotation": {
+      "LeftStick": 0,
+      "RightStick": 0
+    },
+    "Stick": {
+      "Deadzone": 0.11764706
+    }
+  },
+  "Mouse": {
+    "OnRightStickPad": true,
+    "EdgeThresholdPct": 95,
+    "Intervals": {
+      "Normal": {
+        "FastestMs": 1,
+        "SlowestMs": 7
+      },
+      "HighPrecision": {
+        "FastestMs": 3,
+        "SlowestMs": 21
+      }
+    }
+  },
+  "Scroll": {
+    "HorizontalThresholdPct": 65,
+    "Intervals": {
+      "Normal": {
+        "FastestMs": 40,
+        "SlowestMs": 160
+      },
+      "HighPrecision": {
+        "FastestMs": 40,
+        "SlowestMs": 160
+      }
+    }
+  },
+  "Buttons": {
+    "TriggerThresholdPct": 7,
+    "HoldingStateThresholdMs": 200
+  },
+  "Typing": {
+    "ThresholdPct": 35,
+    "AngleMargin": {
+      "Straight": 21,
+      "Diagonal": 23
+    }
+  }
+}
