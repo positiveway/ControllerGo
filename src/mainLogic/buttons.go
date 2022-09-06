@@ -170,6 +170,7 @@ func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 			return
 		case SwitchHighPrecisionMode:
 			Cfg.PadsSticks.HighPrecisionMode.SwitchMode()
+			return
 		case EscLetterCode:
 			releaseAll(btn)
 		}
