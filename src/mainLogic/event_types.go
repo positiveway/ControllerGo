@@ -49,7 +49,7 @@ func genBtnAxisMap() BtnAxisMapT {
 		gofuncs.AssignWithDuplicateKeyValueCheck(mapping, k, v, true)
 	}
 	for k, v := range initBtnMap() {
-		gofuncs.AssignWithDuplicateKeyValueCheck(mapping, k, v, true)
+		gofuncs.AssignWithDuplicateKeyCheck(mapping, k, v)
 	}
 	return mapping
 }
