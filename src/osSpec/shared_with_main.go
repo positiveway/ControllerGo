@@ -1,5 +1,5 @@
 package osSpec
 
-const LeftMouse = -3
-const RightMouse = -4
-const MiddleMouse = -5
+const LeftMouse = -1
+const RightMouse = -2
+const MiddleMouse = -3

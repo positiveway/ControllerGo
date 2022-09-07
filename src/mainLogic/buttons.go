@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	NoAction                = -1
-	SwitchPadStickMode      = -2
-	SwitchHighPrecisionMode = -3
+	NoAction                = -10
+	SwitchPadStickMode      = -11
+	SwitchHighPrecisionMode = -12
 )
 
 func initCommands() {
