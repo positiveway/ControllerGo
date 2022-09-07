@@ -106,10 +106,10 @@ type HighPrecisionModeT struct {
 func MakeHighPrecisionMode() *HighPrecisionModeT {
 	mode := &HighPrecisionModeT{}
 
+	mode.setSpeedValues = mode.GetSetSpeedValuesFunc()
+
 	CtrlCommand := []int{getCodeFromLetter("Ctrl")}
 	mode.ctrlVirtualButton, mode.ctrlCommandInfo = CreateVirtualButton(CtrlCommand)
-
-	mode.setSpeedValues = mode.GetSetSpeedValuesFunc()
 
 	mode.setSpeedValues()
 

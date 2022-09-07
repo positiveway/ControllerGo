@@ -110,6 +110,7 @@ type PadStickPositionT struct {
 	awaitingCentralPosition              bool
 
 	convertRange ConvertRangeFuncT
+	calcRadius   func()
 
 	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude
@@ -117,6 +118,9 @@ type PadStickPositionT struct {
 
 func MakePadPosition(zoneRotation float64, isOnLeftSide bool) *PadStickPositionT {
 	pad := PadStickPositionT{}
+
+	pad.convertRange = pad.GetConvertRangeFunc()
+	pad.calcRadius = pad.GetCalcRadiusFunc()
 
 	pad.curPos = MakeEmptyPosition()
 	pad.prevMousePos = MakeEmptyPosition()
@@ -130,8 +134,6 @@ func MakePadPosition(zoneRotation float64, isOnLeftSide bool) *PadStickPositionT
 
 	pad.Reset()
 	pad.Validate()
-
-	pad.convertRange = pad.GetConvertRangeFunc()
 
 	return &pad
 }
@@ -159,8 +161,15 @@ func (pad *PadStickPositionT) Reset() {
 	pad.ReCalculateValues()
 }
 
-func calcRadius(magnitude float64) float64 {
-	return gofuncs.Max(magnitude, Cfg.PadsSticks.MinStandardRadius)
+func (pad *PadStickPositionT) GetCalcRadiusFunc() func() {
+	minStandardRadius := Cfg.PadsSticks.MinStandardRadius
+	if minStandardRadius < 1.0 {
+		gofuncs.Panic("Radius can't be less than 1.0, current value: %v", minStandardRadius)
+	}
+
+	return func() {
+		pad.radius = gofuncs.Max(pad.magnitude, minStandardRadius)
+	}
 }
 
 func calcFromMaxPossible(x, y, radius float64) float64 {
@@ -203,7 +212,7 @@ func (pad *PadStickPositionT) ReCalculateValues() {
 	_transformedPos, pad.shiftedAngle, pad.magnitude = pad.curPos.CalcTransformedPos(pad.zoneRotation)
 	pad.transformedPos.Update(_transformedPos)
 
-	pad.radius = calcRadius(pad.magnitude)
+	pad.calcRadius()
 
 	//pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
 }
