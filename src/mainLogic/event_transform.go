@@ -156,6 +156,9 @@ func fullReset() {
 
 	*CurPressedStickButtonSC = ""
 
+	Cfg.PadsSticks.Mode.SetToDefault()
+	Cfg.PadsSticks.HighPrecisionMode.Disable()
+
 	releaseAll("")
 }
 

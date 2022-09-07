@@ -59,7 +59,7 @@ func GetTypeLetterFunc() func() {
 	RightPS := Cfg.Typing.RightPS
 
 	return func() {
-		if padsSticksMode.GetMode() != TypingMode {
+		if padsSticksMode.CurrentMode != TypingMode {
 			return
 		}
 		LeftPS.ReCalculateZone(TypingBoundariesMap)

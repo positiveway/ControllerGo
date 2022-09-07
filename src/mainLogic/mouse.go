@@ -23,8 +23,10 @@ func GetMoveMouseSCFunc() func() {
 		return pixels
 	}
 
+	padsSticksMode := Cfg.PadsSticks.Mode
+
 	return func() {
-		if Cfg.PadsSticks.Mode.GetMode() == TypingMode {
+		if padsSticksMode.CurrentMode == TypingMode {
 			return
 		}
 

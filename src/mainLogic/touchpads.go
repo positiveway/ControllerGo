@@ -108,7 +108,8 @@ type PadStickPositionT struct {
 	zoneCanBeUsed, zoneChanged           bool
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
-	convertRange                         ConvertRangeFuncT
+
+	convertRange ConvertRangeFuncT
 
 	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude

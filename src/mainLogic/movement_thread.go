@@ -64,6 +64,13 @@ func MakePadsSticksMode(defaultMode ModeT) *PadsSticksModeT {
 	return &PadsSticksModeT{CurrentMode: defaultMode, defaultMode: defaultMode}
 }
 
+func (mode *PadsSticksModeT) SetToDefault() {
+	mode.lock.Lock()
+	defer mode.lock.Unlock()
+
+	mode.CurrentMode = mode.defaultMode
+}
+
 func (mode *PadsSticksModeT) SwitchMode() {
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
@@ -92,6 +99,8 @@ type HighPrecisionModeT struct {
 
 	ctrlVirtualButton BtnOrAxisT
 	ctrlCommandInfo   *CommandInfoT
+
+	setSpeedValues func()
 }
 
 func MakeHighPrecisionMode() *HighPrecisionModeT {
@@ -100,7 +109,10 @@ func MakeHighPrecisionMode() *HighPrecisionModeT {
 	CtrlCommand := []int{getCodeFromLetter("Ctrl")}
 	mode.ctrlVirtualButton, mode.ctrlCommandInfo = CreateVirtualButton(CtrlCommand)
 
+	mode.setSpeedValues = mode.GetSetSpeedValuesFunc()
+
 	mode.setSpeedValues()
+
 	return mode
 }
 
@@ -121,21 +133,39 @@ func (mode *HighPrecisionModeT) IsActive() bool {
 	return mode.isActive
 }
 
-func (mode *HighPrecisionModeT) setSpeedValues() {
-	if mode.isActive {
-		mode.curScrollIntervals = &Cfg.Scroll.Intervals.HighPrecision
-		mode.curMouseIntervals = &Cfg.Mouse.Intervals.HighPrecision
-		mode.curMouseSpeed = Cfg.Mouse.Speed.HighPrecision
-	} else {
-		mode.ReleaseCtrl()
+func (mode *HighPrecisionModeT) GetSetSpeedValuesFunc() func() {
+	scrollIntervals := Cfg.Scroll.Intervals
+	mouseIntervals := Cfg.Mouse.Intervals
+	mouseSpeed := Cfg.Mouse.Speed
 
-		mode.curScrollIntervals = &Cfg.Scroll.Intervals.Normal
-		mode.curMouseIntervals = &Cfg.Mouse.Intervals.Normal
-		mode.curMouseSpeed = Cfg.Mouse.Speed.Normal
+	return func() {
+		if mode.isActive {
+			mode.curScrollIntervals = &scrollIntervals.HighPrecision
+			mode.curMouseIntervals = &mouseIntervals.HighPrecision
+			mode.curMouseSpeed = mouseSpeed.HighPrecision
+		} else {
+			mode.ReleaseCtrl()
+
+			mode.curScrollIntervals = &scrollIntervals.Normal
+			mode.curMouseIntervals = &mouseIntervals.Normal
+			mode.curMouseSpeed = mouseSpeed.Normal
+		}
 	}
 }
 
+func (mode *HighPrecisionModeT) Disable() {
+	mode.lock.Lock()
+	defer mode.lock.Unlock()
+
+	mode.isActive = false
+	mode.setSpeedValues()
+}
+
 func (mode *HighPrecisionModeT) SwitchMode() {
+	if Cfg.PadsSticks.Mode.CurrentMode == TypingMode {
+		return
+	}
+
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
 
