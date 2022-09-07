@@ -7,8 +7,6 @@ import (
 
 const gamepadConnectedMsg = "gamepadConnected"
 
-var Event EventT
-
 func RunWebSocket() {
 	addr := net.UDPAddr{
 		Port: Cfg.WebSocket.Port,
@@ -21,6 +19,8 @@ func RunWebSocket() {
 	gofuncs.Print("Listening at %v", addr.String())
 
 	p := make([]byte, 32)
+
+	Event = MakeEvent()
 
 	for {
 		nn, _, err := server.ReadFromUDP(p)

@@ -11,6 +11,24 @@ type EventT struct {
 	value     float64
 	codeType  CodeTypeT
 	code      CodeT
+
+	update func(msg string)
+	transformStickToDPadSC,
+	transformToWingsSC,
+	transformToPadReleasedEvent func()
+}
+
+var Event *EventT
+
+func MakeEvent() *EventT {
+	event := &EventT{}
+
+	event.update = event.GetUpdateFunc()
+	event.transformStickToDPadSC = event.GetTransformStickSCFunc()
+	event.transformToWingsSC = event.GetTransformToWingsSCFunc()
+	event.transformToPadReleasedEvent = event.GetTransformToPadReleasedFunc()
+
+	return event
 }
 
 func (event *EventT) fixButtonNamesForSteamController() {
@@ -22,55 +40,69 @@ func (event *EventT) fixButtonNamesForSteamController() {
 	}
 }
 
-func (event *EventT) transformToPadReleasedEvent() {
-	if gofuncs.Contains(PadAndStickAxes, event.btnOrAxis) &&
-		event.eventType == EvAxisChanged && event.value == 0 {
+func (event *EventT) GetTransformToPadReleasedFunc() func() {
+	PadAndStickAxes := initPadAndStickAxes()
 
-		event.eventType = EvPadReleased
-		event.code = 0
-		event.codeType = ""
-	}
-}
+	return func() {
+		if gofuncs.Contains(PadAndStickAxes, event.btnOrAxis) &&
+			event.eventType == EvAxisChanged && event.value == 0 {
 
-func (event *EventT) transformToWingsSC() {
-	if event.btnOrAxis == BtnUnknown && event.codeType == CTKey {
-		if btn, found := UnknownCodesResolvingMapSC[event.code]; found {
-			event.btnOrAxis = btn
+			event.eventType = EvPadReleased
+			event.code = 0
+			event.codeType = ""
 		}
 	}
 }
 
-func (event *EventT) transformStickToDPadSC(curPressedStickButton *BtnOrAxisT, boundariesMap ZoneBoundariesMapT, zoneToBtnMap ZoneToBtnMapT) {
-	isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
-		(event.btnOrAxis == AxisLeftStickX || event.btnOrAxis == AxisLeftStickY)
-	if !isStickEvent {
-		return
-	}
-	switch event.eventType {
-	case EvPadReleased:
-		LeftStick.Reset()
-	case EvAxisChanged:
-		switch event.btnOrAxis {
-		case AxisLeftStickX:
-			LeftStick.SetX()
-		case AxisLeftStickY:
-			LeftStick.SetY()
-		}
-	}
+func (event *EventT) GetTransformToWingsSCFunc() func() {
+	UnknownCodesResolvingMapSC := initUnknownCodesMapSC()
 
-	LeftStick.ReCalculateZone(boundariesMap)
-
-	if LeftStick.zoneChanged {
-		if *curPressedStickButton != "" {
-			releaseButton(*curPressedStickButton)
-			*curPressedStickButton = ""
-		}
-		if LeftStick.zoneCanBeUsed {
-			*curPressedStickButton = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
-			pressButton(*curPressedStickButton)
+	return func() {
+		if event.btnOrAxis == BtnUnknown && event.codeType == CTKey {
+			if btn, found := UnknownCodesResolvingMapSC[event.code]; found {
+				event.btnOrAxis = btn
+			}
 		}
 	}
-	event.btnOrAxis = BtnUnknown
+}
+
+func (event *EventT) GetTransformStickSCFunc() func() {
+	curPressedStickButton := CurPressedStickButtonSC
+	boundariesMap := Cfg.PadsSticks.Stick.BoundariesMapSC
+	zoneToBtnMap := initStickZoneBtnMap()
+
+	return func() {
+		isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
+			(event.btnOrAxis == AxisLeftStickX || event.btnOrAxis == AxisLeftStickY)
+		if !isStickEvent {
+			return
+		}
+		switch event.eventType {
+		case EvPadReleased:
+			LeftStick.Reset()
+		case EvAxisChanged:
+			switch event.btnOrAxis {
+			case AxisLeftStickX:
+				LeftStick.SetX()
+			case AxisLeftStickY:
+				LeftStick.SetY()
+			}
+		}
+
+		LeftStick.ReCalculateZone(boundariesMap)
+
+		if LeftStick.zoneChanged {
+			if *curPressedStickButton != "" {
+				releaseButton(*curPressedStickButton)
+				*curPressedStickButton = ""
+			}
+			if LeftStick.zoneCanBeUsed {
+				*curPressedStickButton = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
+				pressButton(*curPressedStickButton)
+			}
+		}
+		event.btnOrAxis = BtnUnknown
+	}
 }
 
 func (event *EventT) applyDeadzoneDS() bool {
@@ -101,7 +133,7 @@ func (event *EventT) transformAndFilter() {
 	case SteamController:
 		event.fixButtonNamesForSteamController()
 		event.transformToWingsSC()
-		event.transformStickToDPadSC(CurPressedStickButtonSC, Cfg.PadsSticks.Stick.BoundariesMapSC, StickZoneToBtnMapSC)
+		event.transformStickToDPadSC()
 	case DualShock:
 		if event.applyDeadzoneDS() {
 			return
@@ -129,38 +161,42 @@ func fullReset() {
 	releaseAll("")
 }
 
-func (event *EventT) update(msg string) {
+func (event *EventT) GetUpdateFunc() func(msg string) {
+	EventTypeMap := initEventTypeMap()
+	BtnAxisMap := InitBtnAxisMap()
 	var found bool
 	var err error
 
-	event.eventType, found = EventTypeMap[msg[0]]
-	if !found {
-		gofuncs.PanicMisspelled(string(msg[0]))
-	}
-	if event.eventType != EvConnected && event.eventType != EvDisconnected && event.eventType != EvDropped {
-		event.btnOrAxis, found = BtnAxisMap[msg[1]]
+	return func(msg string) {
+		event.eventType, found = EventTypeMap[msg[0]]
 		if !found {
-			gofuncs.PanicMisspelled(string(msg[1]))
+			gofuncs.PanicMisspelled(string(msg[0]))
 		}
-		if event.eventType == EvAxisChanged || event.eventType == EvButtonChanged {
-			msg = msg[2:]
-			valueAndCode := gofuncs.Split(msg, ";")
-
-			event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
-			gofuncs.CheckErr(err)
-
-			if gofuncs.StartsWith(msg, ";") {
-				return
+		if event.eventType != EvConnected && event.eventType != EvDisconnected && event.eventType != EvDropped {
+			event.btnOrAxis, found = BtnAxisMap[msg[1]]
+			if !found {
+				gofuncs.PanicMisspelled(string(msg[1]))
 			}
-			typeAndCode := gofuncs.Split(valueAndCode[1], "(")
-			event.codeType = CodeTypeT(typeAndCode[0])
+			if event.eventType == EvAxisChanged || event.eventType == EvButtonChanged {
+				msg = msg[2:]
+				valueAndCode := gofuncs.Split(msg, ";")
 
-			code := typeAndCode[1]
-			codeNum := gofuncs.StrToInt(code[:len(code)-1])
-			event.code = CodeT(codeNum)
+				event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
+				gofuncs.CheckErr(err)
+
+				if gofuncs.StartsWith(msg, ";") {
+					return
+				}
+				typeAndCode := gofuncs.Split(valueAndCode[1], "(")
+				event.codeType = CodeTypeT(typeAndCode[0])
+
+				code := typeAndCode[1]
+				codeNum := gofuncs.StrToInt(code[:len(code)-1])
+				event.code = CodeT(codeNum)
+			}
 		}
+		event.transformAndFilter()
 	}
-	event.transformAndFilter()
 }
 
 func (event *EventT) print() {

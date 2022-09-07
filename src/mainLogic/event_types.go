@@ -38,12 +38,13 @@ func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 }
 
 func initCurStickButton() {
+	//required for full reset
 	CurPressedStickButtonSC = new(BtnOrAxisT)
 }
 
 type BtnAxisMapT map[uint8]BtnOrAxisT
 
-func genBtnAxisMap() BtnAxisMapT {
+func InitBtnAxisMap() BtnAxisMapT {
 	mapping := BtnAxisMapT{}
 	for k, v := range initAxisMap() {
 		gofuncs.AssignWithDuplicateKeyValueCheck(mapping, k, v, true)
@@ -72,8 +73,8 @@ func initAxisMap() BtnAxisMapT {
 	}
 }
 
-func initPadAndStickAxes() {
-	PadAndStickAxes = []BtnOrAxisT{
+func initPadAndStickAxes() []BtnOrAxisT {
+	return []BtnOrAxisT{
 		AxisLeftPadX,
 		AxisLeftPadY,
 		AxisRightPadStickX,
@@ -135,32 +136,11 @@ func initEventTypes() {
 		BtnDPadRight = "DPadRight"
 	}
 
-	initButtonsAndAxesFullSequence()
-}
-
-func initButtonsAndAxesFullSequence() {
-	//event types
-	initEventTypeMap()
-
-	//axis
-	initAxisMap()
-	initPadAndStickAxes()
-
-	//buttons
-	//stick
-	initStickZoneBtnMap()
 	initCurStickButton()
-
-	initAvailableButtons()
-	initBtnMap()
-	initUnknownCodesMapSC()
-
-	//axis and buttons
-	BtnAxisMap = genBtnAxisMap()
 }
 
-func initEventTypeMap() {
-	EventTypeMap = map[uint8]EventTypeT{
+func initEventTypeMap() map[uint8]EventTypeT {
+	return map[uint8]EventTypeT{
 		'a': EvAxisChanged,
 		'b': EvButtonChanged,
 		'c': EvButtonReleased,
@@ -172,8 +152,8 @@ func initEventTypeMap() {
 	}
 }
 
-func initUnknownCodesMapSC() {
-	UnknownCodesResolvingMapSC = map[CodeT]BtnOrAxisT{
+func initUnknownCodesMapSC() map[CodeT]BtnOrAxisT {
+	return map[CodeT]BtnOrAxisT{
 		//CodeStickXSC:    AxisLeftStickX,
 		//CodeStickYSC:    AxisLeftStickY,
 		//CodeLeftPadXSC:  AxisLeftPadX,
@@ -185,8 +165,8 @@ func initUnknownCodesMapSC() {
 	}
 }
 
-func initStickZoneBtnMap() {
-	StickZoneToBtnMapSC = ZoneToBtnMapT{
+func initStickZoneBtnMap() ZoneToBtnMapT {
+	return ZoneToBtnMapT{
 		ZoneRight: BtnStickRightSC,
 		ZoneUp:    BtnStickUpSC,
 		ZoneLeft:  BtnStickLeftSC,
