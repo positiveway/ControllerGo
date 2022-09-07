@@ -201,25 +201,30 @@ func RunGlobalEventsThread() {
 	padsSticksMode := Cfg.PadsSticks.Mode
 	highPrecisionMode := Cfg.PadsSticks.HighPrecisionMode
 
-	mouseIntervalTimers := MakeIntervalTimers2()
 	mousePadStick := Cfg.PadsSticks.MousePS
 	mousePosition := mousePadStick.transformedPos
+	moveMouseInInterval := GetMoveInInterval(mousePadStick, mousePosition,
+		GetMouseMoveFunc(), nil)
 
-	scrollIntervalTimers := MakeIntervalTimers2()
 	scrollPadStick := Cfg.PadsSticks.ScrollPS
 	scrollPosition := scrollPadStick.transformedPos
+	moveScrollInInterval := GetMoveInInterval(scrollPadStick, scrollPosition,
+		GetScrollMoveFunc(), GetScrollFilterFunc())
 
 	for range ticker.C {
 		switch padsSticksMode.CurrentMode {
 		case MouseMode:
-			MoveInInterval(scrollIntervalTimers, scrollPadStick, scrollPosition,
-				highPrecisionMode.curScrollIntervals, moveScrollByPixel, filterScrollHorizontal)
+			moveScrollInInterval(highPrecisionMode.curScrollIntervals)
+
+			if scrollPosition.x == 0 && scrollPosition.y == 0 {
+				highPrecisionMode.ReleaseCtrl()
+			}
+
 			fallthrough
 		case GamingMode:
 			switch Cfg.ControllerInUse {
 			case DualShock:
-				MoveInInterval(mouseIntervalTimers, mousePadStick, mousePosition,
-					highPrecisionMode.curMouseIntervals, moveMouseByPixelDS, nil)
+				moveMouseInInterval(highPrecisionMode.curMouseIntervals)
 			}
 		}
 

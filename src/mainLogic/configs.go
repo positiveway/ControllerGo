@@ -71,6 +71,8 @@ func (c *ConfigsT) initDependent() {
 	if !c.Mouse.OnRightStickPad {
 		gofuncs.Swap(c.PadsSticks.MousePS, c.PadsSticks.ScrollPS)
 	}
+
+	MoveMouseSC = GetMoveMouseSCFunc()
 }
 
 func (c *ConfigsT) setConfigVars() {

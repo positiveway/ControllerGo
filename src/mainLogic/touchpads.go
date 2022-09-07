@@ -108,6 +108,7 @@ type PadStickPositionT struct {
 	zoneCanBeUsed, zoneChanged           bool
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
+	convertRange                         ConvertRangeFuncT
 
 	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude
@@ -128,6 +129,8 @@ func MakePadPosition(zoneRotation float64, isOnLeftSide bool) *PadStickPositionT
 
 	pad.Reset()
 	pad.Validate()
+
+	pad.convertRange = pad.GetConvertRangeFunc()
 
 	return &pad
 }
@@ -214,7 +217,7 @@ func (pad *PadStickPositionT) setValue(fieldPointer *float64) {
 
 	switch Cfg.ControllerInUse {
 	case SteamController:
-		moveMouseSC()
+		MoveMouseSC()
 	}
 }
 
@@ -234,24 +237,28 @@ func (pad *PadStickPositionT) Unlock() {
 	pad.lock.Unlock()
 }
 
-func (pad *PadStickPositionT) convertRange(input, outputMax float64) float64 {
-	gofuncs.PanicAnyNotInit(input)
+type ConvertRangeFuncT = func(input, outputMax float64) float64
 
-	if input == 0 {
-		return 0
-	}
-
-	isNegative, input := gofuncs.GetIsNegativeAndAbs(input)
-
-	if input > pad.radius {
-		gofuncs.Panic("Axis input value is greater than %v. Current value: %v", pad.radius, input)
-	}
-
+func (pad *PadStickPositionT) GetConvertRangeFunc() ConvertRangeFuncT {
 	inputMin := Cfg.PadsSticks.Stick.DeadzoneDS
 	outputMin := Cfg.Math.OutputMin
 
-	output := outputMin + (outputMax-outputMin)/(pad.radius-inputMin)*(input-inputMin)
-	return gofuncs.ApplySign(isNegative, output)
+	return func(input, outputMax float64) float64 {
+		gofuncs.PanicAnyNotInit(input)
+
+		if input == 0 {
+			return 0
+		}
+
+		isNegative, input := gofuncs.GetIsNegativeAndAbs(input)
+
+		if input > pad.radius {
+			gofuncs.Panic("Axis input value is greater than %v. Current value: %v", pad.radius, input)
+		}
+
+		output := outputMin + (outputMax-outputMin)/(pad.radius-inputMin)*(input-inputMin)
+		return gofuncs.ApplySign(isNegative, output)
+	}
 }
 
 func (pad *PadStickPositionT) calcRefreshInterval(input, slowestInterval, fastestInterval float64) float64 {
