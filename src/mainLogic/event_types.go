@@ -208,9 +208,9 @@ func initAvailableButtons() AvailableButtonsT {
 		BtnLeftTrigger,
 		BtnRightButton,
 		BtnRightTrigger,
-		BtnSelect,
-		BtnStart,
-		BtnMode,
+		BtnLeftSpecial,
+		BtnRightSpecial,
+		BtnCentralSpecial,
 
 		BtnLeftStick,
 		BtnRightPadStick,
@@ -250,9 +250,9 @@ func initBtnMap() BtnAxisMapT {
 		'h': BtnLeftTrigger,
 		'i': BtnRightButton,
 		'j': BtnRightTrigger,
-		'k': BtnSelect,
-		'l': BtnStart,
-		'm': BtnMode,
+		'k': BtnLeftSpecial,
+		'l': BtnRightSpecial,
+		'm': BtnCentralSpecial,
 		'n': BtnLeftStick,
 		'o': BtnRightPadStick,
 		'p': BtnDPadUp,
@@ -264,19 +264,19 @@ func initBtnMap() BtnAxisMapT {
 }
 
 const (
-	BtnB            BtnOrAxisT = "B"
-	BtnY            BtnOrAxisT = "Y"
-	BtnX            BtnOrAxisT = "X"
-	BtnA            BtnOrAxisT = "A"
-	BtnC            BtnOrAxisT = "BtnC"
-	BtnZ            BtnOrAxisT = "BtnZ"
-	BtnLeftButton   BtnOrAxisT = "LB"
-	BtnLeftTrigger  BtnOrAxisT = "LT"
-	BtnRightButton  BtnOrAxisT = "RB"
-	BtnRightTrigger BtnOrAxisT = "RT"
-	BtnSelect       BtnOrAxisT = "Select"
-	BtnStart        BtnOrAxisT = "Start"
-	BtnMode         BtnOrAxisT = "Mode"
+	BtnB              BtnOrAxisT = "B"
+	BtnY              BtnOrAxisT = "Y"
+	BtnX              BtnOrAxisT = "X"
+	BtnA              BtnOrAxisT = "A"
+	BtnC              BtnOrAxisT = "BtnC"
+	BtnZ              BtnOrAxisT = "BtnZ"
+	BtnLeftButton     BtnOrAxisT = "LB"
+	BtnLeftTrigger    BtnOrAxisT = "LT"
+	BtnRightButton    BtnOrAxisT = "RB"
+	BtnRightTrigger   BtnOrAxisT = "RT"
+	BtnLeftSpecial    BtnOrAxisT = "LeftSpecial"
+	BtnRightSpecial   BtnOrAxisT = "RightSpecial"
+	BtnCentralSpecial BtnOrAxisT = "CentralSpecial"
 
 	BtnUnknown BtnOrAxisT = "BtnUnknown"
 )

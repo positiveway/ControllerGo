@@ -13,9 +13,9 @@ LeftTrigger:  RightMouse
 RightButton:  HighPrecision
 RightButton_Hold:  Rightalt
 RightTrigger: LeftMouse
-Select:        Windows
-Start:         Esc
-Mode:          NoAction
+LeftSpecial:        Windows
+RightSpecial:         Esc
+CentralSpecial:          Rightalt
 LeftStick:     Control, C
 RightStick:     Control, V
 DPadUp:        Up

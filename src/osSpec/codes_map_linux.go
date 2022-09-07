@@ -5,6 +5,7 @@ package osSpec
 import "github.com/bendahl/uinput"
 
 var LetterToCodes = map[string]int{
+	"Scale":        uinput.KeyScale,
 	"Grave":        uinput.KeyGrave,
 	"Minus":        uinput.KeyMinus,
 	"Equal":        uinput.KeyEqual,
