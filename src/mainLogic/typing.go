@@ -14,6 +14,7 @@ var TypingBoundariesMap ZoneBoundariesMapT
 var typingLayout TypingLayoutT
 
 func initTyping() {
+	TypeLetter = GetTypeLetterFunc()
 	TypingBoundariesMap = genTypingBoundariesMap()
 	typingLayout = loadTypingLayout()
 }
@@ -42,33 +43,42 @@ func loadTypingLayout() TypingLayoutT {
 }
 
 func genTypingBoundariesMap() ZoneBoundariesMapT {
+	AngleMargin := Cfg.Typing.AngleMargin
 	return genEqualThresholdBoundariesMap(true,
 		MakeAngleMargin(
-			Cfg.Typing.AngleMargin.Diagonal,
-			Cfg.Typing.AngleMargin.Straight,
-			Cfg.Typing.AngleMargin.Straight),
+			AngleMargin.Diagonal,
+			AngleMargin.Straight,
+			AngleMargin.Straight),
 		Cfg.Typing.ThresholdPct,
 		1.0)
 }
 
-func TypeLetter() {
-	if Cfg.PadsSticks.Mode.GetMode() != TypingMode {
-		return
-	}
-	Cfg.Typing.LeftPS.ReCalculateZone(TypingBoundariesMap)
-	Cfg.Typing.RightPS.ReCalculateZone(TypingBoundariesMap)
+func GetTypeLetterFunc() func() {
+	padsSticksMode := Cfg.PadsSticks.Mode
+	LeftPS := Cfg.Typing.LeftPS
+	RightPS := Cfg.Typing.RightPS
 
-	if Cfg.Typing.LeftPS.zoneCanBeUsed && Cfg.Typing.RightPS.zoneCanBeUsed {
-		if Cfg.Typing.LeftPS.zoneChanged || Cfg.Typing.RightPS.zoneChanged {
-			if !Cfg.Typing.LeftPS.awaitingCentralPosition || !Cfg.Typing.RightPS.awaitingCentralPosition {
-				Cfg.Typing.LeftPS.awaitingCentralPosition = true
-				Cfg.Typing.RightPS.awaitingCentralPosition = true
+	return func() {
+		if padsSticksMode.GetMode() != TypingMode {
+			return
+		}
+		LeftPS.ReCalculateZone(TypingBoundariesMap)
+		RightPS.ReCalculateZone(TypingBoundariesMap)
 
-				position := SticksPositionT{Cfg.Typing.LeftPS.zone, Cfg.Typing.RightPS.zone}
-				if code, found := typingLayout[position]; found {
-					osSpec.TypeKey(code)
+		if LeftPS.zoneCanBeUsed && RightPS.zoneCanBeUsed {
+			if LeftPS.zoneChanged || RightPS.zoneChanged {
+				if !LeftPS.awaitingCentralPosition || !RightPS.awaitingCentralPosition {
+					LeftPS.awaitingCentralPosition = true
+					RightPS.awaitingCentralPosition = true
+
+					position := SticksPositionT{LeftPS.zone, RightPS.zone}
+					if code, found := typingLayout[position]; found {
+						osSpec.TypeKey(code)
+					}
 				}
 			}
 		}
 	}
 }
+
+var TypeLetter func()
