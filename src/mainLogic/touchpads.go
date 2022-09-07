@@ -207,11 +207,11 @@ func (pad *PadStickPositionT) ReCalculateValues() {
 	//pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
 }
 
-func (pad *PadStickPositionT) setValue(fieldPointer *float64) {
+func (pad *PadStickPositionT) setValue(fieldPointer *float64, value float64) {
 	pad.Lock()
 	defer pad.Unlock()
 
-	*fieldPointer = Event.value
+	*fieldPointer = value
 
 	pad.ReCalculateValues()
 
@@ -221,12 +221,12 @@ func (pad *PadStickPositionT) setValue(fieldPointer *float64) {
 	}
 }
 
-func (pad *PadStickPositionT) SetX() {
-	pad.setValue(&(pad.curPos.x))
+func (pad *PadStickPositionT) SetX(value float64) {
+	pad.setValue(&(pad.curPos.x), value)
 }
 
-func (pad *PadStickPositionT) SetY() {
-	pad.setValue(&(pad.curPos.y))
+func (pad *PadStickPositionT) SetY(value float64) {
+	pad.setValue(&(pad.curPos.y), value)
 }
 
 func (pad *PadStickPositionT) Lock() {

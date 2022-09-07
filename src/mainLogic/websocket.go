@@ -20,7 +20,7 @@ func RunWebSocket() {
 
 	p := make([]byte, 32)
 
-	Event = MakeEvent()
+	event := MakeEvent()
 
 	for {
 		nn, _, err := server.ReadFromUDP(p)
@@ -32,6 +32,6 @@ func RunWebSocket() {
 		//gofuncs.Print(nn)
 		//gofuncs.Print(string(p[:nn]))
 
-		Event.update(string(p[:nn]))
+		event.update(string(p[:nn]))
 	}
 }

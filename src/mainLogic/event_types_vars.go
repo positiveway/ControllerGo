@@ -34,6 +34,6 @@ var (
 	BtnDPadRight BtnOrAxisT
 )
 
-type ZoneToBtnMapT = map[ZoneT]BtnOrAxisT
+type ZoneToBtnMapT map[ZoneT]BtnOrAxisT
 
 type AvailableButtonsT []BtnOrAxisT

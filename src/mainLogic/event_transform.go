@@ -18,8 +18,6 @@ type EventT struct {
 	transformToPadReleasedEvent func()
 }
 
-var Event *EventT
-
 func MakeEvent() *EventT {
 	event := &EventT{}
 
@@ -83,9 +81,9 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 		case EvAxisChanged:
 			switch event.btnOrAxis {
 			case AxisLeftStickX:
-				LeftStick.SetX()
+				LeftStick.SetX(event.value)
 			case AxisLeftStickY:
-				LeftStick.SetY()
+				LeftStick.SetY(event.value)
 			}
 		}
 
@@ -144,7 +142,7 @@ func (event *EventT) transformAndFilter() {
 		return
 	}
 
-	matchEvent()
+	event.match()
 }
 
 func fullReset() {

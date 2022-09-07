@@ -2,65 +2,65 @@ package mainLogic
 
 import "github.com/positiveway/gofuncs"
 
-func axisChanged() {
-	switch Event.btnOrAxis {
+func (event *EventT) axisChanged() {
+	switch event.btnOrAxis {
 	case AxisRightPadStickX:
-		RightPadStick.SetX()
+		RightPadStick.SetX(event.value)
 	case AxisRightPadStickY:
-		RightPadStick.SetY()
+		RightPadStick.SetY(event.value)
 	}
 
 	switch Cfg.ControllerInUse {
 	case SteamController:
-		switch Event.btnOrAxis {
+		switch event.btnOrAxis {
 		case AxisLeftPadX:
-			LeftPad.SetX()
+			LeftPad.SetX(event.value)
 		case AxisLeftPadY:
-			LeftPad.SetY()
+			LeftPad.SetY(event.value)
 		}
 	case DualShock:
-		switch Event.btnOrAxis {
+		switch event.btnOrAxis {
 		case AxisLeftStickX:
-			LeftStick.SetX()
+			LeftStick.SetX(event.value)
 		case AxisLeftStickY:
-			LeftStick.SetY()
+			LeftStick.SetY(event.value)
 		}
 	}
 
 	TypeLetter()
 }
 
-func padReleased() {
-	switch Event.btnOrAxis {
+func (event *EventT) padReleased() {
+	switch event.btnOrAxis {
 	case AxisRightPadStickX, AxisRightPadStickY:
 		RightPadStick.Reset()
 	}
 
 	switch Cfg.ControllerInUse {
 	case SteamController:
-		switch Event.btnOrAxis {
+		switch event.btnOrAxis {
 		case AxisLeftPadX, AxisLeftPadY:
 			LeftPad.Reset()
 		}
 	case DualShock:
-		switch Event.btnOrAxis {
+		switch event.btnOrAxis {
 		case AxisLeftStickX, AxisLeftStickY:
 			LeftStick.Reset()
 		}
 	}
 }
 
-func matchEvent() {
+func (event *EventT) match() {
 	//gofuncs.Print("After: ")
-	//Event.print()
+	//event.print()
 
-	switch Event.eventType {
+	switch event.eventType {
 	case EvAxisChanged:
-		axisChanged()
+		event.axisChanged()
 	case EvPadReleased:
-		padReleased()
+		event.padReleased()
 	case EvButtonChanged:
-		buttonChanged(Event.btnOrAxis, Event.value)
+		buttonChanged(event.btnOrAxis, event.value)
 	case EvDisconnected:
 		fullReset()
 		gofuncs.Print("Gamepad disconnected")
@@ -69,6 +69,6 @@ func matchEvent() {
 	case EvDropped:
 		gofuncs.Panic("Event dropped")
 	default:
-		gofuncs.Panic("Unsupported event type: %v", Event.eventType)
+		gofuncs.Panic("Unsupported event type: %v", event.eventType)
 	}
 }
