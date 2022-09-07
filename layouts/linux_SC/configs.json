@@ -18,7 +18,7 @@
     "EdgeThresholdPct": 95,
     "Speed": {
       "Normal": 200,
-      "HighPrecision": 200
+      "HighPrecision": 50
     }
   },
   "Scroll": {
