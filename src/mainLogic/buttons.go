@@ -17,7 +17,7 @@ func initCommands() {
 }
 
 func initCommonCmdMapping() map[string]int {
-	return map[string]int{
+	mapping := map[string]int{
 		"NoAction":      NoAction,
 		"LeftMouse":     osSpec.LeftMouse,
 		"RightMouse":    osSpec.RightMouse,
@@ -25,6 +25,8 @@ func initCommonCmdMapping() map[string]int {
 		"SwitchMode":    SwitchPadStickMode,
 		"HighPrecision": SwitchHighPrecisionMode,
 	}
+	gofuncs.PanicIfDuplicateValueInMap(mapping, false)
+	return mapping
 }
 
 func loadCommandsLayout() ButtonToCommandT {

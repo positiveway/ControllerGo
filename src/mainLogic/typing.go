@@ -36,7 +36,7 @@ func loadTypingLayout() TypingLayoutT {
 		}
 		code := getCodeFromLetter(letter)
 		position := SticksPositionT{leftPadStickZone, rightPadStickZone}
-		gofuncs.AssignWithDuplicateCheck(layout, position, code)
+		gofuncs.AssignWithDuplicateKeyValueCheck(layout, position, code, false)
 	}
 	return layout
 }

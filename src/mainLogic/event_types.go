@@ -46,16 +46,16 @@ type BtnAxisMapT map[uint8]BtnOrAxisT
 func genBtnAxisMap() BtnAxisMapT {
 	mapping := BtnAxisMapT{}
 	for k, v := range initAxisMap() {
-		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
+		gofuncs.AssignWithDuplicateKeyValueCheck(mapping, k, v, true)
 	}
 	for k, v := range initBtnMap() {
-		gofuncs.AssignWithDuplicateCheck(mapping, k, v)
+		gofuncs.AssignWithDuplicateKeyValueCheck(mapping, k, v, true)
 	}
 	return mapping
 }
 
 const (
-	AxisUnknown BtnOrAxisT = "Unknown"
+	AxisUnknown BtnOrAxisT = "AxisUnknown"
 )
 
 func initAxisMap() BtnAxisMapT {

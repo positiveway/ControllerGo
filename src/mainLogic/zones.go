@@ -149,7 +149,7 @@ func genRange(lowerBound, upperBound uint, _boundariesMap ZoneBoundariesMapT, zo
 
 	for angle := lowerBound; angle <= upperBound; angle++ {
 		resolvedAngle := resolveCircleAngle(angle)
-		gofuncs.AssignWithDuplicateCheck(_boundariesMap, resolvedAngle, MakeDirection(zone, zoneThreshold, edgeThreshold))
+		gofuncs.AssignWithDuplicateKeyValueCheck(_boundariesMap, resolvedAngle, MakeDirection(zone, zoneThreshold, edgeThreshold), false)
 	}
 }
 
