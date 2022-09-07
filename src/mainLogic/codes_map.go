@@ -11,35 +11,38 @@ func getCodeFromLetter(letter string) int {
 	return gofuncs.GetOrPanic(osSpec.LetterToCodes, letter, "No such letter in mapping")
 }
 
-func toLowerMap[V any](m map[string]V) {
-	for k, v := range m {
+func ToLowerMap[V any](mapping map[string]V) {
+	for k, v := range mapping {
 		if k != strings.TrimSpace(k) {
-			panic("Mapping identifiers check failed")
+			gofuncs.Panic("Mapping identifiers check failed")
 		}
-		delete(m, k)
+		delete(mapping, k)
 		k = strings.ToLower(k)
-		m[k] = v
+		mapping[k] = v
 	}
 }
 
 func convertLetterToCodeMapping() {
 	synonyms := map[string]string{
-		"LeftControl": "Control",
-		"LeftAlt":     "Alt",
-		"LeftShift":   "Shift",
-		"Backspace":   "BS",
-		"Delete":      "Del",
-		"CapsLock":    "Caps",
+		"Control": "LeftControl",
+		"Ctrl":    "LeftControl",
+		"Alt":     "LeftAlt",
+		"Shift":   "LeftShift",
+		"BS":      "Backspace",
+		"Del":     "Delete",
+		"Caps":    "CapsLock",
 	}
-	toLowerMap(synonyms)
-	for k, v := range synonyms {
-		synonyms[k] = strings.ToLower(v)
+	ToLowerMap(synonyms)
+	for synonym, orig := range synonyms {
+		synonyms[synonym] = strings.ToLower(orig)
 	}
 
-	toLowerMap(osSpec.LetterToCodes)
-	for orig, synonym := range synonyms {
+	ToLowerMap(osSpec.LetterToCodes)
+	for synonym, orig := range synonyms {
 		if code, found := osSpec.LetterToCodes[orig]; found {
-			osSpec.LetterToCodes[synonym] = code
+			gofuncs.AssignWithDuplicateKeyCheck(osSpec.LetterToCodes, synonym, code)
+		} else {
+			gofuncs.Panic("No such button name: %v", orig)
 		}
 	}
 }

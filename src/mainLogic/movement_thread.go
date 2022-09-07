@@ -56,22 +56,22 @@ const (
 )
 
 type PadsSticksModeT struct {
-	currentMode, defaultMode ModeT
+	CurrentMode, defaultMode ModeT
 	lock                     sync.Mutex
 }
 
 func MakePadsSticksMode(defaultMode ModeT) *PadsSticksModeT {
-	return &PadsSticksModeT{currentMode: defaultMode, defaultMode: defaultMode}
+	return &PadsSticksModeT{CurrentMode: defaultMode, defaultMode: defaultMode}
 }
 
 func (mode *PadsSticksModeT) SwitchMode() {
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
 
-	if mode.currentMode == mode.defaultMode {
-		mode.currentMode = TypingMode
+	if mode.CurrentMode == mode.defaultMode {
+		mode.CurrentMode = TypingMode
 	} else {
-		mode.currentMode = mode.defaultMode
+		mode.CurrentMode = mode.defaultMode
 	}
 }
 
@@ -79,20 +79,39 @@ func (mode *PadsSticksModeT) GetMode() ModeT {
 	mode.lock.Lock()
 	defer mode.lock.Unlock()
 
-	return mode.currentMode
+	return mode.CurrentMode
 }
 
 type HighPrecisionModeT struct {
-	isActive                              bool
-	lock                                  sync.Mutex
+	lock sync.Mutex
+
+	isActive bool
+
 	curMouseIntervals, curScrollIntervals *IntervalRangeT
 	curMouseSpeed                         float64
+
+	ctrlVirtualButton BtnOrAxisT
+	ctrlCommandInfo   *CommandInfoT
 }
 
 func MakeHighPrecisionMode() *HighPrecisionModeT {
 	mode := &HighPrecisionModeT{}
+
+	CtrlCommand := []int{getCodeFromLetter("Ctrl")}
+	mode.ctrlVirtualButton, mode.ctrlCommandInfo = CreateVirtualButton(CtrlCommand)
+
 	mode.setSpeedValues()
 	return mode
+}
+
+func (mode *HighPrecisionModeT) PressCtrl() {
+	if mode.isActive {
+		pressIfNotAlready(mode.ctrlVirtualButton, mode.ctrlCommandInfo)
+	}
+}
+
+func (mode *HighPrecisionModeT) ReleaseCtrl() {
+	releaseButton(mode.ctrlVirtualButton)
 }
 
 func (mode *HighPrecisionModeT) IsActive() bool {
@@ -108,6 +127,8 @@ func (mode *HighPrecisionModeT) setSpeedValues() {
 		mode.curMouseIntervals = &Cfg.Mouse.Intervals.HighPrecision
 		mode.curMouseSpeed = Cfg.Mouse.Speed.HighPrecision
 	} else {
+		mode.ReleaseCtrl()
+
 		mode.curScrollIntervals = &Cfg.Scroll.Intervals.Normal
 		mode.curMouseIntervals = &Cfg.Mouse.Intervals.Normal
 		mode.curMouseSpeed = Cfg.Mouse.Speed.Normal
@@ -134,6 +155,7 @@ func MakeIntervalTimer(repeatInterval float64) *IntervalTimerT {
 
 func (i *IntervalTimerT) InitIntervalTimer(repeatInterval float64) {
 	i.tickerInterval = Cfg.System.TickerInterval
+	gofuncs.PanicAnyNotPositive(i.tickerInterval)
 
 	i.SetInterval(repeatInterval)
 
@@ -188,7 +210,7 @@ func RunGlobalEventsThread() {
 	scrollPosition := scrollPadStick.transformedPos
 
 	for range ticker.C {
-		switch padsSticksMode.GetMode() {
+		switch padsSticksMode.CurrentMode {
 		case MouseMode:
 			MoveInInterval(scrollIntervalTimers, scrollPadStick, scrollPosition,
 				highPrecisionMode.curScrollIntervals, moveScrollByPixel, filterScrollHorizontal)

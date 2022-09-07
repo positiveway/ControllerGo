@@ -22,13 +22,16 @@ func MakeConfigs() *ConfigsT {
 }
 
 func RunFreshInitSequence() {
+	initCodeMapping()
+
 	Cfg = MakeConfigs()
-	Cfg.initDependentOnCfg()
 
 	initEventTypes()
-	initCodeMapping()
+	initButtons()
+
+	Cfg.initDependent()
+
 	initTyping()
-	initCommands()
 }
 
 func RunMain() {

@@ -77,8 +77,16 @@ func MoveInInterval(
 
 	padStick.Unlock()
 
-	moveFunc(moveByPixelX, moveByPixelY)
+	if moveByPixelX != 0 || moveByPixelY != 0 {
+		moveFunc(moveByPixelX, moveByPixelY)
+	}
 
+	//dirty hack to determine scroll
+	if filterFunc != nil {
+		if position.x == 0 && position.y == 0 {
+			Cfg.PadsSticks.HighPrecisionMode.ReleaseCtrl()
+		}
+	}
 }
 
 //
@@ -91,12 +99,12 @@ func MoveInInterval(
 //}
 
 func moveMouseByPixelDS(moveByPixelX, moveByPixelY int) {
-	if moveByPixelX != 0 || moveByPixelY != 0 {
-		osSpec.MoveMouse(moveByPixelX, moveByPixelY)
-	}
+	osSpec.MoveMouse(moveByPixelX, moveByPixelY)
 }
 
 func moveScrollByPixel(moveByPixelX, moveByPixelY int) {
+	Cfg.PadsSticks.HighPrecisionMode.PressCtrl()
+
 	if moveByPixelX != 0 {
 		osSpec.ScrollHorizontal(moveByPixelX)
 	}

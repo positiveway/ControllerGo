@@ -12,7 +12,8 @@ const (
 	SwitchHighPrecisionMode = -12
 )
 
-func initCommands() {
+func initButtons() {
+	VirtualButtonCounter = MakeVirtualButtonCounter()
 	pressCommandsLayout = loadCommandsLayout()
 }
 
@@ -65,7 +66,7 @@ func loadCommandsLayout() ButtonToCommandT {
 		if codes[0] == NoAction {
 			continue
 		}
-		pressLayout[btn] = MakeCommandInfo(codes, gofuncs.NaN())
+		pressLayout[btn] = MakeEmptyCommandInfo(codes)
 	}
 	return pressLayout
 }
@@ -79,6 +80,27 @@ var pressCommandsLayout ButtonToCommandT
 var buttonsToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfoT]()
 
 var ButtonsLock sync.Mutex
+
+type VirtualButtonCounterT struct {
+	counter uint
+}
+
+var VirtualButtonCounter *VirtualButtonCounterT
+
+func MakeVirtualButtonCounter() *VirtualButtonCounterT {
+	return &VirtualButtonCounterT{}
+}
+
+func (v *VirtualButtonCounterT) GetButton() BtnOrAxisT {
+	ButtonsLock.Lock()
+	defer ButtonsLock.Unlock()
+
+	//if uint overflows it will be zero
+	v.counter += 1
+
+	virtualButton := gofuncs.Format("VirtualButton_%v", v.counter)
+	return BtnOrAxisT(virtualButton)
+}
 
 func PutButton(btn BtnOrAxisT, commandInfo *CommandInfoT) bool {
 	if _, exist := buttonsToRelease.CheckAndGet(btn); exist {
@@ -95,13 +117,13 @@ type CommandInfoT struct {
 }
 
 func MakeCommandInfo(command CommandT, repeatInterval float64) *CommandInfoT {
-	if gofuncs.IsNotInit(repeatInterval) {
-		repeatInterval = Cfg.Buttons.HoldRepeatInterval
-	}
-
 	commandInfo := &CommandInfoT{command: command}
 	commandInfo.InitIntervalTimer(repeatInterval)
 	return commandInfo
+}
+
+func MakeEmptyCommandInfo(command CommandT) *CommandInfoT {
+	return MakeCommandInfo(command, Cfg.Buttons.HoldRepeatInterval)
 }
 
 func MakeUndeterminedCommandInfo() *CommandInfoT {
@@ -193,12 +215,28 @@ func releaseSequence(command CommandT) {
 	}
 }
 
-func pressImmediately(btn BtnOrAxisT) {
-	commandInfo := getCommandInfo(btn, false)
-
+func pressIfNotAlready(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 	if PutButton(btn, commandInfo) {
 		pressSequence(btn, commandInfo)
 	}
+}
+
+func pressImmediately(btn BtnOrAxisT) {
+	commandInfo := getCommandInfo(btn, false)
+
+	pressIfNotAlready(btn, commandInfo)
+}
+
+func CreateVirtualButton(command CommandT) (BtnOrAxisT, *CommandInfoT) {
+	virtualButton := VirtualButtonCounter.GetButton()
+	commandInfo := MakeEmptyCommandInfo(command)
+
+	return virtualButton, commandInfo
+}
+
+func PressVirtualButton(btn BtnOrAxisT, command CommandT) {
+	commandInfo := MakeEmptyCommandInfo(command)
+	pressIfNotAlready(btn, commandInfo)
 }
 
 func pressButton(btn BtnOrAxisT) {

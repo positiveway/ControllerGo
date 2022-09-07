@@ -37,7 +37,7 @@ func (c *ConfigsT) setConfigConstants() {
 	c.System.RunFromTerminal = false
 }
 
-func (c *ConfigsT) initDependentOnCfg() {
+func (c *ConfigsT) initDependent() {
 	c.PadsSticks.HighPrecisionMode = MakeHighPrecisionMode()
 
 	switch c.ControllerInUse {
