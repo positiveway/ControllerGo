@@ -19,7 +19,7 @@
         "SlowestMs": 7
       },
       "HighPrecision": {
-        "FastestMs": 3,
+        "FastestMs": 9,
         "SlowestMs": 21
       }
     }
