@@ -247,9 +247,9 @@ func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
 
 	switch pad.cfg.ControllerInUse {
 	case SteamController:
-		if pad.moveMouseSC != nil {
-			return func(fieldPointer *float64, value float64) {
-				setValue(fieldPointer, value)
+		return func(fieldPointer *float64, value float64) {
+			setValue(fieldPointer, value)
+			if pad.moveMouseSC != nil {
 				pad.moveMouseSC()
 			}
 		}
