@@ -10,18 +10,25 @@ const NoneStr = "None"
 type SticksPositionT [2]ZoneT
 type TypingLayoutT map[SticksPositionT]int
 
-var TypingBoundariesMap ZoneBoundariesMapT
-var typingLayout TypingLayoutT
-
-func initTyping() {
-	TypeLetter = GetTypeLetterFunc()
-	TypingBoundariesMap = genTypingBoundariesMap()
-	typingLayout = loadTypingLayout()
+type TypingT struct {
+	CfgStruct
+	LeftPS, RightPS *PadStickPositionT
+	boundariesMap   ZoneBoundariesMapT
+	layout          TypingLayoutT
+	typeLetter      func()
 }
 
-func loadTypingLayout() TypingLayoutT {
+func (typing *TypingT) Init(cfg *ConfigsT) {
+	typing.CfgStruct.Init(cfg)
+
+	typing.typeLetter = typing.GetTypeLetterFunc()
+	typing.boundariesMap = typing.genBoundariesMap()
+	typing.layout = typing.loadLayout()
+}
+
+func (typing *TypingT) loadLayout() TypingLayoutT {
 	linesParts := gofuncs.ReadLayoutFile(2,
-		[]string{Cfg.Path.AllLayoutsDir, "typing.csv"})
+		[]string{typing.cfg.Path.AllLayoutsDir, "typing.csv"})
 
 	layout := TypingLayoutT{}
 	for _, parts := range linesParts {
@@ -42,28 +49,32 @@ func loadTypingLayout() TypingLayoutT {
 	return layout
 }
 
-func genTypingBoundariesMap() ZoneBoundariesMapT {
-	AngleMargin := Cfg.Typing.AngleMargin
+func (typing *TypingT) genBoundariesMap() ZoneBoundariesMapT {
+	cfg := typing.cfg
+	AngleMargin := cfg.Typing.AngleMargin
+
 	return genEqualThresholdBoundariesMap(true,
 		MakeAngleMargin(
 			AngleMargin.Diagonal,
 			AngleMargin.Straight,
 			AngleMargin.Straight),
-		Cfg.Typing.ThresholdPct,
+		cfg.Typing.ThresholdPct,
 		1.0)
 }
 
-func GetTypeLetterFunc() func() {
-	padsSticksMode := Cfg.PadsSticks.Mode
-	LeftPS := Cfg.Typing.LeftPS
-	RightPS := Cfg.Typing.RightPS
+func (typing *TypingT) GetTypeLetterFunc() func() {
+	padsSticksMode := typing.cfg.PadsSticks.Mode
+	LeftPS := typing.LeftPS
+	RightPS := typing.RightPS
+	boundariesMap := typing.boundariesMap
+	layout := typing.layout
 
 	return func() {
 		if padsSticksMode.CurrentMode != TypingMode {
 			return
 		}
-		LeftPS.ReCalculateZone(TypingBoundariesMap)
-		RightPS.ReCalculateZone(TypingBoundariesMap)
+		LeftPS.ReCalculateZone(boundariesMap)
+		RightPS.ReCalculateZone(boundariesMap)
 
 		if LeftPS.zoneCanBeUsed && RightPS.zoneCanBeUsed {
 			if LeftPS.zoneChanged || RightPS.zoneChanged {
@@ -72,7 +83,7 @@ func GetTypeLetterFunc() func() {
 					RightPS.awaitingCentralPosition = true
 
 					position := SticksPositionT{LeftPS.zone, RightPS.zone}
-					if code, found := typingLayout[position]; found {
+					if code, found := layout[position]; found {
 						osSpec.TypeKey(code)
 					}
 				}
@@ -80,5 +91,3 @@ func GetTypeLetterFunc() func() {
 		}
 	}
 }
-
-var TypeLetter func()

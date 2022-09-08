@@ -3,7 +3,6 @@ package mainLogic
 import (
 	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
-	"sync"
 )
 
 const (
@@ -11,11 +10,6 @@ const (
 	SwitchPadStickMode      = -11
 	SwitchHighPrecisionMode = -12
 )
-
-func initButtons() {
-	VirtualButtonCounter = MakeVirtualButtonCounter()
-	pressCommandsLayout = loadCommandsLayout()
-}
 
 func initCommonCmdMapping() map[string]int {
 	mapping := map[string]int{
@@ -30,14 +24,14 @@ func initCommonCmdMapping() map[string]int {
 	return mapping
 }
 
-func loadCommandsLayout() ButtonToCommandT {
+func (buttons *ButtonsT) loadCommandsLayout() ButtonToCommandT {
 	commonCmdMapping := initCommonCmdMapping()
 	BtnSynonyms := genBtnSynonyms()
 	AllAvailableButtons := initAvailableButtons()
 
 	pressLayout := ButtonToCommandT{}
 	linesParts := gofuncs.ReadLayoutFile(2,
-		[]string{Cfg.Path.CurLayoutDir, "buttons.csv"})
+		[]string{buttons.cfg.Path.CurLayoutDir, "buttons.csv"})
 
 	for _, parts := range linesParts {
 		btn := BtnOrAxisT(parts[0])
@@ -66,7 +60,7 @@ func loadCommandsLayout() ButtonToCommandT {
 		if codes[0] == NoAction {
 			continue
 		}
-		pressLayout[btn] = MakeEmptyCommandInfo(codes)
+		pressLayout[btn] = MakeEmptyCommandInfo(codes, buttons.cfg)
 	}
 	return pressLayout
 }
@@ -75,63 +69,30 @@ type CommandT []int
 
 type ButtonToCommandT map[BtnOrAxisT]*CommandInfoT
 
-var pressCommandsLayout ButtonToCommandT
-
-var buttonsToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfoT]()
-
-var ButtonsLock sync.Mutex
-
-type VirtualButtonCounterT struct {
-	counter uint
-}
-
-var VirtualButtonCounter *VirtualButtonCounterT
-
-func MakeVirtualButtonCounter() *VirtualButtonCounterT {
-	return &VirtualButtonCounterT{}
-}
-
-func (v *VirtualButtonCounterT) GetButton() BtnOrAxisT {
-	ButtonsLock.Lock()
-	defer ButtonsLock.Unlock()
-
-	//if uint overflows it will be zero
-	v.counter += 1
-
-	virtualButton := gofuncs.Format("VirtualButton_%v", v.counter)
-	return BtnOrAxisT(virtualButton)
-}
-
-func PutButton(btn BtnOrAxisT, commandInfo *CommandInfoT) bool {
-	if _, exist := buttonsToRelease.CheckAndGet(btn); exist {
-		return false
-	}
-	buttonsToRelease.Put(btn, commandInfo)
-	return true
-}
-
 type CommandInfoT struct {
+	CfgStruct
 	IntervalTimerT
 	command              CommandT
 	specialCaseIsHandled bool
 }
 
-func MakeCommandInfo(command CommandT, repeatInterval float64) *CommandInfoT {
+func MakeCommandInfo(command CommandT, repeatInterval float64, cfg *ConfigsT) *CommandInfoT {
 	commandInfo := &CommandInfoT{command: command}
-	commandInfo.InitIntervalTimer(repeatInterval)
+	commandInfo.Init(cfg)
+	commandInfo.InitIntervalTimer(repeatInterval, cfg)
 	return commandInfo
 }
 
-func MakeEmptyCommandInfo(command CommandT) *CommandInfoT {
-	return MakeCommandInfo(command, Cfg.Buttons.HoldRepeatInterval)
+func MakeEmptyCommandInfo(command CommandT, cfg *ConfigsT) *CommandInfoT {
+	return MakeCommandInfo(command, cfg.Buttons.HoldRepeatInterval, cfg)
 }
 
-func MakeUndeterminedCommandInfo() *CommandInfoT {
-	return MakeCommandInfo(nil, Cfg.Buttons.HoldingStateThreshold)
+func MakeUndeterminedCommandInfo(cfg *ConfigsT) *CommandInfoT {
+	return MakeCommandInfo(nil, cfg.Buttons.HoldingStateThreshold, cfg)
 }
 
 func (c *CommandInfoT) GetCopy() *CommandInfoT {
-	return MakeCommandInfo(c.command, c.repeatInterval)
+	return MakeCommandInfo(c.command, c.repeatInterval, c.cfg)
 }
 
 func (c *CommandInfoT) CopyFromOther(other *CommandInfoT) {
@@ -139,33 +100,74 @@ func (c *CommandInfoT) CopyFromOther(other *CommandInfoT) {
 	c.SetInterval(other.repeatInterval)
 }
 
+type ButtonsT struct {
+	CfgLockStruct
+	highPrecisionMode    *HighPrecisionModeT
+	ToRelease            *gofuncs.Map[BtnOrAxisT, *CommandInfoT]
+	ToCommandLayout      ButtonToCommandT
+	virtualButtonCounter uint
+	handleTriggers       func(btn BtnOrAxisT, value float64)
+	pressSequence        func(btn BtnOrAxisT, commandInfo *CommandInfoT)
+}
+
+func (buttons *ButtonsT) Init(cfg *ConfigsT, highPrecisionMode *HighPrecisionModeT) {
+	buttons.CfgLockStruct.Init(cfg)
+	buttons.highPrecisionMode = highPrecisionMode
+
+	buttons.handleTriggers = buttons.GetHandleTriggersFunc()
+	buttons.pressSequence = buttons.GetPressSequenceFunc()
+
+	buttons.ToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfoT]()
+	buttons.ToCommandLayout = buttons.loadCommandsLayout()
+}
+
+func (buttons *ButtonsT) GetVirtualButton() BtnOrAxisT {
+	buttons.Lock()
+	defer buttons.Unlock()
+
+	//if uint overflows it will be zero
+	buttons.virtualButtonCounter += 1
+
+	virtualButton := gofuncs.Format("VirtualButton_%v",
+		buttons.virtualButtonCounter)
+	return BtnOrAxisT(virtualButton)
+}
+
+func (buttons *ButtonsT) PutButton(btn BtnOrAxisT, commandInfo *CommandInfoT) bool {
+	if _, exist := buttons.ToRelease.CheckAndGet(btn); exist {
+		return false
+	}
+	buttons.ToRelease.Put(btn, commandInfo)
+	return true
+}
+
 func isEmptyCommandInfo(commandInfo *CommandInfoT) bool {
 	return commandInfo == nil
 }
 
-func isEmptyCommandForButton(btn BtnOrAxisT, hold bool) bool {
-	return isEmptyCommandInfo(getCommandInfo(btn, hold))
+func (buttons *ButtonsT) isEmptyCommandForButton(btn BtnOrAxisT, hold bool) bool {
+	return isEmptyCommandInfo(buttons.getCommandInfo(btn, hold))
 }
 
 func isEmptyCmd(command CommandT) bool {
 	return gofuncs.IsEmptySlice(command)
 }
 
-func commandNotExists(btn BtnOrAxisT) bool {
-	return isEmptyCommandForButton(btn, false) &&
-		isEmptyCommandForButton(btn, true)
+func (buttons *ButtonsT) commandNotExists(btn BtnOrAxisT) bool {
+	return buttons.isEmptyCommandForButton(btn, false) &&
+		buttons.isEmptyCommandForButton(btn, true)
 }
 
-func hasHoldCommand(btn BtnOrAxisT) bool {
-	return !isEmptyCommandForButton(btn, true)
+func (buttons *ButtonsT) hasHoldCommand(btn BtnOrAxisT) bool {
+	return !buttons.isEmptyCommandForButton(btn, true)
 }
 
-func getCommandInfo(btn BtnOrAxisT, hold bool) *CommandInfoT {
+func (buttons *ButtonsT) getCommandInfo(btn BtnOrAxisT, hold bool) *CommandInfoT {
 	if hold {
 		btn = addHoldSuffix(btn)
 	}
 	//Have only one point of access. Don't forget to copy
-	commandInfo := pressCommandsLayout[btn]
+	commandInfo := buttons.ToCommandLayout[btn]
 	//nil can't be copied
 	if !isEmptyCommandInfo(commandInfo) {
 		commandInfo = commandInfo.GetCopy()
@@ -181,27 +183,32 @@ func isSwitchModeCmd(command CommandT) bool {
 	return getFirstCmdSymbol(command) == SwitchPadStickMode
 }
 
-func pressSequence(btn BtnOrAxisT, commandInfo *CommandInfoT) {
-	command := commandInfo.command
+func (buttons *ButtonsT) GetPressSequenceFunc() func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
+	padsSticksMode := buttons.cfg.PadsSticks.Mode
+	highPrecisionMode := buttons.highPrecisionMode
 
-	if !commandInfo.specialCaseIsHandled {
-		commandInfo.specialCaseIsHandled = true
+	return func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
+		command := commandInfo.command
 
-		switch getFirstCmdSymbol(command) {
-		case SwitchPadStickMode:
-			// don't do release all
-			Cfg.PadsSticks.Mode.SwitchMode()
-			return
-		case SwitchHighPrecisionMode:
-			Cfg.PadsSticks.HighPrecisionMode.SwitchMode()
-			return
-		case EscLetterCode:
-			releaseAll(btn)
+		if !commandInfo.specialCaseIsHandled {
+			commandInfo.specialCaseIsHandled = true
+
+			switch getFirstCmdSymbol(command) {
+			case SwitchPadStickMode:
+				// don't do release all
+				padsSticksMode.SwitchMode()
+				return
+			case SwitchHighPrecisionMode:
+				highPrecisionMode.SwitchMode()
+				return
+			case EscLetterCode:
+				buttons.releaseAll(btn)
+			}
 		}
-	}
 
-	for _, el := range command {
-		osSpec.PressKeyOrMouse(el)
+		for _, el := range command {
+			osSpec.PressKeyOrMouse(el)
+		}
 	}
 }
 
@@ -215,40 +222,41 @@ func releaseSequence(command CommandT) {
 	}
 }
 
-func pressIfNotAlready(btn BtnOrAxisT, commandInfo *CommandInfoT) {
-	if PutButton(btn, commandInfo) {
-		pressSequence(btn, commandInfo)
+func (buttons *ButtonsT) pressIfNotAlready(btn BtnOrAxisT, commandInfo *CommandInfoT) {
+	if buttons.PutButton(btn, commandInfo) {
+		buttons.pressSequence(btn, commandInfo)
 	}
 }
 
-func pressImmediately(btn BtnOrAxisT) {
-	commandInfo := getCommandInfo(btn, false)
+func (buttons *ButtonsT) pressImmediately(btn BtnOrAxisT) {
+	commandInfo := buttons.getCommandInfo(btn, false)
 
-	pressIfNotAlready(btn, commandInfo)
+	buttons.pressIfNotAlready(btn, commandInfo)
 }
 
-func CreateVirtualButton(command CommandT) (BtnOrAxisT, *CommandInfoT) {
-	virtualButton := VirtualButtonCounter.GetButton()
-	commandInfo := MakeEmptyCommandInfo(command)
+func (buttons *ButtonsT) CreateVirtualButton(command CommandT) (BtnOrAxisT, *CommandInfoT) {
+	virtualButton := buttons.GetVirtualButton()
+	commandInfo := MakeEmptyCommandInfo(command, buttons.cfg)
 
 	return virtualButton, commandInfo
 }
 
-func PressVirtualButton(btn BtnOrAxisT, command CommandT) {
-	commandInfo := MakeEmptyCommandInfo(command)
-	pressIfNotAlready(btn, commandInfo)
+func (buttons *ButtonsT) CreateAndPressVirtualButton(command CommandT) BtnOrAxisT {
+	virtualButton, commandInfo := buttons.CreateVirtualButton(command)
+	buttons.pressIfNotAlready(virtualButton, commandInfo)
+	return virtualButton
 }
 
-func pressButton(btn BtnOrAxisT) {
-	if hasHoldCommand(btn) {
-		PutButton(btn, MakeUndeterminedCommandInfo())
+func (buttons *ButtonsT) pressButton(btn BtnOrAxisT) {
+	if buttons.hasHoldCommand(btn) {
+		buttons.PutButton(btn, MakeUndeterminedCommandInfo(buttons.cfg))
 	} else {
-		pressImmediately(btn)
+		buttons.pressImmediately(btn)
 	}
 }
 
-func releaseButton(btn BtnOrAxisT) {
-	commandInfo := buttonsToRelease.Pop(btn)
+func (buttons *ButtonsT) releaseButton(btn BtnOrAxisT) {
+	commandInfo := buttons.ToRelease.Pop(btn)
 
 	if isEmptyCommandInfo(commandInfo) {
 		return
@@ -257,43 +265,43 @@ func releaseButton(btn BtnOrAxisT) {
 	if isEmptyCmd(commandInfo.command) {
 		//has hold command but no "immediately press" command
 		//and not enough time have passed for hold command to be triggered
-		if isEmptyCommandForButton(btn, false) {
+		if buttons.isEmptyCommandForButton(btn, false) {
 			return
 		}
-		commandInfo.CopyFromOther(getCommandInfo(btn, false))
-		pressSequence(btn, commandInfo)
+		commandInfo.CopyFromOther(buttons.getCommandInfo(btn, false))
+		buttons.pressSequence(btn, commandInfo)
 	}
 
 	releaseSequence(commandInfo.command)
 }
 
-func RepeatCommand() {
-	ButtonsLock.Lock()
+func (buttons *ButtonsT) RepeatCommand() {
+	buttons.Lock()
 	//Esc button's releaseAll will break state (changing map over iteration)
 	//RangeOverCopy prevents this: states will be restored, esc command executed,
 	//and then states will be properly released
-	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
+	buttons.ToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 		if isEmptyCmd(commandInfo.command) {
 			//if hold state Interval passed
 			if commandInfo.DecreaseInterval() {
 				//assign hold command, reset interval
-				commandInfo.CopyFromOther(getCommandInfo(btn, true))
-				pressSequence(btn, commandInfo)
+				commandInfo.CopyFromOther(buttons.getCommandInfo(btn, true))
+				buttons.pressSequence(btn, commandInfo)
 			}
 		} else { //if command already assigned to hold or immediate
 			if commandInfo.DecreaseInterval() {
-				pressSequence(btn, commandInfo)
+				buttons.pressSequence(btn, commandInfo)
 			}
 		}
 	})
-	ButtonsLock.Unlock()
+	buttons.Unlock()
 }
 
-func releaseAll(curButton BtnOrAxisT) {
-	buttonsToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
+func (buttons *ButtonsT) releaseAll(curButton BtnOrAxisT) {
+	buttons.ToRelease.RangeOverShallowCopy(func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 		//current button should stay in map
 		if btn != curButton {
-			releaseButton(btn)
+			buttons.releaseButton(btn)
 		}
 	})
 }
@@ -302,30 +310,34 @@ func isTriggerBtn(btn BtnOrAxisT) bool {
 	return btn == BtnLeftTrigger || btn == BtnRightTrigger
 }
 
-func handleTriggers(btn BtnOrAxisT, value float64) {
-	if value > Cfg.Buttons.TriggerThreshold {
-		pressImmediately(btn)
-	} else if value < Cfg.Buttons.TriggerThreshold {
-		releaseButton(btn)
+func (buttons *ButtonsT) GetHandleTriggersFunc() func(btn BtnOrAxisT, value float64) {
+	triggerThreshold := buttons.cfg.Buttons.TriggerThreshold
+
+	return func(btn BtnOrAxisT, value float64) {
+		if value > triggerThreshold {
+			buttons.pressImmediately(btn)
+		} else if value < triggerThreshold {
+			buttons.releaseButton(btn)
+		}
 	}
 }
 
-func buttonChanged(btn BtnOrAxisT, value float64) {
-	ButtonsLock.Lock()
-	defer ButtonsLock.Unlock()
+func (buttons *ButtonsT) buttonChanged(btn BtnOrAxisT, value float64) {
+	buttons.Lock()
+	defer buttons.Unlock()
 
-	if commandNotExists(btn) {
+	if buttons.commandNotExists(btn) {
 		return
 	}
 
 	if isTriggerBtn(btn) {
-		handleTriggers(btn, value)
+		buttons.handleTriggers(btn, value)
 	} else {
 		switch value {
 		case 1:
-			pressButton(btn)
+			buttons.pressButton(btn)
 		case 0:
-			releaseButton(btn)
+			buttons.releaseButton(btn)
 		default:
 			gofuncs.Panic("Unsupported value: \"%s\" %v", btn, value)
 		}

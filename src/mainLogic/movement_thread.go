@@ -55,25 +55,83 @@ const (
 	GamingMode ModeT = "Gaming"
 )
 
+type LockStruct struct {
+	_lock        sync.Mutex
+	Lock, Unlock func()
+}
+
+func (base *LockStruct) Init() {
+	base.Lock = base._lock.Lock
+	base.Unlock = base._lock.Unlock
+}
+
+type CfgStruct struct {
+	cfg *ConfigsT
+}
+
+func (base *CfgStruct) Init(cfg *ConfigsT) {
+	base.cfg = cfg
+}
+
+type ButtonsStruct struct {
+	buttons *ButtonsT
+}
+
+func (base *ButtonsStruct) Init(buttons *ButtonsT) {
+	base.buttons = buttons
+}
+
+type CfgButtonsStruct struct {
+	CfgStruct
+	ButtonsStruct
+}
+
+func (base *CfgButtonsStruct) Init(cfg *ConfigsT, buttons *ButtonsT) {
+	base.CfgStruct.Init(cfg)
+	base.ButtonsStruct.Init(buttons)
+}
+
+type CfgButtonsLockStruct struct {
+	LockStruct
+	CfgButtonsStruct
+}
+
+func (base *CfgButtonsLockStruct) Init(cfg *ConfigsT, buttons *ButtonsT) {
+	base.LockStruct.Init()
+	base.CfgButtonsStruct.Init(cfg, buttons)
+}
+
+type CfgLockStruct struct {
+	LockStruct
+	CfgStruct
+}
+
+func (base *CfgLockStruct) Init(cfg *ConfigsT) {
+	base.LockStruct.Init()
+	base.CfgStruct.Init(cfg)
+}
+
 type PadsSticksModeT struct {
 	CurrentMode, defaultMode ModeT
-	lock                     sync.Mutex
+	LockStruct
 }
 
 func MakePadsSticksMode(defaultMode ModeT) *PadsSticksModeT {
-	return &PadsSticksModeT{CurrentMode: defaultMode, defaultMode: defaultMode}
+	mode := &PadsSticksModeT{CurrentMode: defaultMode, defaultMode: defaultMode}
+	mode.Init()
+	return mode
 }
 
 func (mode *PadsSticksModeT) SetToDefault() {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
+	mode.Lock()
+	defer mode.Unlock()
 
 	mode.CurrentMode = mode.defaultMode
 }
 
 func (mode *PadsSticksModeT) SwitchMode() {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
+	mode.Lock()
+	defer mode.Unlock()
 
 	if mode.CurrentMode == mode.defaultMode {
 		mode.CurrentMode = TypingMode
@@ -83,14 +141,14 @@ func (mode *PadsSticksModeT) SwitchMode() {
 }
 
 func (mode *PadsSticksModeT) GetMode() ModeT {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
+	mode.Lock()
+	defer mode.Unlock()
 
 	return mode.CurrentMode
 }
 
 type HighPrecisionModeT struct {
-	lock sync.Mutex
+	CfgButtonsLockStruct
 
 	isActive bool
 
@@ -103,40 +161,40 @@ type HighPrecisionModeT struct {
 	setSpeedValues func()
 }
 
-func MakeHighPrecisionMode() *HighPrecisionModeT {
-	mode := &HighPrecisionModeT{}
+func (mode *HighPrecisionModeT) Init(cfg *ConfigsT, buttons *ButtonsT) {
+	mode.CfgButtonsLockStruct.Init(cfg, buttons)
 
 	mode.setSpeedValues = mode.GetSetSpeedValuesFunc()
 
 	CtrlCommand := []int{getCodeFromLetter("Ctrl")}
-	mode.ctrlVirtualButton, mode.ctrlCommandInfo = CreateVirtualButton(CtrlCommand)
+	mode.ctrlVirtualButton, mode.ctrlCommandInfo = buttons.CreateVirtualButton(CtrlCommand)
 
 	mode.setSpeedValues()
-
-	return mode
 }
 
 func (mode *HighPrecisionModeT) PressCtrl() {
 	if mode.isActive {
-		pressIfNotAlready(mode.ctrlVirtualButton, mode.ctrlCommandInfo)
+		mode.buttons.pressIfNotAlready(
+			mode.ctrlVirtualButton,
+			mode.ctrlCommandInfo)
 	}
 }
 
 func (mode *HighPrecisionModeT) ReleaseCtrl() {
-	releaseButton(mode.ctrlVirtualButton)
+	mode.buttons.releaseButton(mode.ctrlVirtualButton)
 }
 
 func (mode *HighPrecisionModeT) IsActive() bool {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
+	mode.Lock()
+	defer mode.Unlock()
 
 	return mode.isActive
 }
 
 func (mode *HighPrecisionModeT) GetSetSpeedValuesFunc() func() {
-	scrollIntervals := Cfg.Scroll.Intervals
-	mouseIntervals := Cfg.Mouse.Intervals
-	mouseSpeed := Cfg.Mouse.Speed
+	scrollIntervals := mode.cfg.Scroll.Intervals
+	mouseIntervals := mode.cfg.Mouse.Intervals
+	mouseSpeed := mode.cfg.Mouse.Speed
 
 	return func() {
 		if mode.isActive {
@@ -154,20 +212,20 @@ func (mode *HighPrecisionModeT) GetSetSpeedValuesFunc() func() {
 }
 
 func (mode *HighPrecisionModeT) Disable() {
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
+	mode.Lock()
+	defer mode.Unlock()
 
 	mode.isActive = false
 	mode.setSpeedValues()
 }
 
 func (mode *HighPrecisionModeT) SwitchMode() {
-	if Cfg.PadsSticks.Mode.CurrentMode == TypingMode {
+	if mode.cfg.PadsSticks.Mode.CurrentMode == TypingMode {
 		return
 	}
 
-	mode.lock.Lock()
-	defer mode.lock.Unlock()
+	mode.Lock()
+	defer mode.Unlock()
 
 	mode.isActive = !mode.isActive
 	mode.setSpeedValues()
@@ -177,14 +235,14 @@ type IntervalTimerT struct {
 	repeatInterval, intervalLeft, tickerInterval float64
 }
 
-func MakeIntervalTimer(repeatInterval float64) *IntervalTimerT {
+func MakeIntervalTimer(repeatInterval float64, cfg *ConfigsT) *IntervalTimerT {
 	intervalTimer := &IntervalTimerT{}
-	intervalTimer.InitIntervalTimer(repeatInterval)
+	intervalTimer.InitIntervalTimer(repeatInterval, cfg)
 	return intervalTimer
 }
 
-func (i *IntervalTimerT) InitIntervalTimer(repeatInterval float64) {
-	i.tickerInterval = Cfg.System.TickerInterval
+func (i *IntervalTimerT) InitIntervalTimer(repeatInterval float64, cfg *ConfigsT) {
+	i.tickerInterval = cfg.System.TickerInterval
 	gofuncs.PanicAnyNotPositive(i.tickerInterval)
 
 	i.SetInterval(repeatInterval)
@@ -215,31 +273,34 @@ type IntervalTimers2T struct {
 	X, Y *IntervalTimerT
 }
 
-func MakeIntervalTimers2() *IntervalTimers2T {
+func MakeIntervalTimers2(cfg *ConfigsT) *IntervalTimers2T {
 	//Very Small Initial Interval That Will Be Immediately Reset
-	initIntervalToReset := Cfg.Math.FloatEqualityMargin
+	initIntervalToReset := cfg.Math.FloatEqualityMargin
 	return &IntervalTimers2T{
-		X: MakeIntervalTimer(initIntervalToReset),
-		Y: MakeIntervalTimer(initIntervalToReset),
+		X: MakeIntervalTimer(initIntervalToReset, cfg),
+		Y: MakeIntervalTimer(initIntervalToReset, cfg),
 	}
 }
 
-func RunGlobalEventsThread() {
-	tickerInterval := Cfg.System.TickerInterval
+func (dependentVars *DependentVariablesT) RunGlobalEventsThread() {
+	cfg := dependentVars.cfg
+	buttons := dependentVars.Buttons
+
+	tickerInterval := cfg.System.TickerInterval
 	ticker := time.NewTicker(gofuncs.NumberToMillis(tickerInterval))
 
-	padsSticksMode := Cfg.PadsSticks.Mode
-	highPrecisionMode := Cfg.PadsSticks.HighPrecisionMode
+	padsSticksMode := cfg.PadsSticks.Mode
+	highPrecisionMode := dependentVars.HighPrecisionMode
 
-	mousePadStick := Cfg.PadsSticks.MousePS
+	mousePadStick := dependentVars.MousePS
 	mousePosition := mousePadStick.transformedPos
-	moveMouseInInterval := GetMoveInInterval(mousePadStick, mousePosition,
+	moveMouseInInterval := GetMoveInInterval(cfg, mousePadStick, mousePosition,
 		GetMouseMoveFunc(), nil)
 
-	scrollPadStick := Cfg.PadsSticks.ScrollPS
+	scrollPadStick := dependentVars.ScrollPS
 	scrollPosition := scrollPadStick.transformedPos
-	moveScrollInInterval := GetMoveInInterval(scrollPadStick, scrollPosition,
-		GetScrollMoveFunc(), GetScrollFilterFunc())
+	moveScrollInInterval := GetMoveInInterval(cfg, scrollPadStick, scrollPosition,
+		dependentVars.GetScrollMoveFunc(), dependentVars.GetScrollFilterFunc())
 
 	for range ticker.C {
 		switch padsSticksMode.CurrentMode {
@@ -252,7 +313,7 @@ func RunGlobalEventsThread() {
 
 			fallthrough
 		case GamingMode:
-			switch Cfg.ControllerInUse {
+			switch cfg.ControllerInUse {
 			case DualShock:
 				moveMouseInInterval(highPrecisionMode.curMouseIntervals)
 			}
@@ -260,6 +321,6 @@ func RunGlobalEventsThread() {
 
 		//should be placed last to not interfere with GetMode
 		//and MoveMouse has higher priority
-		RepeatCommand()
+		buttons.RepeatCommand()
 	}
 }

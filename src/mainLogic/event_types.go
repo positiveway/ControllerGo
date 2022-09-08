@@ -84,8 +84,8 @@ func initPadAndStickAxes() []BtnOrAxisT {
 	}
 }
 
-func initEventTypes() {
-	switch Cfg.ControllerInUse {
+func initEventTypes(cfg *ConfigsT) {
+	switch cfg.ControllerInUse {
 	case SteamController:
 		//axis
 		AxisLeftPadX = "LeftPadX"

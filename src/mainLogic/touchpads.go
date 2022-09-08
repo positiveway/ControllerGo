@@ -3,20 +3,21 @@ package mainLogic
 import (
 	"github.com/positiveway/gofuncs"
 	"math"
-	"sync"
-)
-
-var (
-	LeftPad, RightPadStick, LeftStick *PadStickPositionT
 )
 
 type PositionT struct {
-	x, y float64
+	CfgStruct
+	x, y  float64
+	Reset func()
 }
 
-func MakeEmptyPosition() *PositionT {
+func MakeEmptyPosition(cfg *ConfigsT) *PositionT {
 	position := &PositionT{}
+	position.Init(cfg)
+
+	position.Reset = position.GetResetFunc()
 	position.Reset()
+
 	return position
 }
 
@@ -24,15 +25,22 @@ func MakePosition(x, y float64) *PositionT {
 	return &PositionT{x: x, y: y}
 }
 
-func (pos *PositionT) Reset() {
-	switch Cfg.ControllerInUse {
+func (pos *PositionT) GetResetFunc() func() {
+	switch pos.cfg.ControllerInUse {
 	case SteamController:
-		pos.x = gofuncs.NaN()
-		pos.y = gofuncs.NaN()
+		return func() {
+			pos.x = gofuncs.NaN()
+			pos.y = gofuncs.NaN()
+		}
 	case DualShock:
-		pos.x = 0
-		pos.y = 0
+		return func() {
+			pos.x = 0
+			pos.y = 0
+		}
+	default:
+		PanicUnsupportedController()
 	}
+	panic("")
 }
 
 func (pos *PositionT) Update(newPos *PositionT) {
@@ -98,33 +106,37 @@ func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, uin
 }
 
 type PadStickPositionT struct {
+	CfgLockStruct
 	curPos, prevMousePos, transformedPos *PositionT
 	magnitude                            float64
 	shiftedAngle                         uint
 	radius                               float64
 	newValueHandled                      bool
-	lock                                 sync.Mutex
 	zone                                 ZoneT
 	zoneCanBeUsed, zoneChanged           bool
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
 
 	convertRange ConvertRangeFuncT
-	calcRadius   func()
+	setValue     SetValueFuncT
+	calcRadius,
+	moveMouseSC func()
 
 	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude
 }
 
-func MakePadPosition(zoneRotation float64, isOnLeftSide bool) *PadStickPositionT {
+func MakePadPosition(zoneRotation float64, isOnLeftSide bool, cfg *ConfigsT) *PadStickPositionT {
 	pad := PadStickPositionT{}
+	pad.Init(cfg)
 
+	pad.setValue = pad.GetSetValueFunc()
 	pad.convertRange = pad.GetConvertRangeFunc()
 	pad.calcRadius = pad.GetCalcRadiusFunc()
 
-	pad.curPos = MakeEmptyPosition()
-	pad.prevMousePos = MakeEmptyPosition()
-	pad.transformedPos = MakeEmptyPosition()
+	pad.curPos = MakeEmptyPosition(cfg)
+	pad.prevMousePos = MakeEmptyPosition(cfg)
+	pad.transformedPos = MakeEmptyPosition(cfg)
 	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
 	if isOnLeftSide {
@@ -162,7 +174,7 @@ func (pad *PadStickPositionT) Reset() {
 }
 
 func (pad *PadStickPositionT) GetCalcRadiusFunc() func() {
-	minStandardRadius := Cfg.PadsSticks.MinStandardRadius
+	minStandardRadius := pad.cfg.PadsSticks.MinStandardRadius
 	if minStandardRadius < 1.0 {
 		gofuncs.Panic("Radius can't be less than 1.0, current value: %v", minStandardRadius)
 	}
@@ -172,28 +184,28 @@ func (pad *PadStickPositionT) GetCalcRadiusFunc() func() {
 	}
 }
 
-func calcFromMaxPossible(x, y, radius float64) float64 {
-	maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
-	if maxPossibleX == 0 {
-		return 0
-	}
-
-	ratioFromMaxPossible := x / maxPossibleX
-
-	if ratioFromMaxPossible > radius {
-		if ratioFromMaxPossible > radius+Cfg.Math.FloatEqualityMargin {
-			gofuncs.Panic("Incorrect calculations")
-		}
-		ratioFromMaxPossible = radius
-	}
-	return ratioFromMaxPossible
-}
-
 func (pos *PositionT) CalcFromMaxPossible(radius float64) *PositionT {
+	calcFromMaxPossible := func(x, y float64) float64 {
+		maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
+		if maxPossibleX == 0 {
+			return 0
+		}
+
+		ratioFromMaxPossible := x / maxPossibleX
+
+		if ratioFromMaxPossible > radius {
+			if ratioFromMaxPossible > radius+pos.cfg.Math.FloatEqualityMargin {
+				gofuncs.Panic("Incorrect calculations")
+			}
+			ratioFromMaxPossible = radius
+		}
+		return ratioFromMaxPossible
+	}
+
 	//important to use temp values then assign
-	posFromMaxPossible := MakeEmptyPosition()
-	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y, radius)
-	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x, radius)
+	posFromMaxPossible := MakeEmptyPosition(pos.cfg)
+	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y)
+	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x)
 	if !gofuncs.AnyNotInit(pos.x, pos.y) {
 		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
 		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
@@ -217,18 +229,29 @@ func (pad *PadStickPositionT) ReCalculateValues() {
 	//pad.fromMaxPossiblePos.Update(pad.transformedPos.CalcFromMaxPossible(pad.radius))
 }
 
-func (pad *PadStickPositionT) setValue(fieldPointer *float64, value float64) {
-	pad.Lock()
-	defer pad.Unlock()
+type SetValueFuncT = func(fieldPointer *float64, value float64)
 
-	*fieldPointer = value
+func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
+	setValue := func(fieldPointer *float64, value float64) {
+		pad.Lock()
+		defer pad.Unlock()
 
-	pad.ReCalculateValues()
+		*fieldPointer = value
 
-	switch Cfg.ControllerInUse {
-	case SteamController:
-		MoveMouseSC()
+		pad.ReCalculateValues()
 	}
+
+	switch pad.cfg.ControllerInUse {
+	case SteamController:
+		if pad.moveMouseSC != nil {
+			return func(fieldPointer *float64, value float64) {
+				setValue(fieldPointer, value)
+				pad.moveMouseSC()
+			}
+		}
+	}
+
+	return setValue
 }
 
 func (pad *PadStickPositionT) SetX(value float64) {
@@ -239,19 +262,11 @@ func (pad *PadStickPositionT) SetY(value float64) {
 	pad.setValue(&(pad.curPos.y), value)
 }
 
-func (pad *PadStickPositionT) Lock() {
-	pad.lock.Lock()
-}
-
-func (pad *PadStickPositionT) Unlock() {
-	pad.lock.Unlock()
-}
-
 type ConvertRangeFuncT = func(input, outputMax float64) float64
 
 func (pad *PadStickPositionT) GetConvertRangeFunc() ConvertRangeFuncT {
-	inputMin := Cfg.PadsSticks.Stick.DeadzoneDS
-	outputMin := Cfg.Math.OutputMin
+	inputMin := pad.cfg.PadsSticks.Stick.DeadzoneDS
+	outputMin := pad.cfg.Math.OutputMin
 
 	return func(input, outputMax float64) float64 {
 		gofuncs.PanicAnyNotInit(input)
@@ -282,16 +297,6 @@ func (pad *PadStickPositionT) calcRefreshInterval(input, slowestInterval, fastes
 
 func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 	return T(math.Mod(float64(resolvedAngle), 90))
-}
-
-func applyDeadzone(value float64) float64 {
-	if gofuncs.IsNotInit(value) {
-		return value
-	}
-	if math.Abs(value) <= Cfg.PadsSticks.Stick.DeadzoneDS {
-		value = 0
-	}
-	return value
 }
 
 //var maxMagnitude = 1.0

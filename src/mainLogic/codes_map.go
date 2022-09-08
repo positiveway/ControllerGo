@@ -6,9 +6,17 @@ import (
 	"strings"
 )
 
-func getCodeFromLetter(letter string) int {
-	letter = strings.ToLower(letter)
-	return gofuncs.GetOrPanic(osSpec.LetterToCodes, letter, "No such letter in mapping")
+type CodesFromLetterFuncT func(letter string) int
+
+var getCodeFromLetter CodesFromLetterFuncT
+
+func GetGetCodesFromLetterFunc() CodesFromLetterFuncT {
+	letterToCodes := osSpec.LetterToCodes
+
+	return func(letter string) int {
+		letter = strings.ToLower(letter)
+		return gofuncs.GetOrPanic(letterToCodes, letter, "No such letter in mapping")
+	}
 }
 
 func ToLowerMap[V any](mapping map[string]V) {
@@ -50,6 +58,7 @@ func convertLetterToCodeMapping() {
 var EscLetterCode int
 
 func initCodeMapping() {
+	getCodeFromLetter = GetGetCodesFromLetterFunc()
 	convertLetterToCodeMapping()
 	EscLetterCode = getCodeFromLetter("Esc")
 }

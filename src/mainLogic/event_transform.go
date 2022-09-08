@@ -2,29 +2,44 @@ package mainLogic
 
 import (
 	"github.com/positiveway/gofuncs"
+	"math"
 	"strconv"
 )
 
 type EventT struct {
-	eventType EventTypeT
-	btnOrAxis BtnOrAxisT
-	value     float64
-	codeType  CodeTypeT
-	code      CodeT
+	dependentVars *DependentVariablesT
+	eventType     EventTypeT
+	btnOrAxis     BtnOrAxisT
+	value         float64
+	codeType      CodeTypeT
+	code          CodeT
 
 	update func(msg string)
 	transformStickToDPadSC,
 	transformToWingsSC,
-	transformToPadReleasedEvent func()
+	transformToPadReleasedEvent,
+	transformAndFilter,
+	fullReset,
+	axisChanged,
+	padReleased,
+	match func()
 }
 
-func MakeEvent() *EventT {
+func MakeEvent(dependentVars *DependentVariablesT) *EventT {
 	event := &EventT{}
+	event.dependentVars = dependentVars
 
 	event.update = event.GetUpdateFunc()
+
 	event.transformStickToDPadSC = event.GetTransformStickSCFunc()
 	event.transformToWingsSC = event.GetTransformToWingsSCFunc()
 	event.transformToPadReleasedEvent = event.GetTransformToPadReleasedFunc()
+	event.transformAndFilter = event.GetTransformAndFilterFunc()
+	event.fullReset = event.GetFullResetFunc()
+
+	event.axisChanged = event.GetAxisChangedFunc()
+	event.padReleased = event.GetPadReleasedFunc()
+	event.match = event.GetMatchFunc()
 
 	return event
 }
@@ -65,9 +80,14 @@ func (event *EventT) GetTransformToWingsSCFunc() func() {
 }
 
 func (event *EventT) GetTransformStickSCFunc() func() {
+	dependentVars := event.dependentVars
+
 	curPressedStickButton := CurPressedStickButtonSC
-	boundariesMap := Cfg.PadsSticks.Stick.BoundariesMapSC
+	boundariesMap := dependentVars.cfg.PadsSticks.Stick.BoundariesMapSC
 	zoneToBtnMap := initStickZoneBtnMap()
+
+	LeftStick := dependentVars.LeftStick
+	buttons := dependentVars.Buttons
 
 	return func() {
 		isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
@@ -91,12 +111,12 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 
 		if LeftStick.zoneChanged {
 			if *curPressedStickButton != "" {
-				releaseButton(*curPressedStickButton)
+				buttons.releaseButton(*curPressedStickButton)
 				*curPressedStickButton = ""
 			}
 			if LeftStick.zoneCanBeUsed {
 				*curPressedStickButton = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
-				pressButton(*curPressedStickButton)
+				buttons.pressButton(*curPressedStickButton)
 			}
 		}
 		event.btnOrAxis = BtnUnknown
@@ -104,6 +124,18 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 }
 
 func (event *EventT) applyDeadzoneDS() bool {
+	stickDeadzone := event.dependentVars.cfg.PadsSticks.Stick.DeadzoneDS
+
+	applyDeadzone := func(value float64) float64 {
+		if gofuncs.IsNotInit(value) {
+			return value
+		}
+		if math.Abs(value) <= stickDeadzone {
+			value = 0
+		}
+		return value
+	}
+
 	if event.eventType == EvAxisChanged {
 		switch event.btnOrAxis {
 		case AxisLeftStickX, AxisLeftStickY, AxisRightPadStickX, AxisRightPadStickY:
@@ -116,50 +148,68 @@ func (event *EventT) applyDeadzoneDS() bool {
 	return false
 }
 
-func (event *EventT) transformAndFilter() {
-	//gofuncs.Print("Before: ")
-	//Event.print()
+func (event *EventT) GetTransformAndFilterFunc() func() {
+	controllerInUse := event.dependentVars.cfg.ControllerInUse
 
-	switch event.eventType {
-	case EvButtonPressed, EvButtonReleased:
-		return
-	}
+	return func() {
+		//gofuncs.Print("Before: ")
+		//Event.print()
 
-	event.transformToPadReleasedEvent()
-
-	switch Cfg.ControllerInUse {
-	case SteamController:
-		event.fixButtonNamesForSteamController()
-		event.transformToWingsSC()
-		event.transformStickToDPadSC()
-	case DualShock:
-		if event.applyDeadzoneDS() {
+		switch event.eventType {
+		case EvButtonPressed, EvButtonReleased:
 			return
 		}
-	}
 
-	if event.btnOrAxis == BtnUnknown {
-		return
-	}
+		event.transformToPadReleasedEvent()
 
-	event.match()
+		switch controllerInUse {
+		case SteamController:
+			event.fixButtonNamesForSteamController()
+			event.transformToWingsSC()
+			event.transformStickToDPadSC()
+		case DualShock:
+			if event.applyDeadzoneDS() {
+				return
+			}
+		}
+
+		if event.btnOrAxis == BtnUnknown {
+			return
+		}
+
+		event.match()
+	}
 }
 
-func fullReset() {
-	RightPadStick.Reset()
-	LeftStick.Reset()
+func (event *EventT) GetFullResetFunc() func() {
+	dependentVars := event.dependentVars
+	cfg := dependentVars.cfg
 
-	switch Cfg.ControllerInUse {
-	case SteamController:
-		LeftPad.Reset()
+	RightPadStick := dependentVars.RightPadStick
+	LeftStick := dependentVars.LeftStick
+	LeftPad := dependentVars.LeftPad
+
+	controllerInUse := cfg.ControllerInUse
+	highPrecisionMode := dependentVars.HighPrecisionMode
+	padsSticksMode := cfg.PadsSticks.Mode
+	buttons := dependentVars.Buttons
+
+	return func() {
+		RightPadStick.Reset()
+		LeftStick.Reset()
+
+		switch controllerInUse {
+		case SteamController:
+			LeftPad.Reset()
+		}
+
+		*CurPressedStickButtonSC = ""
+
+		padsSticksMode.SetToDefault()
+		highPrecisionMode.Disable()
+
+		buttons.releaseAll("")
 	}
-
-	*CurPressedStickButtonSC = ""
-
-	Cfg.PadsSticks.Mode.SetToDefault()
-	Cfg.PadsSticks.HighPrecisionMode.Disable()
-
-	releaseAll("")
 }
 
 func (event *EventT) GetUpdateFunc() func(msg string) {

@@ -12,6 +12,10 @@ const (
 	SteamDeck       ControllerInUseT = "SteamDeck"
 )
 
+func PanicUnsupportedController() {
+	gofuncs.Panic("Unsupported controller type")
+}
+
 func checkEnumCfg[T comparable](allEnumVariants []T, cfgValue T) T {
 	if !gofuncs.Contains(allEnumVariants, cfgValue) {
 		gofuncs.Panic("Incorrect enum type: %v", cfgValue)
@@ -20,14 +24,14 @@ func checkEnumCfg[T comparable](allEnumVariants []T, cfgValue T) T {
 	return cfgValue
 }
 
-func toControllerCfg() ControllerInUseT {
+func toControllerCfg(rawCfg *RawConfigsT) ControllerInUseT {
 	allControllers := []ControllerInUseT{SteamController, DualShock, SteamDeck}
-	return checkEnumCfg(allControllers, ControllerInUseT(_RawCfg.ControllerInUse))
+	return checkEnumCfg(allControllers, ControllerInUseT(rawCfg.ControllerInUse))
 }
 
-func toPadsSticksModeCfg() *PadsSticksModeT {
+func toPadsSticksModeCfg(rawCfg *RawConfigsT) *PadsSticksModeT {
 	allModes := []ModeT{MouseMode, GamingMode}
-	return MakePadsSticksMode(checkEnumCfg(allModes, ModeT(_RawCfg.PadsSticks.Mode)))
+	return MakePadsSticksMode(checkEnumCfg(allModes, ModeT(rawCfg.PadsSticks.Mode)))
 }
 
 func (c *ConfigsT) setConfigConstants() {
@@ -37,52 +41,74 @@ func (c *ConfigsT) setConfigConstants() {
 	c.System.RunFromTerminal = false
 }
 
-func (c *ConfigsT) initDependent() {
-	c.PadsSticks.HighPrecisionMode = MakeHighPrecisionMode()
+type DependentVariablesT struct {
+	CfgStruct
+	HighPrecisionMode *HighPrecisionModeT
 
-	switch c.ControllerInUse {
-	case SteamController:
-		RightPadStick = MakePadPosition(
-			_RawCfg.PadsSticks.Rotation.RightPad, false)
-		LeftStick = MakePadPosition(
-			_RawCfg.PadsSticks.Rotation.LeftStick, true)
-		LeftPad = MakePadPosition(
-			_RawCfg.PadsSticks.Rotation.LeftPad, true)
+	LeftPad, RightPadStick, LeftStick,
+	MousePS, ScrollPS *PadStickPositionT
 
-		c.PadsSticks.MousePS = RightPadStick
-		c.PadsSticks.ScrollPS = LeftPad
-
-		c.Typing.RightPS = RightPadStick
-		c.Typing.LeftPS = LeftPad
-
-	case DualShock:
-		RightPadStick = MakePadPosition(
-			_RawCfg.PadsSticks.Rotation.RightStick, false)
-		LeftStick = MakePadPosition(
-			_RawCfg.PadsSticks.Rotation.LeftStick, true)
-
-		c.PadsSticks.MousePS = RightPadStick
-		c.PadsSticks.ScrollPS = LeftStick
-
-		c.Typing.RightPS = RightPadStick
-		c.Typing.LeftPS = LeftStick
-	}
-
-	if !c.Mouse.OnRightStickPad {
-		gofuncs.Swap(c.PadsSticks.MousePS, c.PadsSticks.ScrollPS)
-	}
-
-	MoveMouseSC = GetMoveMouseSCFunc()
+	Buttons *ButtonsT
+	Typing  *TypingT
 }
 
-func (c *ConfigsT) setConfigVars() {
+func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariablesT {
+	dependentVars := &DependentVariablesT{}
+	dependentVars.Init(cfg)
+
+	dependentVars.Buttons = &ButtonsT{}
+	dependentVars.HighPrecisionMode = &HighPrecisionModeT{}
+	dependentVars.Typing = &TypingT{}
+
+	switch cfg.ControllerInUse {
+	case SteamController:
+		dependentVars.RightPadStick = MakePadPosition(
+			rawCfg.PadsSticks.Rotation.RightPad, false, cfg)
+		dependentVars.LeftStick = MakePadPosition(
+			rawCfg.PadsSticks.Rotation.LeftStick, true, cfg)
+		dependentVars.LeftPad = MakePadPosition(
+			rawCfg.PadsSticks.Rotation.LeftPad, true, cfg)
+
+		dependentVars.MousePS = dependentVars.RightPadStick
+		dependentVars.ScrollPS = dependentVars.LeftPad
+
+		dependentVars.Typing.RightPS = dependentVars.RightPadStick
+		dependentVars.Typing.LeftPS = dependentVars.LeftPad
+
+	case DualShock:
+		dependentVars.RightPadStick = MakePadPosition(
+			rawCfg.PadsSticks.Rotation.RightStick, false, cfg)
+		dependentVars.LeftStick = MakePadPosition(
+			rawCfg.PadsSticks.Rotation.LeftStick, true, cfg)
+
+		dependentVars.MousePS = dependentVars.RightPadStick
+		dependentVars.ScrollPS = dependentVars.LeftStick
+
+		dependentVars.Typing.RightPS = dependentVars.RightPadStick
+		dependentVars.Typing.LeftPS = dependentVars.LeftStick
+	}
+
+	if !cfg.Mouse.OnRightStickPad {
+		gofuncs.Swap(dependentVars.MousePS, dependentVars.ScrollPS)
+	}
+
+	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode)
+	dependentVars.HighPrecisionMode.Init(cfg, dependentVars.Buttons)
+	dependentVars.Typing.Init(cfg)
+
+	dependentVars.MousePS.moveMouseSC = dependentVars.GetMoveMouseSCFunc()
+
+	return dependentVars
+}
+
+func (c *ConfigsT) setConfigVars(rawCfg *RawConfigsT) {
 	c.System.TickerInterval = 1
 	c.System.GCPercent = 10000
 
-	c.ControllerInUse = toControllerCfg()
-	c.PadsSticks.Mode = toPadsSticksModeCfg()
+	c.ControllerInUse = toControllerCfg(rawCfg)
+	c.PadsSticks.Mode = toPadsSticksModeCfg(rawCfg)
 
-	c.SharedCfgT = _RawCfg.SharedCfgT
+	c.SharedCfgT = rawCfg.SharedCfgT
 
 	c.Math.OutputMin = 0
 	c.Math.FloatEqualityMargin = 0.000000000000001
@@ -97,7 +123,7 @@ func (c *ConfigsT) setConfigVars() {
 		&(c.Buttons.HoldRepeatInterval), 40)
 
 	c.PadsSticks.MinStandardRadius = gofuncs.GetValueOrDefaultIfEmpty(
-		_RawCfg.PadsSticks.MinStandardRadius, 1.0)
+		rawCfg.PadsSticks.MinStandardRadius, 1.0)
 
 	c.SharedCfgT.ValidateConvert(c.PadsSticks.Mode)
 
@@ -106,9 +132,9 @@ func (c *ConfigsT) setConfigVars() {
 		c.Mouse.Speed.Validate()
 
 		//init Stick map
-		stickAngleMarginSC := _RawCfg.PadsSticks.Stick.AngleMargin
-		stickThresholdSC := gofuncs.NumberToPct(_RawCfg.PadsSticks.Stick.ThresholdPct)
-		stickEdgeThresholdSC := gofuncs.NumberToPct(_RawCfg.PadsSticks.Stick.EdgeThresholdPct)
+		stickAngleMarginSC := rawCfg.PadsSticks.Stick.AngleMargin
+		stickThresholdSC := gofuncs.NumberToPct(rawCfg.PadsSticks.Stick.ThresholdPct)
+		stickEdgeThresholdSC := gofuncs.NumberToPct(rawCfg.PadsSticks.Stick.EdgeThresholdPct)
 
 		c.PadsSticks.Stick.BoundariesMapSC = genEqualThresholdBoundariesMap(false,
 			MakeAngleMargin(0, stickAngleMarginSC, stickAngleMarginSC),
@@ -117,18 +143,15 @@ func (c *ConfigsT) setConfigVars() {
 
 	case DualShock:
 		c.Mouse.Intervals.Validate()
-		c.PadsSticks.Stick.DeadzoneDS = _RawCfg.PadsSticks.Stick.Deadzone
+		c.PadsSticks.Stick.DeadzoneDS = rawCfg.PadsSticks.Stick.Deadzone
 		gofuncs.PanicAnyNotPositive(c.PadsSticks.Stick.DeadzoneDS)
 	}
 
 	switch c.PadsSticks.Mode.GetMode() {
 	case GamingMode:
-		c.Gaming.MoveIntervals = _RawCfg.Gaming.MoveIntervals
+		c.Gaming.MoveIntervals = rawCfg.Gaming.MoveIntervals
 	}
 }
-
-var Cfg *ConfigsT
-var _RawCfg *RawConfigsT
 
 type MouseCfgT struct {
 	OnRightStickPad  bool                 `json:"OnRightStickPad"`
@@ -171,9 +194,8 @@ func (rawButtonsCfg *ButtonsCfgT) ValidateConvert() {
 }
 
 type TypingCfgT struct {
-	LeftPS, RightPS *PadStickPositionT
-	ThresholdPct    float64 `json:"ThresholdPct"`
-	AngleMargin     struct {
+	ThresholdPct float64 `json:"ThresholdPct"`
+	AngleMargin  struct {
 		Straight uint `json:"Straight"`
 		Diagonal uint `json:"Diagonal"`
 	} `json:"AngleMargin"`
@@ -225,10 +247,7 @@ type ConfigsT struct {
 
 	PadsSticks struct {
 		Mode              *PadsSticksModeT
-		HighPrecisionMode *HighPrecisionModeT
 		MinStandardRadius float64
-
-		MousePS, ScrollPS *PadStickPositionT
 
 		Stick struct {
 			BoundariesMapSC ZoneBoundariesMapT

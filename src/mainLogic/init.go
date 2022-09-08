@@ -9,51 +9,46 @@ import (
 	"strings"
 )
 
-func MakeConfigs() *ConfigsT {
-	c := &ConfigsT{}
+func MakeConfigs() (*ConfigsT, *RawConfigsT) {
+	cfg := &ConfigsT{}
 
-	c.setConfigConstants()
-	c.InitBasePath()
-	c.loadLayoutDir()
-	c.loadConfigs()
-	c.setConfigVars()
+	cfg.setConfigConstants()
+	cfg.InitBasePath()
+	cfg.loadLayoutDir()
+	rawCfg := cfg.loadConfigs()
+	cfg.setConfigVars(rawCfg)
 
-	return c
+	return cfg, rawCfg
 }
 
-func RunFreshInitSequence() {
+func RunFreshInitSequence() *DependentVariablesT {
 	initCodeMapping()
 
-	Cfg = MakeConfigs()
+	cfg, rawCfg := MakeConfigs()
 
-	initEventTypes()
-	initButtons()
-
-	Cfg.initDependent()
-
-	initTyping()
+	initEventTypes(cfg)
+	return MakeDependentVariables(rawCfg, cfg)
 }
 
 func RunMain() {
 	//run as maximum priority process
-
-	RunFreshInitSequence()
+	dependentVars := RunFreshInitSequence()
 
 	osSpec.InitInput()
 	defer osSpec.CloseInputResources()
-	defer releaseAll("")
+	defer dependentVars.Buttons.releaseAll("")
 
 	runtime.GC()
-	debug.SetGCPercent(Cfg.System.GCPercent)
+	debug.SetGCPercent(dependentVars.cfg.System.GCPercent)
 
-	switch Cfg.ControllerInUse {
+	switch dependentVars.cfg.ControllerInUse {
 	//go thread should always come first
 	case DualShock:
-		go RunWebSocket()
-		RunGlobalEventsThread()
+		go dependentVars.RunWebSocket()
+		dependentVars.RunGlobalEventsThread()
 	case SteamController:
-		go RunGlobalEventsThread()
-		RunWebSocket()
+		go dependentVars.RunGlobalEventsThread()
+		dependentVars.RunWebSocket()
 	}
 }
 
@@ -76,8 +71,9 @@ func (c *ConfigsT) loadLayoutDir() {
 	c.Path.CurLayoutDir = gofuncs.JoinPathCheckIfExists(c.Path.AllLayoutsDir, layoutInUse)
 }
 
-func (c *ConfigsT) loadConfigs() {
-	_RawCfg = &RawConfigsT{}
+func (c *ConfigsT) loadConfigs() *RawConfigsT {
+	rawCfg := &RawConfigsT{}
 
-	gofuncs.ReadJson(_RawCfg, []string{c.Path.CurLayoutDir, "configs.json"})
+	gofuncs.ReadJson(rawCfg, []string{c.Path.CurLayoutDir, "configs.json"})
+	return rawCfg
 }

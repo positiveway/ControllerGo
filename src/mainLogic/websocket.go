@@ -7,10 +7,10 @@ import (
 
 const gamepadConnectedMsg = "gamepadConnected"
 
-func RunWebSocket() {
+func (dependentVars *DependentVariablesT) RunWebSocket() {
 	addr := net.UDPAddr{
-		Port: Cfg.WebSocket.Port,
-		IP:   net.ParseIP(Cfg.WebSocket.IP),
+		Port: dependentVars.cfg.WebSocket.Port,
+		IP:   net.ParseIP(dependentVars.cfg.WebSocket.IP),
 	}
 	server, err := net.ListenUDP("udp", &addr)
 	if err != nil {
@@ -20,7 +20,7 @@ func RunWebSocket() {
 
 	p := make([]byte, 32)
 
-	event := MakeEvent()
+	event := MakeEvent(dependentVars)
 
 	for {
 		nn, _, err := server.ReadFromUDP(p)

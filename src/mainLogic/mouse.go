@@ -5,12 +5,10 @@ import (
 	"github.com/positiveway/gofuncs"
 )
 
-var MoveMouseSC func()
-
-func GetMoveMouseSCFunc() func() {
-	transformedPos := Cfg.PadsSticks.MousePS.transformedPos
-	prevMousePos := Cfg.PadsSticks.MousePS.prevMousePos
-	highPrecisionMode := Cfg.PadsSticks.HighPrecisionMode
+func (dependentVars *DependentVariablesT) GetMoveMouseSCFunc() func() {
+	transformedPos := dependentVars.MousePS.transformedPos
+	prevMousePos := dependentVars.MousePS.prevMousePos
+	highPrecisionMode := dependentVars.HighPrecisionMode
 
 	calcPixelsToMoveMouse := func(value, prevValue float64) int {
 		if gofuncs.AnyNotInit(value, prevValue) {
@@ -23,7 +21,7 @@ func GetMoveMouseSCFunc() func() {
 		return pixels
 	}
 
-	padsSticksMode := Cfg.PadsSticks.Mode
+	padsSticksMode := dependentVars.cfg.PadsSticks.Mode
 
 	return func() {
 		if padsSticksMode.CurrentMode == TypingMode {
@@ -47,7 +45,7 @@ func GetMoveMouseSCFunc() func() {
 type MoveByPixelFuncT = func(moveByPixelX, moveByPixelY int)
 type FilterMoveFuncT = func(input float64, isX bool) float64
 
-func GetMoveInInterval(
+func GetMoveInInterval(cfg *ConfigsT,
 	padStick *PadStickPositionT, position *PositionT,
 	moveFunc MoveByPixelFuncT, filterFunc FilterMoveFuncT) func(repetitionIntervals *IntervalRangeT) {
 
@@ -69,7 +67,7 @@ func GetMoveInInterval(
 		return moveByPixel
 	}
 
-	intervalTimers := MakeIntervalTimers2()
+	intervalTimers := MakeIntervalTimers2(cfg)
 
 	return func(repetitionIntervals *IntervalRangeT) {
 		//slowestInterval := RepetitionsToInterval(minRepetitionPerSec)
@@ -88,8 +86,8 @@ func GetMoveInInterval(
 	}
 }
 
-func GetScrollMoveFunc() MoveByPixelFuncT {
-	highPrecisionMode := Cfg.PadsSticks.HighPrecisionMode
+func (dependentVars *DependentVariablesT) GetScrollMoveFunc() MoveByPixelFuncT {
+	highPrecisionMode := dependentVars.HighPrecisionMode
 
 	return func(moveByPixelX, moveByPixelY int) {
 		highPrecisionMode.PressCtrl()
@@ -103,9 +101,9 @@ func GetScrollMoveFunc() MoveByPixelFuncT {
 	}
 }
 
-func GetScrollFilterFunc() FilterMoveFuncT {
-	scrollFilterValue := Cfg.Scroll.HorizontalThresholdPct
-	scrollPadStick := Cfg.PadsSticks.ScrollPS
+func (dependentVars *DependentVariablesT) GetScrollFilterFunc() FilterMoveFuncT {
+	scrollFilterValue := dependentVars.cfg.Scroll.HorizontalThresholdPct
+	scrollPadStick := dependentVars.ScrollPS
 
 	return func(input float64, isX bool) float64 {
 		if isX && gofuncs.Abs(input) <= scrollFilterValue*scrollPadStick.radius {
