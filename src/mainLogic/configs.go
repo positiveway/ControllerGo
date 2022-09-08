@@ -95,8 +95,7 @@ func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariab
 	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode)
 	dependentVars.HighPrecisionMode.Init(cfg, dependentVars.Buttons)
 	dependentVars.Typing.Init(cfg)
-
-	dependentVars.MousePS.moveMouseSC = dependentVars.GetMoveMouseSCFunc()
+	dependentVars.MousePS.InitMoveSCFunc(dependentVars.HighPrecisionMode)
 
 	return dependentVars
 }

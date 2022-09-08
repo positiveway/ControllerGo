@@ -156,6 +156,10 @@ func checkRotation(rotation float64) {
 	}
 }
 
+func (pad *PadStickPositionT) InitMoveSCFunc(highPrecisionMode *HighPrecisionModeT) {
+	pad.moveMouseSC = pad.GetMoveMouseSCFunc(highPrecisionMode)
+}
+
 func (pad *PadStickPositionT) Validate() {
 	checkRotation(pad.zoneRotation)
 }

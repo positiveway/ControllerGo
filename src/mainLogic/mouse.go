@@ -5,10 +5,9 @@ import (
 	"github.com/positiveway/gofuncs"
 )
 
-func (dependentVars *DependentVariablesT) GetMoveMouseSCFunc() func() {
-	transformedPos := dependentVars.MousePS.transformedPos
-	prevMousePos := dependentVars.MousePS.prevMousePos
-	highPrecisionMode := dependentVars.HighPrecisionMode
+func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisionModeT) func() {
+	transformedPos := pad.transformedPos
+	prevMousePos := pad.prevMousePos
 
 	calcPixelsToMoveMouse := func(value, prevValue float64) int {
 		if gofuncs.AnyNotInit(value, prevValue) {
@@ -21,7 +20,7 @@ func (dependentVars *DependentVariablesT) GetMoveMouseSCFunc() func() {
 		return pixels
 	}
 
-	padsSticksMode := dependentVars.cfg.PadsSticks.Mode
+	padsSticksMode := pad.cfg.PadsSticks.Mode
 
 	return func() {
 		if padsSticksMode.CurrentMode == TypingMode {
