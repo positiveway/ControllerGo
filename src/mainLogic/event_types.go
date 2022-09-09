@@ -12,7 +12,7 @@ const (
 	CTKey CodeTypeT = "KEY"
 )
 
-type CodeT int
+type CodeT uint
 
 const (
 	//CodeStickXSC CodeT = 0

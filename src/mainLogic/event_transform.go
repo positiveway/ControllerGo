@@ -4,6 +4,7 @@ import (
 	"github.com/positiveway/gofuncs"
 	"math"
 	"strconv"
+	"strings"
 )
 
 type EventT struct {
@@ -215,8 +216,27 @@ func (event *EventT) GetFullResetFunc() func() {
 func (event *EventT) GetUpdateFunc() func(msg string) {
 	EventTypeMap := initEventTypeMap()
 	BtnAxisMap := InitBtnAxisMap()
+
+	split := func(str, sep string) []string {
+		if str == "" {
+			gofuncs.PanicIsEmpty()
+		}
+		return strings.Split(str, sep)
+	}
+
+	strToFloat := func(str string) float64 {
+		value, err := strconv.ParseFloat(str, 32)
+		gofuncs.CheckErr(err)
+		return value
+	}
+
+	strToCode := func(str string) CodeT {
+		return CodeT(gofuncs.StrToInt(str))
+	}
+
+	startsWith := strings.HasSuffix
+
 	var found bool
-	var err error
 
 	return func(msg string) {
 		event.eventType, found = EventTypeMap[msg[0]]
@@ -230,20 +250,17 @@ func (event *EventT) GetUpdateFunc() func(msg string) {
 			}
 			if event.eventType == EvAxisChanged || event.eventType == EvButtonChanged {
 				msg = msg[2:]
-				valueAndCode := gofuncs.Split(msg, ";")
+				valueAndCode := split(msg, ";")
 
-				event.value, err = strconv.ParseFloat(valueAndCode[0], 32)
-				gofuncs.CheckErr(err)
-
-				if gofuncs.StartsWith(msg, ";") {
+				event.value = strToFloat(valueAndCode[0])
+				if startsWith(msg, ";") {
 					return
 				}
-				typeAndCode := gofuncs.Split(valueAndCode[1], "(")
+				typeAndCode := split(valueAndCode[1], "(")
 				event.codeType = CodeTypeT(typeAndCode[0])
 
 				code := typeAndCode[1]
-				codeNum := gofuncs.StrToInt(code[:len(code)-1])
-				event.code = CodeT(codeNum)
+				event.code = strToCode(code[:len(code)-1])
 			}
 		}
 		event.transformAndFilter()
