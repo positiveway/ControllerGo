@@ -26,11 +26,11 @@
     "Intervals": {
       "Normal": {
         "FastestMs": 40,
-        "SlowestMs": 280
+        "SlowestMs": 160
       },
       "HighPrecision": {
         "FastestMs": 40,
-        "SlowestMs": 280
+        "SlowestMs": 160
       }
     }
   },
