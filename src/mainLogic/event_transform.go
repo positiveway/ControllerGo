@@ -87,37 +87,41 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 	boundariesMap := dependentVars.cfg.PadsSticks.Stick.BoundariesMapSC
 	zoneToBtnMap := initStickZoneBtnMap()
 
-	LeftStick := dependentVars.LeftStick
+	stick := dependentVars.LeftStick
 	buttons := dependentVars.Buttons
 
 	return func() {
-		isStickEvent := (event.eventType == EvPadReleased || event.eventType == EvAxisChanged) &&
-			(event.btnOrAxis == AxisLeftStickX || event.btnOrAxis == AxisLeftStickY)
+		eventType := event.eventType
+		btnOrAxis := event.btnOrAxis
+
+		isStickEvent := (eventType == EvPadReleased || eventType == EvAxisChanged) &&
+			(btnOrAxis == AxisLeftStickX || btnOrAxis == AxisLeftStickY)
 		if !isStickEvent {
 			return
 		}
-		switch event.eventType {
+		switch eventType {
 		case EvPadReleased:
-			LeftStick.Reset()
+			stick.Reset()
 		case EvAxisChanged:
-			switch event.btnOrAxis {
+			switch btnOrAxis {
 			case AxisLeftStickX:
-				LeftStick.SetX(event.value)
+				stick.SetX(event.value)
 			case AxisLeftStickY:
-				LeftStick.SetY(event.value)
+				stick.SetY(event.value)
 			}
 		}
 
-		LeftStick.ReCalculateZone(boundariesMap)
+		stick.ReCalculateZone(boundariesMap)
 
-		if LeftStick.zoneChanged {
+		if stick.zoneChanged {
 			if *curPressedStickButtonSC != "" {
 				buttons.releaseButton(*curPressedStickButtonSC)
 				*curPressedStickButtonSC = ""
 			}
-			if LeftStick.zoneCanBeUsed {
-				*curPressedStickButtonSC = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
+			if stick.zoneCanBeUsed {
+				*curPressedStickButtonSC = gofuncs.GetOrPanic(zoneToBtnMap, stick.zone)
 				buttons.pressButton(*curPressedStickButtonSC)
+				stick.newValueHandled = false
 			}
 		}
 		event.btnOrAxis = BtnUnknown

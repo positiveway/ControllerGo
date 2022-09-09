@@ -9,7 +9,7 @@
     },
     "Stick": {
       "AngleMargin": 40,
-      "ThresholdPct": 25,
+      "ThresholdPct": 12,
       "EdgeThresholdPct": 100
     }
   },
