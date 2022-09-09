@@ -13,8 +13,6 @@ type TypingLayoutT map[SticksPositionT]int
 type TypingT struct {
 	CfgStruct
 	LeftPS, RightPS *PadStickPositionT
-	boundariesMap   ZoneBoundariesMapT
-	layout          TypingLayoutT
 	typeLetter      func()
 }
 
@@ -22,8 +20,6 @@ func (typing *TypingT) Init(cfg *ConfigsT) {
 	typing.CfgStruct.Init(cfg)
 
 	typing.typeLetter = typing.GetTypeLetterFunc()
-	typing.boundariesMap = typing.genBoundariesMap()
-	typing.layout = typing.loadLayout()
 }
 
 func (typing *TypingT) loadLayout() TypingLayoutT {
@@ -66,8 +62,9 @@ func (typing *TypingT) GetTypeLetterFunc() func() {
 	padsSticksMode := typing.cfg.PadsSticks.Mode
 	LeftPS := typing.LeftPS
 	RightPS := typing.RightPS
-	boundariesMap := typing.boundariesMap
-	layout := typing.layout
+
+	boundariesMap := typing.genBoundariesMap()
+	layout := typing.loadLayout()
 
 	return func() {
 		if padsSticksMode.CurrentMode != TypingMode {
