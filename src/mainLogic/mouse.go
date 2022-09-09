@@ -3,6 +3,7 @@ package mainLogic
 import (
 	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
+	"math"
 )
 
 func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisionModeT) func() {
@@ -105,7 +106,7 @@ func (dependentVars *DependentVariablesT) GetScrollFilterFunc() FilterMoveFuncT 
 	scrollPadStick := dependentVars.ScrollPS
 
 	return func(input float64, isX bool) float64 {
-		if isX && gofuncs.Abs(input) <= scrollFilterValue*scrollPadStick.radius {
+		if isX && math.Abs(input) <= scrollFilterValue*scrollPadStick.radius {
 			input = 0
 		}
 		return input

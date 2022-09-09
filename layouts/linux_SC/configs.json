@@ -22,7 +22,7 @@
     }
   },
   "Scroll": {
-    "HorizontalThresholdPct": 65,
+    "HorizontalThresholdPct": 85,
     "Intervals": {
       "Normal": {
         "FastestMs": 40,
