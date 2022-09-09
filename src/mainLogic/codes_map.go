@@ -8,15 +8,6 @@ import (
 
 type CodesFromLetterFuncT func(letter string) int
 
-var getCodeFromLetter CodesFromLetterFuncT
-
-var EscLetterCode int
-
-func initCodeMapping() {
-	getCodeFromLetter = GetGetCodesFromLetterFunc()
-	EscLetterCode = getCodeFromLetter("Esc")
-}
-
 func GetGetCodesFromLetterFunc() CodesFromLetterFuncT {
 	letterToCodes := osSpec.InitLetterToCodes()
 	initLetterToCodesMapping(letterToCodes)

@@ -22,11 +22,10 @@ func MakeConfigs() (*ConfigsT, *RawConfigsT) {
 }
 
 func RunFreshInitSequence() *DependentVariablesT {
-	initCodeMapping()
-
 	cfg, rawCfg := MakeConfigs()
 
 	initEventTypes(cfg)
+
 	return MakeDependentVariables(rawCfg, cfg)
 }
 

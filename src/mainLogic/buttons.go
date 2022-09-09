@@ -50,7 +50,7 @@ func (buttons *ButtonsT) loadCommandsLayout() ButtonToCommandT {
 			} else {
 				//Be careful! It probably works because variable was reassigned
 				//and original map key isn't broken
-				code := getCodeFromLetter(key)
+				code := buttons.getCodeFromLetter(key)
 				codes = append(codes, code)
 			}
 		}
@@ -105,7 +105,9 @@ type ButtonsT struct {
 	highPrecisionMode    *HighPrecisionModeT
 	ToRelease            *gofuncs.Map[BtnOrAxisT, *CommandInfoT]
 	ToCommandLayout      ButtonToCommandT
+	EscLetterCode        int
 	virtualButtonCounter uint
+	getCodeFromLetter    CodesFromLetterFuncT
 	handleTriggers       func(btn BtnOrAxisT, value float64)
 	pressSequence        func(btn BtnOrAxisT, commandInfo *CommandInfoT)
 }
@@ -113,6 +115,10 @@ type ButtonsT struct {
 func (buttons *ButtonsT) Init(cfg *ConfigsT, highPrecisionMode *HighPrecisionModeT) {
 	buttons.CfgLockStruct.Init(cfg)
 	buttons.highPrecisionMode = highPrecisionMode
+
+	buttons.getCodeFromLetter = GetGetCodesFromLetterFunc()
+	//should come before other functions initialization
+	buttons.EscLetterCode = buttons.getCodeFromLetter("Esc")
 
 	buttons.handleTriggers = buttons.GetHandleTriggersFunc()
 	buttons.pressSequence = buttons.GetPressSequenceFunc()
@@ -186,6 +192,7 @@ func isSwitchModeCmd(command CommandT) bool {
 func (buttons *ButtonsT) GetPressSequenceFunc() func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 	padsSticksMode := buttons.cfg.PadsSticks.Mode
 	highPrecisionMode := buttons.highPrecisionMode
+	EscLetterCode := buttons.EscLetterCode
 
 	return func(btn BtnOrAxisT, commandInfo *CommandInfoT) {
 		command := commandInfo.command

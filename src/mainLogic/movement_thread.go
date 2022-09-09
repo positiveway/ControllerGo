@@ -166,7 +166,7 @@ func (mode *HighPrecisionModeT) Init(cfg *ConfigsT, buttons *ButtonsT) {
 
 	mode.setSpeedValues = mode.GetSetSpeedValuesFunc()
 
-	CtrlCommand := []int{getCodeFromLetter("Ctrl")}
+	CtrlCommand := CommandT{buttons.getCodeFromLetter("Ctrl")}
 	mode.ctrlVirtualButton, mode.ctrlCommandInfo = buttons.CreateVirtualButton(CtrlCommand)
 
 	mode.setSpeedValues()

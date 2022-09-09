@@ -11,13 +11,13 @@ type SticksPositionT [2]ZoneT
 type TypingLayoutT map[SticksPositionT]int
 
 type TypingT struct {
-	CfgStruct
+	CfgButtonsStruct
 	LeftPS, RightPS *PadStickPositionT
 	typeLetter      func()
 }
 
-func (typing *TypingT) Init(cfg *ConfigsT) {
-	typing.CfgStruct.Init(cfg)
+func (typing *TypingT) Init(cfg *ConfigsT, buttons *ButtonsT) {
+	typing.CfgButtonsStruct.Init(cfg, buttons)
 
 	typing.typeLetter = typing.GetTypeLetterFunc()
 }
@@ -38,7 +38,7 @@ func (typing *TypingT) loadLayout() TypingLayoutT {
 		if letter == NoneStr {
 			continue
 		}
-		code := getCodeFromLetter(letter)
+		code := typing.buttons.getCodeFromLetter(letter)
 		position := SticksPositionT{leftPadStickZone, rightPadStickZone}
 		gofuncs.AssignWithDuplicateKeyValueCheck(layout, position, code, false)
 	}
