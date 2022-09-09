@@ -8,10 +8,7 @@ X:          Enter
 X_Hold:      Control, Alt, L
 A:         MiddleMouse
 A_Hold:     Control, Z
-;LeftButton:
 LeftTrigger:  RightMouse
-;RightButton:
-;RightButton_Hold:
 RightTrigger: LeftMouse
 LeftSpecial:        Windows
 RightSpecial:         Esc
