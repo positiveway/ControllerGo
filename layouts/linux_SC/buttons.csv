@@ -1,23 +1,27 @@
 Button : Command
 ------------------------------
 B:          Backspace
-B_Hold:      Del
+;B_Hold:      Del
 Y:         Space
 Y_Hold:     Control, Alt, B
 X:          Enter
 X_Hold:      Control, Alt, L
 A:         MiddleMouse
 A_Hold:     Control, Z
-LeftButton:   SwitchMode
+;LeftButton:
 LeftTrigger:  RightMouse
-RightButton:  HighPrecision
-RightButton_Hold:  Rightalt
+;RightButton:
+;RightButton_Hold:
 RightTrigger: LeftMouse
 LeftSpecial:        Windows
 RightSpecial:         Esc
 CentralSpecial:          Rightalt
-Stick:     Control, C
-RightWing:    Control, V
+Stick:     HighPrecision
+;Stick_Hold
+LeftWing: SwitchMode
+LeftWing_Hold:  Control, X
+RightWing:    Rightalt
+RightWing_Hold: Control, V
 StickUp:        Up
 StickDown:      Down
 StickLeft:      Left
