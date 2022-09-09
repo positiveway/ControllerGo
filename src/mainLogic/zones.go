@@ -31,15 +31,19 @@ const (
 	ZoneDownRight ZoneT = "DownRight"
 )
 
-var AllZones = []ZoneT{
-	ZoneRight,
-	ZoneUpRight,
-	ZoneUp,
-	ZoneUpLeft,
-	ZoneLeft,
-	ZoneDownLeft,
-	ZoneDown,
-	ZoneDownRight,
+type ZonesT []ZoneT
+
+func InitAllZones() ZonesT {
+	return ZonesT{
+		ZoneRight,
+		ZoneUpRight,
+		ZoneUp,
+		ZoneUpLeft,
+		ZoneLeft,
+		ZoneDownLeft,
+		ZoneDown,
+		ZoneDownRight,
+	}
 }
 
 const CentralNeutralZone ZoneT = "⬤"
@@ -197,7 +201,7 @@ func genBoundariesMap(includeDiagonalZones bool, angleMargin *AngleMarginT, zone
 }
 
 func printAnglesForZones(_boundariesMap ZoneBoundariesMapT) {
-	for _, zone := range AllZones {
+	for _, zone := range InitAllZones() {
 		gofuncs.Print("%v: ", zone)
 		var needAngles []int
 		for angle, dir := range _boundariesMap {

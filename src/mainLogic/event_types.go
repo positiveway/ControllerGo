@@ -37,9 +37,9 @@ func removeHoldSuffix(btn BtnOrAxisT) BtnOrAxisT {
 	return BtnOrAxisT(strings.TrimSuffix(string(btn), HoldSuffix))
 }
 
-func initCurStickButton() {
+func InitCurStickButton() *BtnOrAxisT {
 	//required for full reset
-	CurPressedStickButtonSC = new(BtnOrAxisT)
+	return new(BtnOrAxisT)
 }
 
 type BtnAxisMapT map[uint8]BtnOrAxisT
@@ -135,8 +135,6 @@ func initEventTypes(cfg *ConfigsT) {
 		BtnDPadLeft = "DPadLeft"
 		BtnDPadRight = "DPadRight"
 	}
-
-	initCurStickButton()
 }
 
 func initEventTypeMap() map[uint8]EventTypeT {

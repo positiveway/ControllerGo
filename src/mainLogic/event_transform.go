@@ -83,7 +83,7 @@ func (event *EventT) GetTransformToWingsSCFunc() func() {
 func (event *EventT) GetTransformStickSCFunc() func() {
 	dependentVars := event.dependentVars
 
-	curPressedStickButton := CurPressedStickButtonSC
+	curPressedStickButtonSC := dependentVars.CurPressedStickButtonSC
 	boundariesMap := dependentVars.cfg.PadsSticks.Stick.BoundariesMapSC
 	zoneToBtnMap := initStickZoneBtnMap()
 
@@ -111,13 +111,13 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 		LeftStick.ReCalculateZone(boundariesMap)
 
 		if LeftStick.zoneChanged {
-			if *curPressedStickButton != "" {
-				buttons.releaseButton(*curPressedStickButton)
-				*curPressedStickButton = ""
+			if *curPressedStickButtonSC != "" {
+				buttons.releaseButton(*curPressedStickButtonSC)
+				*curPressedStickButtonSC = ""
 			}
 			if LeftStick.zoneCanBeUsed {
-				*curPressedStickButton = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
-				buttons.pressButton(*curPressedStickButton)
+				*curPressedStickButtonSC = gofuncs.GetOrPanic(zoneToBtnMap, LeftStick.zone)
+				buttons.pressButton(*curPressedStickButtonSC)
 			}
 		}
 		event.btnOrAxis = BtnUnknown
@@ -190,6 +190,7 @@ func (event *EventT) GetFullResetFunc() func() {
 	LeftStick := dependentVars.LeftStick
 	LeftPad := dependentVars.LeftPad
 
+	curPressedStickButtonSC := dependentVars.CurPressedStickButtonSC
 	controllerInUse := cfg.ControllerInUse
 	highPrecisionMode := dependentVars.HighPrecisionMode
 	padsSticksMode := cfg.PadsSticks.Mode
@@ -204,7 +205,7 @@ func (event *EventT) GetFullResetFunc() func() {
 			LeftPad.Reset()
 		}
 
-		*CurPressedStickButtonSC = ""
+		*curPressedStickButtonSC = ""
 
 		padsSticksMode.SetToDefault()
 		highPrecisionMode.Disable()

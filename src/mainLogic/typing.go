@@ -23,16 +23,18 @@ func (typing *TypingT) Init(cfg *ConfigsT, buttons *ButtonsT) {
 }
 
 func (typing *TypingT) loadLayout() TypingLayoutT {
+	allZones := InitAllZones()
+
 	linesParts := gofuncs.ReadLayoutFile(2,
 		[]string{typing.cfg.Path.AllLayoutsDir, "typing.csv"})
 
 	layout := TypingLayoutT{}
 	for _, parts := range linesParts {
 		leftPadStickZone, rightPadStickZone, letter := ZoneT(parts[0]), ZoneT(parts[1]), parts[2]
-		if !gofuncs.Contains(AllZones, leftPadStickZone) {
+		if !gofuncs.Contains(allZones, leftPadStickZone) {
 			gofuncs.PanicMisspelled(leftPadStickZone)
 		}
-		if !gofuncs.Contains(AllZones, rightPadStickZone) {
+		if !gofuncs.Contains(allZones, rightPadStickZone) {
 			gofuncs.PanicMisspelled(rightPadStickZone)
 		}
 		if letter == NoneStr {

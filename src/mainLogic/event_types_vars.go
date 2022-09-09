@@ -1,7 +1,5 @@
 package mainLogic
 
-var CurPressedStickButtonSC *BtnOrAxisT
-
 var (
 	AxisLeftPadX,
 	AxisLeftPadY,

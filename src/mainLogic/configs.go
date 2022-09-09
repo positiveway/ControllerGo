@@ -50,11 +50,15 @@ type DependentVariablesT struct {
 
 	Buttons *ButtonsT
 	Typing  *TypingT
+
+	CurPressedStickButtonSC *BtnOrAxisT
 }
 
 func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariablesT {
 	dependentVars := &DependentVariablesT{}
 	dependentVars.Init(cfg)
+
+	dependentVars.CurPressedStickButtonSC = InitCurStickButton()
 
 	dependentVars.Buttons = &ButtonsT{}
 	dependentVars.HighPrecisionMode = &HighPrecisionModeT{}
