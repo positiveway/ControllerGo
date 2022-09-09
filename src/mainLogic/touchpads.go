@@ -119,6 +119,7 @@ type PadStickPositionT struct {
 
 	convertRange ConvertRangeFuncT
 	setValue     SetValueFuncT
+	detectZone   DetectZoneFuncT
 	calcRadius,
 	moveMouseSC func()
 
@@ -133,6 +134,7 @@ func MakePadPosition(zoneRotation float64, isOnLeftSide bool, cfg *ConfigsT) *Pa
 	pad.setValue = pad.GetSetValueFunc()
 	pad.convertRange = pad.GetConvertRangeFunc()
 	pad.calcRadius = pad.GetCalcRadiusFunc()
+	pad.detectZone = pad.GetDetectZoneFunc()
 
 	pad.curPos = MakeEmptyPosition(cfg)
 	pad.prevMousePos = MakeEmptyPosition(cfg)
@@ -269,6 +271,7 @@ func (pad *PadStickPositionT) SetY(value float64) {
 type ConvertRangeFuncT = func(input, outputMax float64) float64
 
 func (pad *PadStickPositionT) GetConvertRangeFunc() ConvertRangeFuncT {
+	FloatEqualityMargin := pad.cfg.Math.FloatEqualityMargin
 	inputMin := pad.cfg.PadsSticks.Stick.DeadzoneDS
 	outputMin := pad.cfg.Math.OutputMin
 
@@ -281,7 +284,7 @@ func (pad *PadStickPositionT) GetConvertRangeFunc() ConvertRangeFuncT {
 
 		isNegative, input := gofuncs.GetIsNegativeAndAbs(input)
 
-		if input > pad.radius {
+		if input > pad.radius+FloatEqualityMargin {
 			gofuncs.Panic("Axis input value is greater than %v. Current value: %v", pad.radius, input)
 		}
 

@@ -120,8 +120,7 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 			}
 			if stick.zoneCanBeUsed {
 				*curPressedStickButtonSC = gofuncs.GetOrPanic(zoneToBtnMap, stick.zone)
-				buttons.pressButton(*curPressedStickButtonSC)
-				stick.newValueHandled = false
+				buttons.pressImmediately(*curPressedStickButtonSC)
 			}
 		}
 		event.btnOrAxis = BtnUnknown

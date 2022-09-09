@@ -214,21 +214,31 @@ func printAnglesForZones(_boundariesMap ZoneBoundariesMapT) {
 	}
 }
 
-func detectZone(magnitude, radius float64, angle uint, boundariesMap ZoneBoundariesMapT) ZoneT {
-	if direction, found := boundariesMap[angle]; found {
-		if magnitude > direction.zoneThresholdPct*radius {
-			zone := direction.zone
+type DetectZoneFuncT func(boundariesMap ZoneBoundariesMapT) ZoneT
 
-			if magnitude > direction.edgeThresholdPct*radius {
-				zone += EdgeZoneSuffix
+func (pad *PadStickPositionT) GetDetectZoneFunc() DetectZoneFuncT {
+	FloatEqualityMargin := pad.cfg.Math.FloatEqualityMargin
+
+	isGreaterThanThreshold := func(thresholdPct float64) bool {
+		return pad.magnitude > thresholdPct*pad.radius+FloatEqualityMargin
+	}
+
+	return func(boundariesMap ZoneBoundariesMapT) ZoneT {
+		if direction, found := boundariesMap[pad.shiftedAngle]; found {
+			if isGreaterThanThreshold(direction.zoneThresholdPct) {
+				zone := direction.zone
+
+				if isGreaterThanThreshold(direction.edgeThresholdPct) {
+					zone += EdgeZoneSuffix
+				}
+				return zone
+
+			} else {
+				return CentralNeutralZone
 			}
-			return zone
-
 		} else {
-			return CentralNeutralZone
+			return UnmappedZone
 		}
-	} else {
-		return UnmappedZone
 	}
 }
 
@@ -238,7 +248,7 @@ func (pad *PadStickPositionT) ReCalculateZone(zoneBoundariesMap ZoneBoundariesMa
 	}
 	pad.newValueHandled = true
 
-	zone := detectZone(pad.magnitude, pad.radius, pad.shiftedAngle, zoneBoundariesMap)
+	zone := pad.detectZone(zoneBoundariesMap)
 	//printDebug("(x: %0.2f, y: %0.2f); magn: %0.2f; angle: %v; zone: %s", pad.x, pad.y, pad.magnitude, pad.shiftedAngle, zone)
 
 	if zone == UnmappedZone {
