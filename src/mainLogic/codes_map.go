@@ -10,8 +10,16 @@ type CodesFromLetterFuncT func(letter string) int
 
 var getCodeFromLetter CodesFromLetterFuncT
 
+var EscLetterCode int
+
+func initCodeMapping() {
+	getCodeFromLetter = GetGetCodesFromLetterFunc()
+	EscLetterCode = getCodeFromLetter("Esc")
+}
+
 func GetGetCodesFromLetterFunc() CodesFromLetterFuncT {
-	letterToCodes := osSpec.LetterToCodes
+	letterToCodes := osSpec.InitLetterToCodes()
+	initLetterToCodesMapping(letterToCodes)
 
 	return func(letter string) int {
 		letter = strings.ToLower(letter)
@@ -30,7 +38,9 @@ func ToLowerMap[V any](mapping map[string]V) {
 	}
 }
 
-func convertLetterToCodeMapping() {
+func initLetterToCodesMapping(letterToCodes osSpec.LetterToCodesT) {
+	ToLowerMap(letterToCodes)
+
 	synonyms := map[string]string{
 		"Control": "LeftControl",
 		"Ctrl":    "LeftControl",
@@ -45,20 +55,11 @@ func convertLetterToCodeMapping() {
 		synonyms[synonym] = strings.ToLower(orig)
 	}
 
-	ToLowerMap(osSpec.LetterToCodes)
 	for synonym, orig := range synonyms {
-		if code, found := osSpec.LetterToCodes[orig]; found {
-			gofuncs.AssignWithDuplicateKeyCheck(osSpec.LetterToCodes, synonym, code)
+		if code, found := letterToCodes[orig]; found {
+			gofuncs.AssignWithDuplicateKeyCheck(letterToCodes, synonym, code)
 		} else {
 			gofuncs.Panic("No such button name: %v", orig)
 		}
 	}
-}
-
-var EscLetterCode int
-
-func initCodeMapping() {
-	getCodeFromLetter = GetGetCodesFromLetterFunc()
-	convertLetterToCodeMapping()
-	EscLetterCode = getCodeFromLetter("Esc")
 }
