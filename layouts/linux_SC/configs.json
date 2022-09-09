@@ -41,8 +41,8 @@
   "Typing": {
     "ThresholdPct": 35,
     "AngleMargin": {
-      "Straight": 21,
-      "Diagonal": 23
+      "Straight": 22,
+      "Diagonal": 22
     }
   }
 }
