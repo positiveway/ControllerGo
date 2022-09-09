@@ -69,9 +69,6 @@ func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariab
 		dependentVars.LeftPad = MakePadPosition(
 			rawCfg.PadsSticks.Rotation.LeftPad, true, cfg)
 
-		dependentVars.MousePS = dependentVars.RightPadStick
-		dependentVars.ScrollPS = dependentVars.LeftPad
-
 		dependentVars.Typing.RightPS = dependentVars.RightPadStick
 		dependentVars.Typing.LeftPS = dependentVars.LeftPad
 
@@ -81,12 +78,12 @@ func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariab
 		dependentVars.LeftStick = MakePadPosition(
 			rawCfg.PadsSticks.Rotation.LeftStick, true, cfg)
 
-		dependentVars.MousePS = dependentVars.RightPadStick
-		dependentVars.ScrollPS = dependentVars.LeftStick
-
 		dependentVars.Typing.RightPS = dependentVars.RightPadStick
 		dependentVars.Typing.LeftPS = dependentVars.LeftStick
 	}
+
+	dependentVars.MousePS = dependentVars.Typing.RightPS
+	dependentVars.ScrollPS = dependentVars.Typing.LeftPS
 
 	if !cfg.Mouse.OnRightStickPad {
 		gofuncs.Swap(dependentVars.MousePS, dependentVars.ScrollPS)
