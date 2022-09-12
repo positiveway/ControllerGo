@@ -5,7 +5,7 @@ import (
 	"github.com/positiveway/gofuncs"
 )
 
-const NoneStr = "None"
+const NoneStr = "none" //lower case
 
 type SticksPositionT [2]ZoneT
 type TypingLayoutT map[SticksPositionT]int
@@ -37,6 +37,9 @@ func (typing *TypingT) loadLayout() TypingLayoutT {
 		if !gofuncs.Contains(allZones, rightPadStickZone) {
 			gofuncs.PanicMisspelled(rightPadStickZone)
 		}
+
+		letter = ToLower(letter)
+
 		if letter == NoneStr {
 			continue
 		}

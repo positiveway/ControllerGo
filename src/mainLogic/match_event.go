@@ -6,6 +6,17 @@ func (event *EventT) GetAxisChangedFunc() func() {
 	dependentVars := event.dependentVars
 	controllerInUse := dependentVars.cfg.ControllerInUse
 
+	allBtnAxis := dependentVars.allBtnAxis
+
+	AxisRightPadStickX := allBtnAxis.AxisRightPadStickX
+	AxisRightPadStickY := allBtnAxis.AxisRightPadStickY
+
+	AxisLeftPadX := allBtnAxis.AxisLeftPadX
+	AxisLeftPadY := allBtnAxis.AxisLeftPadY
+
+	AxisLeftStickX := allBtnAxis.AxisLeftStickX
+	AxisLeftStickY := allBtnAxis.AxisLeftStickY
+
 	RightPadStick := dependentVars.RightPadStick
 	LeftPad := dependentVars.LeftPad
 	LeftStick := dependentVars.LeftStick
@@ -44,6 +55,17 @@ func (event *EventT) GetAxisChangedFunc() func() {
 func (event *EventT) GetPadReleasedFunc() func() {
 	dependentVars := event.dependentVars
 	controllerInUse := dependentVars.cfg.ControllerInUse
+
+	allBtnAxis := dependentVars.allBtnAxis
+
+	AxisRightPadStickX := allBtnAxis.AxisRightPadStickX
+	AxisRightPadStickY := allBtnAxis.AxisRightPadStickY
+
+	AxisLeftPadX := allBtnAxis.AxisLeftPadX
+	AxisLeftPadY := allBtnAxis.AxisLeftPadY
+
+	AxisLeftStickX := allBtnAxis.AxisLeftStickX
+	AxisLeftStickY := allBtnAxis.AxisLeftStickY
 
 	RightPadStick := dependentVars.RightPadStick
 	LeftPad := dependentVars.LeftPad

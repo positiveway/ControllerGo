@@ -5,8 +5,6 @@ import (
 	"net"
 )
 
-const gamepadConnectedMsg = "gamepadConnected"
-
 func (dependentVars *DependentVariablesT) RunWebSocket() {
 	addr := net.UDPAddr{
 		Port: dependentVars.cfg.WebSocket.Port,

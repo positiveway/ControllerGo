@@ -15,7 +15,9 @@ type EventT struct {
 	codeType      CodeTypeT
 	code          CodeT
 
-	update func(msg string)
+	applyDeadzoneDS func() bool
+	update          func(msg string)
+	fixButtonNamesForSC,
 	transformStickToDPadSC,
 	transformToWingsSC,
 	transformToPadReleasedEvent,
@@ -32,6 +34,8 @@ func MakeEvent(dependentVars *DependentVariablesT) *EventT {
 
 	event.update = event.GetUpdateFunc()
 
+	event.applyDeadzoneDS = event.GetApplyDeadzoneFunc()
+	event.fixButtonNamesForSC = event.GetFixButtonNamesForSCFunc()
 	event.transformStickToDPadSC = event.GetTransformStickSCFunc()
 	event.transformToWingsSC = event.GetTransformToWingsSCFunc()
 	event.transformToPadReleasedEvent = event.GetTransformToPadReleasedFunc()
@@ -45,17 +49,24 @@ func MakeEvent(dependentVars *DependentVariablesT) *EventT {
 	return event
 }
 
-func (event *EventT) fixButtonNamesForSteamController() {
-	switch event.btnOrAxis {
-	case BtnY:
-		event.btnOrAxis = BtnX
-	case BtnX:
-		event.btnOrAxis = BtnY
+func (event *EventT) GetFixButtonNamesForSCFunc() func() {
+	allBtnAxis := event.dependentVars.allBtnAxis
+	BtnX := allBtnAxis.BtnX
+	BtnY := allBtnAxis.BtnY
+
+	return func() {
+		switch event.btnOrAxis {
+		case BtnY:
+			event.btnOrAxis = BtnX
+		case BtnX:
+			event.btnOrAxis = BtnY
+		}
 	}
 }
 
 func (event *EventT) GetTransformToPadReleasedFunc() func() {
-	PadAndStickAxes := initPadAndStickAxes()
+	allBtnAxis := event.dependentVars.allBtnAxis
+	PadAndStickAxes := allBtnAxis.initPadAndStickAxes()
 
 	return func() {
 		if gofuncs.Contains(PadAndStickAxes, event.btnOrAxis) &&
@@ -69,7 +80,9 @@ func (event *EventT) GetTransformToPadReleasedFunc() func() {
 }
 
 func (event *EventT) GetTransformToWingsSCFunc() func() {
-	UnknownCodesResolvingMapSC := initUnknownCodesMapSC()
+	allBtnAxis := event.dependentVars.allBtnAxis
+	UnknownCodesResolvingMapSC := allBtnAxis.initUnknownCodesMapSC()
+	BtnUnknown := allBtnAxis.BtnUnknown
 
 	return func() {
 		if event.btnOrAxis == BtnUnknown && event.codeType == CTKey {
@@ -82,10 +95,14 @@ func (event *EventT) GetTransformToWingsSCFunc() func() {
 
 func (event *EventT) GetTransformStickSCFunc() func() {
 	dependentVars := event.dependentVars
+	allBtnAxis := dependentVars.allBtnAxis
+	BtnUnknown := allBtnAxis.BtnUnknown
+	AxisLeftStickX := allBtnAxis.AxisLeftStickX
+	AxisLeftStickY := allBtnAxis.AxisLeftStickY
 
 	curPressedStickButtonSC := dependentVars.CurPressedStickButtonSC
 	boundariesMap := dependentVars.cfg.PadsSticks.Stick.BoundariesMapSC
-	zoneToBtnMap := initStickZoneBtnMap()
+	zoneToBtnMap := allBtnAxis.initStickZoneBtnMap()
 
 	stick := dependentVars.LeftStick
 	buttons := dependentVars.Buttons
@@ -127,8 +144,17 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 	}
 }
 
-func (event *EventT) applyDeadzoneDS() bool {
-	stickDeadzone := event.dependentVars.cfg.PadsSticks.Stick.DeadzoneDS
+func (event *EventT) GetApplyDeadzoneFunc() func() bool {
+	dependentVars := event.dependentVars
+	allBtnAxis := dependentVars.allBtnAxis
+
+	AxisLeftStickX := allBtnAxis.AxisLeftStickX
+	AxisLeftStickY := allBtnAxis.AxisLeftStickY
+
+	AxisRightPadStickX := allBtnAxis.AxisRightPadStickX
+	AxisRightPadStickY := allBtnAxis.AxisRightPadStickY
+
+	stickDeadzone := dependentVars.cfg.PadsSticks.Stick.DeadzoneDS
 
 	applyDeadzone := func(value float64) float64 {
 		if gofuncs.IsNotInit(value) {
@@ -140,20 +166,26 @@ func (event *EventT) applyDeadzoneDS() bool {
 		return value
 	}
 
-	if event.eventType == EvAxisChanged {
-		switch event.btnOrAxis {
-		case AxisLeftStickX, AxisLeftStickY, AxisRightPadStickX, AxisRightPadStickY:
-			event.value = applyDeadzone(event.value)
-			if event.value == 0 {
-				return true
+	return func() bool {
+		if event.eventType == EvAxisChanged {
+			switch event.btnOrAxis {
+			case AxisLeftStickX, AxisLeftStickY, AxisRightPadStickX, AxisRightPadStickY:
+				event.value = applyDeadzone(event.value)
+				if event.value == 0 {
+					return true
+				}
 			}
 		}
+		return false
 	}
-	return false
 }
 
 func (event *EventT) GetTransformAndFilterFunc() func() {
-	controllerInUse := event.dependentVars.cfg.ControllerInUse
+	dependentVars := event.dependentVars
+	allBtnAxis := dependentVars.allBtnAxis
+	BtnUnknown := allBtnAxis.BtnUnknown
+
+	controllerInUse := dependentVars.cfg.ControllerInUse
 
 	return func() {
 		//gofuncs.Print("Before: ")
@@ -168,7 +200,7 @@ func (event *EventT) GetTransformAndFilterFunc() func() {
 
 		switch controllerInUse {
 		case SteamController:
-			event.fixButtonNamesForSteamController()
+			event.fixButtonNamesForSC()
 			event.transformToWingsSC()
 			event.transformStickToDPadSC()
 		case DualShock:
@@ -218,8 +250,11 @@ func (event *EventT) GetFullResetFunc() func() {
 }
 
 func (event *EventT) GetUpdateFunc() func(msg string) {
+	dependentVars := event.dependentVars
+	allBtnAxis := dependentVars.allBtnAxis
+
+	BtnAxisMap := allBtnAxis.InitBtnAxisMap()
 	EventTypeMap := initEventTypeMap()
-	BtnAxisMap := InitBtnAxisMap()
 
 	split := func(str, sep string) []string {
 		if str == "" {

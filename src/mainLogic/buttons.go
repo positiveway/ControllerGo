@@ -25,9 +25,11 @@ func initCommonCmdMapping() map[string]int {
 }
 
 func (buttons *ButtonsT) loadCommandsLayout() ButtonToCommandT {
+	allBtnAxis := buttons.allBtnAxis
+
 	commonCmdMapping := initCommonCmdMapping()
-	BtnSynonyms := genBtnSynonyms()
-	AllAvailableButtons := initAvailableButtons()
+	BtnSynonyms := allBtnAxis.genBtnSynonyms()
+	AllAvailableButtons := allBtnAxis.initAvailableButtons()
 
 	pressLayout := ButtonToCommandT{}
 	linesParts := gofuncs.ReadLayoutFile(2,
@@ -37,9 +39,12 @@ func (buttons *ButtonsT) loadCommandsLayout() ButtonToCommandT {
 		btn := BtnOrAxisT(parts[0])
 		keys := parts[1:]
 
+		btn = ToLower(btn)
+
 		if btnSynonym, found := BtnSynonyms[btn]; found {
 			btn = btnSynonym
 		}
+
 		if !gofuncs.Contains(AllAvailableButtons, removeHoldSuffix(btn)) {
 			gofuncs.PanicMisspelled(btn)
 		}
@@ -102,24 +107,28 @@ func (c *CommandInfoT) CopyFromOther(other *CommandInfoT) {
 
 type ButtonsT struct {
 	CfgLockStruct
+	allBtnAxis           *AllBtnAxis
 	highPrecisionMode    *HighPrecisionModeT
 	ToRelease            *gofuncs.Map[BtnOrAxisT, *CommandInfoT]
 	ToCommandLayout      ButtonToCommandT
 	EscLetterCode        int
 	virtualButtonCounter uint
 	getCodeFromLetter    CodesFromLetterFuncT
+	isTriggerBtn         IsTriggerBtnFuncT
 	handleTriggers       func(btn BtnOrAxisT, value float64)
 	pressSequence        func(btn BtnOrAxisT, commandInfo *CommandInfoT)
 }
 
-func (buttons *ButtonsT) Init(cfg *ConfigsT, highPrecisionMode *HighPrecisionModeT) {
+func (buttons *ButtonsT) Init(cfg *ConfigsT, highPrecisionMode *HighPrecisionModeT, allBtnAxis *AllBtnAxis) {
 	buttons.CfgLockStruct.Init(cfg)
+	buttons.allBtnAxis = allBtnAxis
 	buttons.highPrecisionMode = highPrecisionMode
 
 	buttons.getCodeFromLetter = GetGetCodesFromLetterFunc()
 	//should come before other functions initialization
 	buttons.EscLetterCode = buttons.getCodeFromLetter("Esc")
 
+	buttons.isTriggerBtn = buttons.GetIsTriggerBtnFunc()
 	buttons.handleTriggers = buttons.GetHandleTriggersFunc()
 	buttons.pressSequence = buttons.GetPressSequenceFunc()
 
@@ -230,6 +239,9 @@ func releaseSequence(command CommandT) {
 }
 
 func (buttons *ButtonsT) pressIfNotAlready(btn BtnOrAxisT, commandInfo *CommandInfoT) {
+	if isEmptyCommandInfo(commandInfo) {
+		gofuncs.Panic("CommandInfo can't be empty at this point")
+	}
 	if buttons.PutButton(btn, commandInfo) {
 		buttons.pressSequence(btn, commandInfo)
 	}
@@ -313,8 +325,16 @@ func (buttons *ButtonsT) releaseAll(curButton BtnOrAxisT) {
 	})
 }
 
-func isTriggerBtn(btn BtnOrAxisT) bool {
-	return btn == BtnLeftTrigger || btn == BtnRightTrigger
+type IsTriggerBtnFuncT func(btn BtnOrAxisT) bool
+
+func (buttons *ButtonsT) GetIsTriggerBtnFunc() IsTriggerBtnFuncT {
+	allBtnAxis := buttons.allBtnAxis
+	BtnLeftTrigger := allBtnAxis.BtnLeftTrigger
+	BtnRightTrigger := allBtnAxis.BtnRightTrigger
+
+	return func(btn BtnOrAxisT) bool {
+		return btn == BtnLeftTrigger || btn == BtnRightTrigger
+	}
 }
 
 func (buttons *ButtonsT) GetHandleTriggersFunc() func(btn BtnOrAxisT, value float64) {
@@ -337,7 +357,7 @@ func (buttons *ButtonsT) buttonChanged(btn BtnOrAxisT, value float64) {
 		return
 	}
 
-	if isTriggerBtn(btn) {
+	if buttons.isTriggerBtn(btn) {
 		buttons.handleTriggers(btn, value)
 	} else {
 		switch value {

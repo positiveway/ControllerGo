@@ -13,24 +13,25 @@ func GetGetCodesFromLetterFunc() CodesFromLetterFuncT {
 	initLetterToCodesMapping(letterToCodes)
 
 	return func(letter string) int {
-		letter = strings.ToLower(letter)
+		// should be here for individual calls of this function
+		letter = ToLower(letter)
 		return gofuncs.GetOrPanic(letterToCodes, letter, "No such letter in mapping")
 	}
 }
 
-func ToLowerMap[V any](mapping map[string]V) {
+func ToLowerMapInPlace[V any](mapping map[string]V) {
 	for k, v := range mapping {
 		if k != strings.TrimSpace(k) {
 			gofuncs.Panic("Mapping identifiers check failed")
 		}
 		delete(mapping, k)
-		k = strings.ToLower(k)
+		k = ToLower(k)
 		mapping[k] = v
 	}
 }
 
 func initLetterToCodesMapping(letterToCodes osSpec.LetterToCodesT) {
-	ToLowerMap(letterToCodes)
+	ToLowerMapInPlace(letterToCodes)
 
 	synonyms := map[string]string{
 		"Control": "LeftControl",
@@ -41,10 +42,7 @@ func initLetterToCodesMapping(letterToCodes osSpec.LetterToCodesT) {
 		"Del":     "Delete",
 		"Caps":    "CapsLock",
 	}
-	ToLowerMap(synonyms)
-	for synonym, orig := range synonyms {
-		synonyms[synonym] = strings.ToLower(orig)
-	}
+	synonyms = ToLowerSynonyms(synonyms)
 
 	for synonym, orig := range synonyms {
 		if code, found := letterToCodes[orig]; found {

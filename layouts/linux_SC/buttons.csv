@@ -13,7 +13,7 @@ RightTrigger: LeftMouse
 LeftSpecial:        Windows
 RightSpecial:         Esc
 CentralSpecial:          Rightalt
-Stick:     HighPrecision
+stick:     HighPrecision
 ;Stick_Hold
 LeftWing: SwitchMode
 LeftWing_Hold:  Control, X

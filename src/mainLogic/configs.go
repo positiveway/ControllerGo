@@ -48,15 +48,20 @@ type DependentVariablesT struct {
 	LeftPad, RightPadStick, LeftStick,
 	MousePS, ScrollPS *PadStickPositionT
 
-	Buttons *ButtonsT
-	Typing  *TypingT
+	allBtnAxis *AllBtnAxis
+	Buttons    *ButtonsT
+	Typing     *TypingT
 
 	CurPressedStickButtonSC *BtnOrAxisT
 }
 
-func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariablesT {
+func MakeDependentVariables() *DependentVariablesT {
+	cfg, rawCfg := MakeConfigs()
+
 	dependentVars := &DependentVariablesT{}
 	dependentVars.Init(cfg)
+
+	dependentVars.allBtnAxis = MakeAllBtnAxis(cfg)
 
 	dependentVars.CurPressedStickButtonSC = InitCurStickButton()
 
@@ -93,7 +98,7 @@ func MakeDependentVariables(rawCfg *RawConfigsT, cfg *ConfigsT) *DependentVariab
 		gofuncs.Swap(dependentVars.MousePS, dependentVars.ScrollPS)
 	}
 
-	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode)
+	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode, dependentVars.allBtnAxis)
 	dependentVars.HighPrecisionMode.Init(cfg, dependentVars.Buttons)
 	dependentVars.Typing.Init(cfg, dependentVars.Buttons)
 	dependentVars.MousePS.InitMoveSCFunc(dependentVars.HighPrecisionMode)
