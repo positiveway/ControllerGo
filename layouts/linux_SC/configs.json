@@ -19,7 +19,8 @@
     "Speed": {
       "Normal": 200,
       "HighPrecision": 50
-    }
+    },
+    "DoubleTouchMaxInterval": 500
   },
   "Scroll": {
     "HorizontalThresholdPct": 85,

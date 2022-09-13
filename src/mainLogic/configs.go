@@ -69,24 +69,16 @@ func MakeDependentVariables() *DependentVariablesT {
 	dependentVars.HighPrecisionMode = &HighPrecisionModeT{}
 	dependentVars.Typing = &TypingT{}
 
+	dependentVars.RightPadStick = &PadStickPositionT{}
+	dependentVars.LeftStick = &PadStickPositionT{}
+	dependentVars.LeftPad = &PadStickPositionT{}
+
 	switch cfg.ControllerInUse {
 	case SteamController:
-		dependentVars.RightPadStick = MakePadPosition(
-			rawCfg.PadsSticks.Rotation.RightPad, false, cfg)
-		dependentVars.LeftStick = MakePadPosition(
-			rawCfg.PadsSticks.Rotation.LeftStick, true, cfg)
-		dependentVars.LeftPad = MakePadPosition(
-			rawCfg.PadsSticks.Rotation.LeftPad, true, cfg)
-
 		dependentVars.Typing.RightPS = dependentVars.RightPadStick
 		dependentVars.Typing.LeftPS = dependentVars.LeftPad
 
 	case DualShock:
-		dependentVars.RightPadStick = MakePadPosition(
-			rawCfg.PadsSticks.Rotation.RightStick, false, cfg)
-		dependentVars.LeftStick = MakePadPosition(
-			rawCfg.PadsSticks.Rotation.LeftStick, true, cfg)
-
 		dependentVars.Typing.RightPS = dependentVars.RightPadStick
 		dependentVars.Typing.LeftPS = dependentVars.LeftStick
 	}
@@ -99,6 +91,14 @@ func MakeDependentVariables() *DependentVariablesT {
 	}
 
 	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode, dependentVars.allBtnAxis)
+
+	dependentVars.RightPadStick.Init(
+		rawCfg.PadsSticks.Rotation.RightPad, false, cfg, dependentVars.Buttons)
+	dependentVars.LeftStick.Init(
+		rawCfg.PadsSticks.Rotation.LeftStick, true, cfg, dependentVars.Buttons)
+	dependentVars.LeftPad.Init(
+		rawCfg.PadsSticks.Rotation.LeftPad, true, cfg, dependentVars.Buttons)
+
 	dependentVars.HighPrecisionMode.Init(cfg, dependentVars.Buttons)
 	dependentVars.Typing.Init(cfg, dependentVars.Buttons)
 	dependentVars.MousePS.InitMoveSCFunc(dependentVars.HighPrecisionMode)
@@ -159,13 +159,15 @@ func (c *ConfigsT) setConfigVars(rawCfg *RawConfigsT) {
 }
 
 type MouseCfgT struct {
-	OnRightStickPad  bool                 `json:"OnRightStickPad"`
-	Intervals        PrecisionsIntervalsT `json:"Intervals"`
-	Speed            PrecisionsSpeedT     `json:"Speed"`
-	EdgeThresholdPct float64              `json:"EdgeThresholdPct"`
+	OnRightStickPad        bool                 `json:"OnRightStickPad"`
+	Intervals              PrecisionsIntervalsT `json:"Intervals"`
+	Speed                  PrecisionsSpeedT     `json:"Speed"`
+	EdgeThresholdPct       float64              `json:"EdgeThresholdPct"`
+	DoubleTouchMaxInterval float64              `json:"DoubleTouchMaxInterval"`
 }
 
 func (rawMouseCfg *MouseCfgT) ValidateConvert() {
+	gofuncs.PanicAnyNotPositive(rawMouseCfg.DoubleTouchMaxInterval)
 	gofuncs.NumberToPctInPlace(&rawMouseCfg.EdgeThresholdPct)
 }
 

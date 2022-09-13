@@ -4,6 +4,7 @@ import (
 	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
 	"math"
+	"time"
 )
 
 func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisionModeT) func() {
@@ -23,9 +24,26 @@ func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisio
 
 	padsSticksMode := pad.cfg.PadsSticks.Mode
 
+	cfg := pad.cfg
+	doubleTouchMaxInterval := gofuncs.NumberToMillis(cfg.Mouse.DoubleTouchMaxInterval)
+
+	anyNotInit := gofuncs.AnyNotInit[float64]
+	buttons := pad.buttons
+	leftClickBtn, leftClickCmdInfo := pad.leftClickBtn, pad.leftClickCmdInfo
+
 	return func() {
 		if padsSticksMode.CurrentMode == TypingMode {
 			return
+		}
+
+		if !anyNotInit(transformedPos.x, transformedPos.y) {
+			if anyNotInit(prevMousePos.x, prevMousePos.y) {
+				pad.firstTouchTime = time.Now()
+			} else {
+				if time.Now().Sub(pad.firstTouchTime) < doubleTouchMaxInterval {
+					buttons.pressIfNotAlready(leftClickBtn, leftClickCmdInfo)
+				}
+			}
 		}
 
 		moveX := calcPixelsToMoveMouse(transformedPos.x, prevMousePos.x)

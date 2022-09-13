@@ -1,8 +1,10 @@
 package mainLogic
 
 import (
+	"ControllerGo/osSpec"
 	"github.com/positiveway/gofuncs"
 	"math"
+	"time"
 )
 
 type PositionT struct {
@@ -106,7 +108,7 @@ func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, uin
 }
 
 type PadStickPositionT struct {
-	CfgLockStruct
+	CfgButtonsLockStruct
 	curPos, prevMousePos, transformedPos *PositionT
 	magnitude                            float64
 	shiftedAngle                         uint
@@ -117,29 +119,36 @@ type PadStickPositionT struct {
 	zoneRotation                         float64
 	awaitingCentralPosition              bool
 
+	firstTouchTime   time.Time
+	leftClickBtn     BtnOrAxisT
+	leftClickCmdInfo *CommandInfoT
+
 	convertRange ConvertRangeFuncT
 	setValue     SetValueFuncT
 	detectZone   DetectZoneFuncT
 	calcRadius,
+	Reset,
 	moveMouseSC func()
 
 	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude
 }
 
-func MakePadPosition(zoneRotation float64, isOnLeftSide bool, cfg *ConfigsT) *PadStickPositionT {
-	pad := PadStickPositionT{}
-	pad.Init(cfg)
+func (pad *PadStickPositionT) Init(zoneRotation float64, isOnLeftSide bool, cfg *ConfigsT, buttons *ButtonsT) {
+	pad.CfgButtonsLockStruct.Init(cfg, buttons)
 
-	pad.setValue = pad.GetSetValueFunc()
-	pad.convertRange = pad.GetConvertRangeFunc()
-	pad.calcRadius = pad.GetCalcRadiusFunc()
-	pad.detectZone = pad.GetDetectZoneFunc()
+	pad.leftClickBtn, pad.leftClickCmdInfo = buttons.CreateVirtualButton(CommandT{osSpec.LeftMouse})
 
 	pad.curPos = MakeEmptyPosition(cfg)
 	pad.prevMousePos = MakeEmptyPosition(cfg)
 	pad.transformedPos = MakeEmptyPosition(cfg)
 	//pad.fromMaxPossiblePos = MakeEmptyPosition()
+
+	pad.Reset = pad.GetResetFunc()
+	pad.setValue = pad.GetSetValueFunc()
+	pad.convertRange = pad.GetConvertRangeFunc()
+	pad.calcRadius = pad.GetCalcRadiusFunc()
+	pad.detectZone = pad.GetDetectZoneFunc()
 
 	if isOnLeftSide {
 		zoneRotation *= -1
@@ -148,8 +157,6 @@ func MakePadPosition(zoneRotation float64, isOnLeftSide bool, cfg *ConfigsT) *Pa
 
 	pad.Reset()
 	pad.Validate()
-
-	return &pad
 }
 
 func checkRotation(rotation float64) {
@@ -166,17 +173,32 @@ func (pad *PadStickPositionT) Validate() {
 	checkRotation(pad.zoneRotation)
 }
 
-func (pad *PadStickPositionT) Reset() {
-	pad.Lock()
-	defer pad.Unlock()
+func (pad *PadStickPositionT) GetResetFunc() func() {
+	curPos := pad.curPos
+	prevMousePos := pad.prevMousePos
+	transformedPos := pad.transformedPos
 
-	pad.curPos.Reset()
-	//don't reset prev value to calc proper delta from prev to zero
-	pad.prevMousePos.Reset()
-	pad.transformedPos.Reset()
-	//pad.fromMaxPossiblePos.Reset()
+	buttons := pad.buttons
+	controllerInUse := pad.cfg.ControllerInUse
+	leftClickBtn := pad.leftClickBtn
 
-	pad.ReCalculateValues()
+	return func() {
+		pad.Lock()
+		defer pad.Unlock()
+
+		curPos.Reset()
+		//don't reset prev value to calc proper delta from prev to zero
+		prevMousePos.Reset()
+		transformedPos.Reset()
+		//pad.fromMaxPossiblePos.Reset()
+
+		switch controllerInUse {
+		case SteamController:
+			buttons.releaseButton(leftClickBtn)
+		}
+
+		pad.ReCalculateValues()
+	}
 }
 
 func (pad *PadStickPositionT) GetCalcRadiusFunc() func() {
@@ -188,37 +210,6 @@ func (pad *PadStickPositionT) GetCalcRadiusFunc() func() {
 	return func() {
 		pad.radius = gofuncs.Max(pad.magnitude, minStandardRadius)
 	}
-}
-
-func (pos *PositionT) CalcFromMaxPossible(radius float64) *PositionT {
-	calcFromMaxPossible := func(x, y float64) float64 {
-		maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
-		if maxPossibleX == 0 {
-			return 0
-		}
-
-		ratioFromMaxPossible := x / maxPossibleX
-
-		if ratioFromMaxPossible > radius {
-			if ratioFromMaxPossible > radius+pos.cfg.Math.FloatEqualityMargin {
-				gofuncs.Panic("Incorrect calculations")
-			}
-			ratioFromMaxPossible = radius
-		}
-		return ratioFromMaxPossible
-	}
-
-	//important to use temp values then assign
-	posFromMaxPossible := MakeEmptyPosition(pos.cfg)
-	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y)
-	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x)
-	if !gofuncs.AnyNotInit(pos.x, pos.y) {
-		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
-		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
-			gofuncs.Panic("Incorrect calculations")
-		}
-	}
-	return posFromMaxPossible
 }
 
 func (pad *PadStickPositionT) ReCalculateValues() {
@@ -304,6 +295,37 @@ func (pad *PadStickPositionT) calcRefreshInterval(input, slowestInterval, fastes
 
 func calcOneQuarterAngle[T gofuncs.Number](resolvedAngle T) T {
 	return T(math.Mod(float64(resolvedAngle), 90))
+}
+
+func (pos *PositionT) CalcFromMaxPossible(radius float64) *PositionT {
+	calcFromMaxPossible := func(x, y float64) float64 {
+		maxPossibleX := math.Sqrt(gofuncs.Sqr(radius) - gofuncs.Sqr(y))
+		if maxPossibleX == 0 {
+			return 0
+		}
+
+		ratioFromMaxPossible := x / maxPossibleX
+
+		if ratioFromMaxPossible > radius {
+			if ratioFromMaxPossible > radius+pos.cfg.Math.FloatEqualityMargin {
+				gofuncs.Panic("Incorrect calculations")
+			}
+			ratioFromMaxPossible = radius
+		}
+		return ratioFromMaxPossible
+	}
+
+	//important to use temp values then assign
+	posFromMaxPossible := MakeEmptyPosition(pos.cfg)
+	posFromMaxPossible.x = calcFromMaxPossible(pos.x, pos.y)
+	posFromMaxPossible.y = calcFromMaxPossible(pos.y, pos.x)
+	if !gofuncs.AnyNotInit(pos.x, pos.y) {
+		//gofuncs.Print("before: %.2f, %.2f after: %.2f, %.2f", pos.x, pos.y, posFromMaxPossible.x, posFromMaxPossible.y)
+		if gofuncs.AnyNotInit(posFromMaxPossible.x, posFromMaxPossible.y) {
+			gofuncs.Panic("Incorrect calculations")
+		}
+	}
+	return posFromMaxPossible
 }
 
 //var maxMagnitude = 1.0
