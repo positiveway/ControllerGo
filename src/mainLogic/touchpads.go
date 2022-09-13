@@ -194,7 +194,9 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 
 		switch controllerInUse {
 		case SteamController:
-			buttons.releaseButton(leftClickBtn)
+			if pad.moveMouseSC != nil {
+				buttons.releaseButton(leftClickBtn)
+			}
 		}
 
 		pad.ReCalculateValues()
