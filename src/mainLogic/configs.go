@@ -164,10 +164,14 @@ type MouseCfgT struct {
 	Speed                  PrecisionsSpeedT     `json:"Speed"`
 	EdgeThresholdPct       float64              `json:"EdgeThresholdPct"`
 	DoubleTouchMaxInterval float64              `json:"DoubleTouchMaxInterval"`
+	ClickReleaseInterval   float64              `json:"ClickReleaseInterval"`
 }
 
 func (rawMouseCfg *MouseCfgT) ValidateConvert() {
-	gofuncs.PanicAnyNotPositive(rawMouseCfg.DoubleTouchMaxInterval)
+	gofuncs.PanicAnyNotPositive(
+		rawMouseCfg.DoubleTouchMaxInterval,
+		rawMouseCfg.ClickReleaseInterval)
+
 	gofuncs.NumberToPctInPlace(&rawMouseCfg.EdgeThresholdPct)
 }
 

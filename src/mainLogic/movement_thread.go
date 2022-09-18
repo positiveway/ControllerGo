@@ -231,46 +231,90 @@ func (mode *HighPrecisionModeT) SwitchMode() {
 	mode.setSpeedValues()
 }
 
-type IntervalTimerT struct {
+type RepeatedTimerT struct {
 	repeatInterval, intervalLeft, tickerInterval float64
 }
 
-func MakeIntervalTimer(repeatInterval float64, cfg *ConfigsT) *IntervalTimerT {
-	intervalTimer := &IntervalTimerT{}
+func MakeIntervalTimer(repeatInterval float64, cfg *ConfigsT) *RepeatedTimerT {
+	intervalTimer := &RepeatedTimerT{}
 	intervalTimer.InitIntervalTimer(repeatInterval, cfg)
 	return intervalTimer
 }
 
-func (i *IntervalTimerT) InitIntervalTimer(repeatInterval float64, cfg *ConfigsT) {
-	i.tickerInterval = cfg.System.TickerInterval
-	gofuncs.PanicAnyNotPositive(i.tickerInterval)
+func (t *RepeatedTimerT) InitIntervalTimer(repeatInterval float64, cfg *ConfigsT) {
+	t.tickerInterval = cfg.System.TickerInterval
+	gofuncs.PanicAnyNotPositive(t.tickerInterval)
 
-	i.SetInterval(repeatInterval)
+	t.SetInterval(repeatInterval)
 
 }
 
-func (i *IntervalTimerT) SetInterval(repeatInterval float64) {
+func (t *RepeatedTimerT) SetInterval(repeatInterval float64) {
 	gofuncs.PanicAnyNotPositive(repeatInterval)
 
-	i.repeatInterval = repeatInterval
-	i.intervalLeft = repeatInterval
+	t.repeatInterval = repeatInterval
+	t.intervalLeft = repeatInterval
 }
 
-func (i *IntervalTimerT) ResetInterval() bool {
-	if i.intervalLeft <= 0 {
-		i.intervalLeft = i.repeatInterval
+func (t *RepeatedTimerT) ResetInterval() bool {
+	if t.intervalLeft <= 0 {
+		t.intervalLeft = t.repeatInterval
 		return true
 	}
 	return false
 }
 
-func (i *IntervalTimerT) DecreaseInterval() bool {
-	i.intervalLeft -= i.tickerInterval
-	return i.ResetInterval()
+func (t *RepeatedTimerT) DecreaseInterval() bool {
+	t.intervalLeft -= t.tickerInterval
+	return t.ResetInterval()
 }
 
+//type OneFireTimerT struct {
+//	fireInterval, intervalLeft, tickerInterval float64
+//	afterFunc                                  func()
+//	negativeInterval                           float64
+//}
+//
+//func MakeOneFireTimer(fireInterval float64, afterFunc func(), cfg *ConfigsT) *OneFireTimerT {
+//	t := &OneFireTimerT{
+//		fireInterval:   fireInterval,
+//		afterFunc:      afterFunc,
+//		tickerInterval: cfg.System.TickerInterval,
+//	}
+//
+//	t.negativeInterval = -10 * t.fireInterval
+//	t.intervalLeft = t.negativeInterval
+//
+//	return t
+//}
+//
+//func (t *OneFireTimerT) DecreaseInterval() {
+//	if t.intervalLeft == t.negativeInterval {
+//		return
+//	}
+//	t.intervalLeft -= t.tickerInterval
+//	if t.intervalLeft <= 0 {
+//		t.intervalLeft = t.negativeInterval
+//		t.afterFunc()
+//	}
+//}
+//
+//func (t *OneFireTimerT) Stop() {
+//	fmt.Println("stop")
+//	t.intervalLeft = t.negativeInterval
+//}
+//
+//func (t *OneFireTimerT) StartOrIgnore() {
+//	if t.intervalLeft > 0 {
+//		t.Stop()
+//	} else {
+//		fmt.Println("start")
+//		t.intervalLeft = t.fireInterval
+//	}
+//}
+
 type IntervalTimers2T struct {
-	X, Y *IntervalTimerT
+	X, Y *RepeatedTimerT
 }
 
 func MakeIntervalTimers2(cfg *ConfigsT) *IntervalTimers2T {
@@ -291,9 +335,11 @@ func (dependentVars *DependentVariablesT) RunGlobalEventsThread() {
 
 	padsSticksMode := cfg.PadsSticks.Mode
 	highPrecisionMode := dependentVars.HighPrecisionMode
+	controllerInUse := cfg.ControllerInUse
 
 	mousePadStick := dependentVars.MousePS
 	mousePosition := mousePadStick.transformedPos
+
 	moveMouseInInterval := GetMoveInInterval(cfg, mousePadStick, mousePosition,
 		GetMouseMoveFunc(), nil)
 
@@ -313,7 +359,7 @@ func (dependentVars *DependentVariablesT) RunGlobalEventsThread() {
 
 			fallthrough
 		case GamingMode:
-			switch cfg.ControllerInUse {
+			switch controllerInUse {
 			case DualShock:
 				moveMouseInInterval(highPrecisionMode.curMouseIntervals)
 			}

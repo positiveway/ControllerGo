@@ -52,46 +52,6 @@ func (event *EventT) GetAxisChangedFunc() func() {
 	}
 }
 
-func (event *EventT) GetPadReleasedFunc() func() {
-	dependentVars := event.dependentVars
-	controllerInUse := dependentVars.cfg.ControllerInUse
-
-	allBtnAxis := dependentVars.allBtnAxis
-
-	AxisRightPadStickX := allBtnAxis.AxisRightPadStickX
-	AxisRightPadStickY := allBtnAxis.AxisRightPadStickY
-
-	AxisLeftPadX := allBtnAxis.AxisLeftPadX
-	AxisLeftPadY := allBtnAxis.AxisLeftPadY
-
-	AxisLeftStickX := allBtnAxis.AxisLeftStickX
-	AxisLeftStickY := allBtnAxis.AxisLeftStickY
-
-	RightPadStick := dependentVars.RightPadStick
-	LeftPad := dependentVars.LeftPad
-	LeftStick := dependentVars.LeftStick
-
-	return func() {
-		switch event.btnOrAxis {
-		case AxisRightPadStickX, AxisRightPadStickY:
-			RightPadStick.Reset()
-		}
-
-		switch controllerInUse {
-		case SteamController:
-			switch event.btnOrAxis {
-			case AxisLeftPadX, AxisLeftPadY:
-				LeftPad.Reset()
-			}
-		case DualShock:
-			switch event.btnOrAxis {
-			case AxisLeftStickX, AxisLeftStickY:
-				LeftStick.Reset()
-			}
-		}
-	}
-}
-
 func (event *EventT) GetMatchFunc() func() {
 	buttons := event.dependentVars.Buttons
 
@@ -102,8 +62,6 @@ func (event *EventT) GetMatchFunc() func() {
 		switch event.eventType {
 		case EvAxisChanged:
 			event.axisChanged()
-		case EvPadReleased:
-			event.padReleased()
 		case EvButtonChanged:
 			buttons.buttonChanged(event.btnOrAxis, event.value)
 		case EvDisconnected:

@@ -27,7 +27,9 @@ func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisio
 	cfg := pad.cfg
 	doubleTouchMaxInterval := gofuncs.NumberToMillis(cfg.Mouse.DoubleTouchMaxInterval)
 
-	anyNotInit := gofuncs.AnyNotInit[float64]
+	notInit := math.IsNaN
+	isInit := func(value float64) bool { return !math.IsNaN(value) }
+
 	buttons := pad.buttons
 	leftClickBtn, leftClickCmdInfo := pad.leftClickBtn, pad.leftClickCmdInfo
 
@@ -36,12 +38,14 @@ func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisio
 			return
 		}
 
-		if !anyNotInit(transformedPos.x, transformedPos.y) {
-			if anyNotInit(prevMousePos.x, prevMousePos.y) {
-				pad.firstTouchTime = time.Now()
-			} else {
-				if time.Now().Sub(pad.firstTouchTime) < doubleTouchMaxInterval {
+		if notInit(prevMousePos.x) || notInit(prevMousePos.y) {
+			if isInit(transformedPos.x) && isInit(transformedPos.y) {
+				diff := time.Now().Sub(pad.firstTouchTime)
+				if diff < doubleTouchMaxInterval {
+					//fmt.Println("click")
 					buttons.pressIfNotAlready(leftClickBtn, leftClickCmdInfo)
+				} else {
+					pad.firstTouchTime = time.Now()
 				}
 			}
 		}
@@ -67,7 +71,7 @@ func GetMoveInInterval(cfg *ConfigsT,
 	padStick *PadStickPositionT, position *PositionT,
 	moveFunc MoveByPixelFuncT, filterFunc FilterMoveFuncT) func(repetitionIntervals *IntervalRangeT) {
 
-	calcMovement := func(input float64, isX bool, moveInterval *IntervalTimerT, repetitionIntervals *IntervalRangeT) int {
+	calcMovement := func(input float64, isX bool, moveInterval *RepeatedTimerT, repetitionIntervals *IntervalRangeT) int {
 		var moveByPixel int
 
 		if moveInterval.DecreaseInterval() {

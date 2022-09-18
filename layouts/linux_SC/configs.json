@@ -20,7 +20,8 @@
       "Normal": 200,
       "HighPrecision": 50
     },
-    "DoubleTouchMaxInterval": 100
+    "DoubleTouchMaxInterval": 400,
+    "ClickReleaseInterval": 50
   },
   "Scroll": {
     "HorizontalThresholdPct": 85,

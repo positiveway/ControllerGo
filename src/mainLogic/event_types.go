@@ -388,5 +388,4 @@ const (
 	EvConnected      EventTypeT = "Connected"
 	EvDisconnected   EventTypeT = "Disconnected"
 	EvDropped        EventTypeT = "Dropped"
-	EvPadReleased    EventTypeT = "PadReleased"
 )

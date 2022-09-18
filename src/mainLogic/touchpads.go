@@ -144,16 +144,20 @@ func (pad *PadStickPositionT) Init(zoneRotation float64, isOnLeftSide bool, cfg 
 	pad.transformedPos = MakeEmptyPosition(cfg)
 	//pad.fromMaxPossiblePos = MakeEmptyPosition()
 
+	if isOnLeftSide {
+		zoneRotation *= -1
+	}
+	pad.zoneRotation = zoneRotation
+
+	zeroTime, err := time.Parse("2006-01-02", "2006-01-02")
+	gofuncs.CheckErr(err)
+	pad.firstTouchTime = zeroTime
+
 	pad.Reset = pad.GetResetFunc()
 	pad.setValue = pad.GetSetValueFunc()
 	pad.convertRange = pad.GetConvertRangeFunc()
 	pad.calcRadius = pad.GetCalcRadiusFunc()
 	pad.detectZone = pad.GetDetectZoneFunc()
-
-	if isOnLeftSide {
-		zoneRotation *= -1
-	}
-	pad.zoneRotation = zoneRotation
 
 	pad.Reset()
 	pad.Validate()
@@ -178,28 +182,25 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 	prevMousePos := pad.prevMousePos
 	transformedPos := pad.transformedPos
 
-	buttons := pad.buttons
-	controllerInUse := pad.cfg.ControllerInUse
-	leftClickBtn := pad.leftClickBtn
+	cfg := pad.cfg
+	controllerInUse := cfg.ControllerInUse
 
 	return func() {
-		pad.Lock()
-		defer pad.Unlock()
-
 		curPos.Reset()
 		//don't reset prev value to calc proper delta from prev to zero
 		prevMousePos.Reset()
 		transformedPos.Reset()
 		//pad.fromMaxPossiblePos.Reset()
 
+		//fmt.Println("reset")
+
 		switch controllerInUse {
 		case SteamController:
 			if pad.moveMouseSC != nil {
-				buttons.releaseButton(leftClickBtn)
+				//fmt.Println("release")
+				pad.buttons.releaseButton(pad.leftClickBtn)
 			}
 		}
-
-		pad.ReCalculateValues()
 	}
 }
 
@@ -231,26 +232,31 @@ func (pad *PadStickPositionT) ReCalculateValues() {
 type SetValueFuncT = func(fieldPointer *float64, value float64)
 
 func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
-	setValue := func(fieldPointer *float64, value float64) {
+	controllerInUse := pad.cfg.ControllerInUse
+	notInit := math.IsNaN
+	curPos := pad.curPos
+
+	return func(fieldPointer *float64, value float64) {
 		pad.Lock()
 		defer pad.Unlock()
 
 		*fieldPointer = value
 
+		x, y := curPos.x, curPos.y
+		if (x == 0 && y == 0) ||
+			(notInit(x) && y == 0) || (x == 0 && notInit(y)) {
+			pad.Reset()
+		}
 		pad.ReCalculateValues()
-	}
-
-	switch pad.cfg.ControllerInUse {
-	case SteamController:
-		return func(fieldPointer *float64, value float64) {
-			setValue(fieldPointer, value)
-			if pad.moveMouseSC != nil {
-				pad.moveMouseSC()
+		if x != 0 && y != 0 {
+			switch controllerInUse {
+			case SteamController:
+				if pad.moveMouseSC != nil {
+					pad.moveMouseSC()
+				}
 			}
 		}
 	}
-
-	return setValue
 }
 
 func (pad *PadStickPositionT) SetX(value float64) {

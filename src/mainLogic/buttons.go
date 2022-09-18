@@ -76,7 +76,7 @@ type ButtonToCommandT map[BtnOrAxisT]*CommandInfoT
 
 type CommandInfoT struct {
 	CfgStruct
-	IntervalTimerT
+	RepeatedTimerT
 	command              CommandT
 	specialCaseIsHandled bool
 }

@@ -20,11 +20,9 @@ type EventT struct {
 	fixButtonNamesForSC,
 	transformStickToDPadSC,
 	transformToWingsSC,
-	transformToPadReleasedEvent,
 	transformAndFilter,
 	fullReset,
 	axisChanged,
-	padReleased,
 	match func()
 }
 
@@ -38,12 +36,10 @@ func MakeEvent(dependentVars *DependentVariablesT) *EventT {
 	event.fixButtonNamesForSC = event.GetFixButtonNamesForSCFunc()
 	event.transformStickToDPadSC = event.GetTransformStickSCFunc()
 	event.transformToWingsSC = event.GetTransformToWingsSCFunc()
-	event.transformToPadReleasedEvent = event.GetTransformToPadReleasedFunc()
 	event.transformAndFilter = event.GetTransformAndFilterFunc()
 	event.fullReset = event.GetFullResetFunc()
 
 	event.axisChanged = event.GetAxisChangedFunc()
-	event.padReleased = event.GetPadReleasedFunc()
 	event.match = event.GetMatchFunc()
 
 	return event
@@ -60,21 +56,6 @@ func (event *EventT) GetFixButtonNamesForSCFunc() func() {
 			event.btnOrAxis = BtnX
 		case BtnX:
 			event.btnOrAxis = BtnY
-		}
-	}
-}
-
-func (event *EventT) GetTransformToPadReleasedFunc() func() {
-	allBtnAxis := event.dependentVars.allBtnAxis
-	PadAndStickAxes := allBtnAxis.initPadAndStickAxes()
-
-	return func() {
-		if gofuncs.Contains(PadAndStickAxes, event.btnOrAxis) &&
-			event.eventType == EvAxisChanged && event.value == 0 {
-
-			event.eventType = EvPadReleased
-			event.code = 0
-			event.codeType = ""
 		}
 	}
 }
@@ -111,21 +92,16 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 		eventType := event.eventType
 		btnOrAxis := event.btnOrAxis
 
-		isStickEvent := (eventType == EvPadReleased || eventType == EvAxisChanged) &&
+		isStickEvent := eventType == EvAxisChanged &&
 			(btnOrAxis == AxisLeftStickX || btnOrAxis == AxisLeftStickY)
 		if !isStickEvent {
 			return
 		}
-		switch eventType {
-		case EvPadReleased:
-			stick.Reset()
-		case EvAxisChanged:
-			switch btnOrAxis {
-			case AxisLeftStickX:
-				stick.SetX(event.value)
-			case AxisLeftStickY:
-				stick.SetY(event.value)
-			}
+		switch btnOrAxis {
+		case AxisLeftStickX:
+			stick.SetX(event.value)
+		case AxisLeftStickY:
+			stick.SetY(event.value)
 		}
 
 		stick.ReCalculateZone(boundariesMap)
@@ -196,7 +172,7 @@ func (event *EventT) GetTransformAndFilterFunc() func() {
 			return
 		}
 
-		event.transformToPadReleasedEvent()
+		//event.transformToPadReleasedEvent()
 
 		switch controllerInUse {
 		case SteamController:
