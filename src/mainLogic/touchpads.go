@@ -182,6 +182,8 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 	prevMousePos := pad.prevMousePos
 	transformedPos := pad.transformedPos
 
+	leftClickBtn := pad.leftClickBtn
+
 	return func() {
 		curPos.Reset()
 		prevMousePos.Reset()
@@ -192,7 +194,7 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 
 		if pad.moveMouseSC != nil {
 			//fmt.Println("release")
-			pad.buttons.releaseButton(pad.leftClickBtn)
+			pad.buttons.releaseButton(leftClickBtn)
 		}
 
 		// should be inside reset func
