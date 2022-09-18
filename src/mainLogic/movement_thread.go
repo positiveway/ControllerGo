@@ -269,50 +269,6 @@ func (t *RepeatedTimerT) DecreaseInterval() bool {
 	return t.ResetInterval()
 }
 
-//type OneFireTimerT struct {
-//	fireInterval, intervalLeft, tickerInterval float64
-//	afterFunc                                  func()
-//	negativeInterval                           float64
-//}
-//
-//func MakeOneFireTimer(fireInterval float64, afterFunc func(), cfg *ConfigsT) *OneFireTimerT {
-//	t := &OneFireTimerT{
-//		fireInterval:   fireInterval,
-//		afterFunc:      afterFunc,
-//		tickerInterval: cfg.System.TickerInterval,
-//	}
-//
-//	t.negativeInterval = -10 * t.fireInterval
-//	t.intervalLeft = t.negativeInterval
-//
-//	return t
-//}
-//
-//func (t *OneFireTimerT) DecreaseInterval() {
-//	if t.intervalLeft == t.negativeInterval {
-//		return
-//	}
-//	t.intervalLeft -= t.tickerInterval
-//	if t.intervalLeft <= 0 {
-//		t.intervalLeft = t.negativeInterval
-//		t.afterFunc()
-//	}
-//}
-//
-//func (t *OneFireTimerT) Stop() {
-//	fmt.Println("stop")
-//	t.intervalLeft = t.negativeInterval
-//}
-//
-//func (t *OneFireTimerT) StartOrIgnore() {
-//	if t.intervalLeft > 0 {
-//		t.Stop()
-//	} else {
-//		fmt.Println("start")
-//		t.intervalLeft = t.fireInterval
-//	}
-//}
-
 type IntervalTimers2T struct {
 	X, Y *RepeatedTimerT
 }
