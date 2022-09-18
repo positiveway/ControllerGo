@@ -37,6 +37,7 @@ func (pad *PadStickPositionT) GetMoveMouseSCFunc(highPrecisionMode *HighPrecisio
 		if padsSticksMode.CurrentMode == TypingMode {
 			return
 		}
+		//fmt.Println("mouse")
 
 		if notInit(prevMousePos.x) || notInit(prevMousePos.y) {
 			if isInit(transformedPos.x) && isInit(transformedPos.y) {

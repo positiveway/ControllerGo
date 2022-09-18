@@ -319,30 +319,10 @@ func (allBtnAxis *AllBtnAxis) ToLower() {
 	v := reflect.Indirect(reflect.ValueOf(allBtnAxis))
 
 	for i := 0; i < v.NumField(); i++ {
-		value := BtnOrAxisT(ToLower(v.Field(i).String()))
-		v.Field(i).Set(reflect.ValueOf(value))
+		strFieldValue := gofuncs.ToLowerPanicIfSpaces(v.Field(i).String())
+		v.Field(i).Set(reflect.ValueOf(BtnOrAxisT(strFieldValue)))
 	}
 }
-
-//
-//func (allBtnAxis *AllBtnAxis)AvailableButtons()[]BtnOrAxisT {
-//	v := reflect.ValueOf(allBtnAxis)
-//	t := reflect.TypeOf(allBtnAxis)
-//
-//	var availableButtons []BtnOrAxisT
-//
-//	for i := 0; i < v.NumField(); i++{
-//		name := t.Field(i).Name
-//		if gofuncs.StartsWith(ToLower(name), "btn") {
-//			value := v.Field(i).String()
-//			if !gofuncs.IsEmpty(value) {
-//				availableButtons = append(availableButtons, BtnOrAxisT(value))
-//			}
-//		}
-//	}
-//
-//	return availableButtons
-//}
 
 type StrOrBtn interface {
 	BtnOrAxisT | string

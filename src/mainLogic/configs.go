@@ -138,6 +138,10 @@ func (c *ConfigsT) setConfigVars(rawCfg *RawConfigsT) {
 
 	switch c.ControllerInUse {
 	case SteamController:
+		gofuncs.PanicAnyNotPositive(
+			c.Mouse.DoubleTouchMaxInterval,
+			c.Mouse.ClickReleaseInterval)
+
 		c.Mouse.Speed.Validate()
 
 		//init Stick map
@@ -172,10 +176,6 @@ type MouseCfgT struct {
 }
 
 func (rawMouseCfg *MouseCfgT) ValidateConvert() {
-	gofuncs.PanicAnyNotPositive(
-		rawMouseCfg.DoubleTouchMaxInterval,
-		rawMouseCfg.ClickReleaseInterval)
-
 	gofuncs.NumberToPctInPlace(&rawMouseCfg.EdgeThresholdPct)
 }
 

@@ -104,6 +104,8 @@ github.com/positiveway/gofuncs v0.1.11-0.20220909190449-5e11204eb8bf h1:talkSLNi
 github.com/positiveway/gofuncs v0.1.11-0.20220909190449-5e11204eb8bf/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
 github.com/positiveway/gofuncs v0.1.11-0.20220909193354-1aaf3b129904 h1:+Rkzyv31EqzkKZ72QnbTKmaOdl3TctuErV5Iz/tA+Vw=
 github.com/positiveway/gofuncs v0.1.11-0.20220909193354-1aaf3b129904/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
+github.com/positiveway/gofuncs v0.1.11-0.20220918221714-7f04a6e3970c h1:DqdrNPWeD+MJFU6JT8yhwH1byyR6vTExEb5y8ceWw7g=
+github.com/positiveway/gofuncs v0.1.11-0.20220918221714-7f04a6e3970c/go.mod h1:Chi2IKmxkA+p+f2PAMNB1nFQLo6p5j2MYAKy62Y6IBw=
 github.com/robotn/gohook v0.31.3 h1:kGX8iukJ9ensVRwRKnTtdojAMQOpa6KFnXDi4OA4RaI=
 github.com/robotn/gohook v0.31.3/go.mod h1:wyGik0yb4iwCfJjDprtNkTyxkgQWuKoVPQ3hkz6+6js=
 github.com/robotn/xgb v0.0.0-20190912153532-2cb92d044934 h1:2lhSR8N3T6I30q096DT7/5AKEIcf1vvnnWAmS0wfnNY=
