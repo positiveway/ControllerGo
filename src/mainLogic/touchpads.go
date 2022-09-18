@@ -28,21 +28,23 @@ func MakePosition(x, y float64) *PositionT {
 }
 
 func (pos *PositionT) GetResetFunc() func() {
-	switch pos.cfg.ControllerInUse {
+	controllerInUse := pos.cfg.ControllerInUse
+
+	var defaultValue float64
+
+	switch controllerInUse {
 	case SteamController:
-		return func() {
-			pos.x = gofuncs.NaN()
-			pos.y = gofuncs.NaN()
-		}
+		defaultValue = gofuncs.NaN()
 	case DualShock:
-		return func() {
-			pos.x = 0
-			pos.y = 0
-		}
+		defaultValue = 0
 	default:
-		PanicUnsupportedController()
+		PanicUnsupportedController(controllerInUse)
 	}
-	panic("")
+
+	return func() {
+		pos.x = defaultValue
+		pos.y = defaultValue
+	}
 }
 
 func (pos *PositionT) Update(newPos *PositionT) {
@@ -240,6 +242,7 @@ func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
 
 		*fieldPointer = value
 
+		//fmt.Printf("(%.2f %.2f)\n", curPos.x, curPos.y)
 		if value == 0 {
 			x, y := curPos.x, curPos.y
 			if (x == 0 && y == 0) ||

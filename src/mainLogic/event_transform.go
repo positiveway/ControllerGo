@@ -15,8 +15,8 @@ type EventT struct {
 	codeType      CodeTypeT
 	code          CodeT
 
-	applyDeadzoneDS func() bool
-	update          func(msg string)
+	update func(msg string)
+	applyDeadzoneDS,
 	fixButtonNamesForSC,
 	transformStickToDPadSC,
 	transformToWingsSC,
@@ -120,7 +120,7 @@ func (event *EventT) GetTransformStickSCFunc() func() {
 	}
 }
 
-func (event *EventT) GetApplyDeadzoneFunc() func() bool {
+func (event *EventT) GetApplyDeadzoneFunc() func() {
 	dependentVars := event.dependentVars
 	allBtnAxis := dependentVars.allBtnAxis
 
@@ -132,27 +132,15 @@ func (event *EventT) GetApplyDeadzoneFunc() func() bool {
 
 	stickDeadzone := dependentVars.cfg.PadsSticks.Stick.DeadzoneDS
 
-	applyDeadzone := func(value float64) float64 {
-		if gofuncs.IsNotInit(value) {
-			return value
-		}
-		if math.Abs(value) <= stickDeadzone {
-			value = 0
-		}
-		return value
-	}
-
-	return func() bool {
+	return func() {
 		if event.eventType == EvAxisChanged {
 			switch event.btnOrAxis {
 			case AxisLeftStickX, AxisLeftStickY, AxisRightPadStickX, AxisRightPadStickY:
-				event.value = applyDeadzone(event.value)
-				if event.value == 0 {
-					return true
+				if math.Abs(event.value) <= stickDeadzone {
+					event.value = 0
 				}
 			}
 		}
-		return false
 	}
 }
 
@@ -172,17 +160,13 @@ func (event *EventT) GetTransformAndFilterFunc() func() {
 			return
 		}
 
-		//event.transformToPadReleasedEvent()
-
 		switch controllerInUse {
 		case SteamController:
 			event.fixButtonNamesForSC()
 			event.transformToWingsSC()
 			event.transformStickToDPadSC()
 		case DualShock:
-			if event.applyDeadzoneDS() {
-				return
-			}
+			event.applyDeadzoneDS()
 		}
 
 		if event.btnOrAxis == BtnUnknown {

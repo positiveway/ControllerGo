@@ -12,8 +12,8 @@ const (
 	SteamDeck       ControllerInUseT = "SteamDeck"
 )
 
-func PanicUnsupportedController() {
-	gofuncs.Panic("Unsupported controller type")
+func PanicUnsupportedController(value ControllerInUseT) {
+	gofuncs.Panic("Unsupported controller type: %v", value)
 }
 
 func checkEnumCfg[T comparable](allEnumVariants []T, cfgValue T) T {
