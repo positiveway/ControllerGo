@@ -182,9 +182,6 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 	prevMousePos := pad.prevMousePos
 	transformedPos := pad.transformedPos
 
-	cfg := pad.cfg
-	controllerInUse := cfg.ControllerInUse
-
 	return func() {
 		curPos.Reset()
 		prevMousePos.Reset()
@@ -193,13 +190,11 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 
 		//fmt.Println("reset")
 
-		switch controllerInUse {
-		case SteamController:
-			if pad.moveMouseSC != nil {
-				//fmt.Println("release")
-				pad.buttons.releaseButton(pad.leftClickBtn)
-			}
+		if pad.moveMouseSC != nil {
+			//fmt.Println("release")
+			pad.buttons.releaseButton(pad.leftClickBtn)
 		}
+
 		// should be inside reset func
 		//to set values correctly during initial object creation
 		pad.ReCalculateValues()
