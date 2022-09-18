@@ -187,7 +187,6 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 
 	return func() {
 		curPos.Reset()
-		//don't reset prev value to calc proper delta from prev to zero
 		prevMousePos.Reset()
 		transformedPos.Reset()
 		//pad.fromMaxPossiblePos.Reset()
@@ -201,6 +200,9 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 				pad.buttons.releaseButton(pad.leftClickBtn)
 			}
 		}
+		// should be inside reset func
+		//to set values correctly during initial object creation
+		pad.ReCalculateValues()
 	}
 }
 
@@ -232,7 +234,6 @@ func (pad *PadStickPositionT) ReCalculateValues() {
 type SetValueFuncT = func(fieldPointer *float64, value float64)
 
 func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
-	controllerInUse := pad.cfg.ControllerInUse
 	notInit := math.IsNaN
 	curPos := pad.curPos
 
@@ -242,18 +243,17 @@ func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
 
 		*fieldPointer = value
 
-		x, y := curPos.x, curPos.y
-		if (x == 0 && y == 0) ||
-			(notInit(x) && y == 0) || (x == 0 && notInit(y)) {
-			pad.Reset()
-		}
-		pad.ReCalculateValues()
-		if x != 0 && y != 0 {
-			switch controllerInUse {
-			case SteamController:
-				if pad.moveMouseSC != nil {
-					pad.moveMouseSC()
-				}
+		if value == 0 {
+			x, y := curPos.x, curPos.y
+			if (x == 0 && y == 0) ||
+				(notInit(x) && y == 0) || (x == 0 && notInit(y)) {
+				pad.Reset()
+			}
+		} else { // x != 0 && y != 0
+			pad.ReCalculateValues()
+
+			if pad.moveMouseSC != nil {
+				pad.moveMouseSC()
 			}
 		}
 	}

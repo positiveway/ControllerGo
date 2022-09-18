@@ -101,7 +101,11 @@ func MakeDependentVariables() *DependentVariablesT {
 
 	dependentVars.HighPrecisionMode.Init(cfg, dependentVars.Buttons)
 	dependentVars.Typing.Init(cfg, dependentVars.Buttons)
-	dependentVars.MousePS.InitMoveSCFunc(dependentVars.HighPrecisionMode)
+
+	switch cfg.ControllerInUse {
+	case SteamController:
+		dependentVars.MousePS.InitMoveSCFunc(dependentVars.HighPrecisionMode)
+	}
 
 	return dependentVars
 }
