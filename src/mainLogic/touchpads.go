@@ -233,7 +233,6 @@ func (pad *PadStickPositionT) ReCalculateValues() {
 type SetValueFuncT = func(fieldPointer *float64, value float64)
 
 func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
-	notInit := math.IsNaN
 	curPos := pad.curPos
 
 	return func(fieldPointer *float64, value float64) {
@@ -245,8 +244,7 @@ func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
 		//fmt.Printf("(%.2f %.2f)\n", curPos.x, curPos.y)
 		if value == 0 {
 			x, y := curPos.x, curPos.y
-			if (x == 0 && y == 0) ||
-				(notInit(x) && y == 0) || (x == 0 && notInit(y)) {
+			if x != 0 || y != 0 { // !bothValuesZero = !(x == 0 && y == 0)
 				pad.Reset()
 			}
 		} else { // x != 0 && y != 0
