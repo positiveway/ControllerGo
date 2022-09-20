@@ -2,6 +2,7 @@ package mainLogic
 
 import (
 	"ControllerGo/osSpec"
+	"fmt"
 	"github.com/positiveway/gofuncs"
 )
 
@@ -78,12 +79,14 @@ type CommandInfoT struct {
 	CfgStruct
 	RepeatedTimerT
 	command              CommandT
+	strRepr              string
 	specialCaseIsHandled bool
 }
 
 func MakeCommandInfo(command CommandT, repeatInterval float64, cfg *ConfigsT) *CommandInfoT {
-	commandInfo := &CommandInfoT{command: command}
+	commandInfo := &CommandInfoT{}
 	commandInfo.Init(cfg)
+	commandInfo.AssignCommand(command)
 	commandInfo.InitIntervalTimer(repeatInterval, cfg)
 	return commandInfo
 }
@@ -96,12 +99,24 @@ func MakeUndeterminedCommandInfo(cfg *ConfigsT) *CommandInfoT {
 	return MakeCommandInfo(nil, cfg.Buttons.HoldingStateThreshold, cfg)
 }
 
+func (c *CommandInfoT) AssignCommand(command CommandT) {
+	if isEmptyCmd(command) {
+		return
+	}
+	c.command = command
+
+	c.strRepr = ""
+	for _, char := range command {
+		c.strRepr += fmt.Sprintf("%v ", char)
+	}
+}
+
 func (c *CommandInfoT) GetCopy() *CommandInfoT {
 	return MakeCommandInfo(c.command, c.repeatInterval, c.cfg)
 }
 
 func (c *CommandInfoT) CopyFromOther(other *CommandInfoT) {
-	c.command = other.command
+	c.AssignCommand(other.command)
 	c.SetInterval(other.repeatInterval)
 }
 
@@ -110,6 +125,7 @@ type ButtonsT struct {
 	allBtnAxis           *AllBtnAxis
 	highPrecisionMode    *HighPrecisionModeT
 	ToRelease            *gofuncs.Map[BtnOrAxisT, *CommandInfoT]
+	PressedCommands      map[string]bool
 	ToCommandLayout      ButtonToCommandT
 	EscLetterCode        int
 	virtualButtonCounter uint
@@ -124,6 +140,9 @@ func (buttons *ButtonsT) Init(cfg *ConfigsT, highPrecisionMode *HighPrecisionMod
 	buttons.allBtnAxis = allBtnAxis
 	buttons.highPrecisionMode = highPrecisionMode
 
+	buttons.ToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfoT]()
+	buttons.PressedCommands = map[string]bool{}
+
 	buttons.getCodeFromLetter = GetGetCodesFromLetterFunc()
 	//should come before other functions initialization
 	buttons.EscLetterCode = buttons.getCodeFromLetter("Esc")
@@ -132,7 +151,6 @@ func (buttons *ButtonsT) Init(cfg *ConfigsT, highPrecisionMode *HighPrecisionMod
 	buttons.handleTriggers = buttons.GetHandleTriggersFunc()
 	buttons.pressSequence = buttons.GetPressSequenceFunc()
 
-	buttons.ToRelease = gofuncs.MakeMap[BtnOrAxisT, *CommandInfoT]()
 	buttons.ToCommandLayout = buttons.loadCommandsLayout()
 }
 
@@ -143,7 +161,7 @@ func (buttons *ButtonsT) GetVirtualButton() BtnOrAxisT {
 	//if uint overflows it will be zero
 	buttons.virtualButtonCounter += 1
 
-	virtualButton := gofuncs.Format("VirtualButton_%v",
+	virtualButton := fmt.Sprintf("VirtualButton_%v",
 		buttons.virtualButtonCounter)
 	return BtnOrAxisT(virtualButton)
 }
@@ -152,6 +170,15 @@ func (buttons *ButtonsT) PutButton(btn BtnOrAxisT, commandInfo *CommandInfoT) bo
 	if _, exist := buttons.ToRelease.CheckAndGet(btn); exist {
 		return false
 	}
+
+	strRepr := commandInfo.strRepr
+	if !gofuncs.IsEmptyStripStr(strRepr) {
+		if _, exist := buttons.PressedCommands[strRepr]; exist {
+			return false
+		}
+		buttons.PressedCommands[strRepr] = true
+	}
+
 	buttons.ToRelease.Put(btn, commandInfo)
 	return true
 }
@@ -291,6 +318,7 @@ func (buttons *ButtonsT) releaseButton(btn BtnOrAxisT) {
 		buttons.pressSequence(btn, commandInfo)
 	}
 
+	delete(buttons.PressedCommands, commandInfo.strRepr)
 	releaseSequence(commandInfo.command)
 }
 
