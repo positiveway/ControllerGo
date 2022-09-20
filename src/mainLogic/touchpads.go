@@ -111,6 +111,7 @@ func (pos *PositionT) CalcTransformedPos(rotationShift float64) (*PositionT, uin
 
 type PadStickPositionT struct {
 	CfgButtonsLockStruct
+	highPrecisionMode                    *HighPrecisionModeT
 	curPos, prevMousePos, transformedPos *PositionT
 	magnitude                            float64
 	shiftedAngle                         uint
@@ -130,14 +131,17 @@ type PadStickPositionT struct {
 	detectZone   DetectZoneFuncT
 	calcRadius,
 	Reset,
-	moveMouseSC func()
+	moveMouseSC,
+	scrollSC func()
 
 	//fromMaxPossiblePos *PositionT
 	//normalizedMagnitude
 }
 
-func (pad *PadStickPositionT) Init(zoneRotation float64, isOnLeftSide bool, cfg *ConfigsT, buttons *ButtonsT) {
+func (pad *PadStickPositionT) Init(zoneRotation float64, isOnLeftSide bool,
+	cfg *ConfigsT, buttons *ButtonsT, highPrecisionMode *HighPrecisionModeT) {
 	pad.CfgButtonsLockStruct.Init(cfg, buttons)
+	pad.highPrecisionMode = highPrecisionMode
 
 	pad.leftClickBtn, pad.leftClickCmdInfo = buttons.CreateVirtualButton(CommandT{osSpec.LeftMouse})
 
@@ -175,6 +179,10 @@ func (pad *PadStickPositionT) InitMoveSCFunc(highPrecisionMode *HighPrecisionMod
 	pad.moveMouseSC = pad.GetMoveMouseSCFunc(highPrecisionMode)
 }
 
+func (pad *PadStickPositionT) InitScrollSCFunc(highPrecisionMode *HighPrecisionModeT) {
+	pad.scrollSC = pad.GetScrollSCFunc(highPrecisionMode)
+}
+
 func (pad *PadStickPositionT) Validate() {
 	checkRotation(pad.zoneRotation)
 }
@@ -185,6 +193,7 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 	transformedPos := pad.transformedPos
 
 	leftClickBtn := pad.leftClickBtn
+	highPrecisionMode := pad.highPrecisionMode
 
 	return func() {
 		curPos.Reset()
@@ -197,6 +206,10 @@ func (pad *PadStickPositionT) GetResetFunc() func() {
 		if pad.moveMouseSC != nil {
 			//fmt.Println("release")
 			pad.buttons.releaseButton(leftClickBtn)
+		}
+
+		if pad.scrollSC != nil {
+			highPrecisionMode.ReleaseCtrl()
 		}
 
 		// should be inside reset func
@@ -234,6 +247,7 @@ type SetValueFuncT = func(fieldPointer *float64, value float64)
 
 func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
 	curPos := pad.curPos
+	padsSticksMode := pad.cfg.PadsSticks.Mode
 
 	return func(fieldPointer *float64, value float64) {
 		pad.Lock()
@@ -250,8 +264,16 @@ func (pad *PadStickPositionT) GetSetValueFunc() SetValueFuncT {
 		} else { // x != 0 && y != 0
 			pad.ReCalculateValues()
 
-			if pad.moveMouseSC != nil {
-				pad.moveMouseSC()
+			switch padsSticksMode.CurrentMode {
+			case MouseMode:
+				if pad.scrollSC != nil {
+					pad.scrollSC()
+				}
+				fallthrough
+			case GamingMode:
+				if pad.moveMouseSC != nil {
+					pad.moveMouseSC()
+				}
 			}
 		}
 	}

@@ -25,15 +25,9 @@
   },
   "Scroll": {
     "HorizontalThresholdPct": 85,
-    "Intervals": {
-      "Normal": {
-        "FastestMs": 40,
-        "SlowestMs": 160
-      },
-      "HighPrecision": {
-        "FastestMs": 40,
-        "SlowestMs": 160
-      }
+    "Speed": {
+      "Normal": 20,
+      "HighPrecision": 25
     }
   },
   "Buttons": {

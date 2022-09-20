@@ -153,7 +153,7 @@ type HighPrecisionModeT struct {
 	isActive bool
 
 	curMouseIntervals, curScrollIntervals *IntervalRangeT
-	curMouseSpeed                         float64
+	curMouseSpeed, curScrollSpeed         float64
 
 	ctrlVirtualButton BtnOrAxisT
 	ctrlCommandInfo   *CommandInfoT
@@ -195,18 +195,21 @@ func (mode *HighPrecisionModeT) GetSetSpeedValuesFunc() func() {
 	scrollIntervals := mode.cfg.Scroll.Intervals
 	mouseIntervals := mode.cfg.Mouse.Intervals
 	mouseSpeed := mode.cfg.Mouse.Speed
+	scrollSpeed := mode.cfg.Scroll.Speed
 
 	return func() {
 		if mode.isActive {
 			mode.curScrollIntervals = &scrollIntervals.HighPrecision
 			mode.curMouseIntervals = &mouseIntervals.HighPrecision
 			mode.curMouseSpeed = mouseSpeed.HighPrecision
+			mode.curScrollSpeed = scrollSpeed.HighPrecision
 		} else {
 			mode.ReleaseCtrl()
 
 			mode.curScrollIntervals = &scrollIntervals.Normal
 			mode.curMouseIntervals = &mouseIntervals.Normal
 			mode.curMouseSpeed = mouseSpeed.Normal
+			mode.curScrollSpeed = scrollSpeed.Normal
 		}
 	}
 }
@@ -302,23 +305,29 @@ func (dependentVars *DependentVariablesT) RunGlobalEventsThread() {
 	scrollPadStick := dependentVars.ScrollPS
 	scrollPosition := scrollPadStick.transformedPos
 	moveScrollInInterval := GetMoveInInterval(cfg, scrollPadStick, scrollPosition,
-		dependentVars.GetScrollMoveFunc(), dependentVars.GetScrollFilterFunc())
+		dependentVars.GetScrollMoveDSFunc(), dependentVars.GetScrollFilterDSFunc())
 
 	for range ticker.C {
-		switch padsSticksMode.CurrentMode {
-		case MouseMode:
-			moveScrollInInterval(highPrecisionMode.curScrollIntervals)
+		curMode := padsSticksMode.CurrentMode
 
-			if scrollPosition.x == 0 && scrollPosition.y == 0 {
-				highPrecisionMode.ReleaseCtrl()
-			}
+		switch controllerInUse {
+		case DualShock:
+			switch curMode {
+			case MouseMode:
+				moveScrollInInterval(highPrecisionMode.curScrollIntervals)
 
-			fallthrough
-		case GamingMode:
-			switch controllerInUse {
-			case DualShock:
+				if scrollPosition.x == 0 && scrollPosition.y == 0 {
+					highPrecisionMode.ReleaseCtrl()
+				}
+				fallthrough
+			case GamingMode:
 				moveMouseInInterval(highPrecisionMode.curMouseIntervals)
 			}
+		}
+
+		switch curMode {
+		case GamingMode:
+
 		}
 
 		//should be placed last to not interfere with GetMode

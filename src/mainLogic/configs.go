@@ -93,11 +93,11 @@ func MakeDependentVariables() *DependentVariablesT {
 	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode, dependentVars.allBtnAxis)
 
 	dependentVars.RightPadStick.Init(
-		rawCfg.PadsSticks.Rotation.RightPad, false, cfg, dependentVars.Buttons)
+		rawCfg.PadsSticks.Rotation.RightPad, false, cfg, dependentVars.Buttons, dependentVars.HighPrecisionMode)
 	dependentVars.LeftStick.Init(
-		rawCfg.PadsSticks.Rotation.LeftStick, true, cfg, dependentVars.Buttons)
+		rawCfg.PadsSticks.Rotation.LeftStick, true, cfg, dependentVars.Buttons, dependentVars.HighPrecisionMode)
 	dependentVars.LeftPad.Init(
-		rawCfg.PadsSticks.Rotation.LeftPad, true, cfg, dependentVars.Buttons)
+		rawCfg.PadsSticks.Rotation.LeftPad, true, cfg, dependentVars.Buttons, dependentVars.HighPrecisionMode)
 
 	dependentVars.HighPrecisionMode.Init(cfg, dependentVars.Buttons)
 	dependentVars.Typing.Init(cfg, dependentVars.Buttons)
@@ -105,6 +105,7 @@ func MakeDependentVariables() *DependentVariablesT {
 	switch cfg.ControllerInUse {
 	case SteamController:
 		dependentVars.MousePS.InitMoveSCFunc(dependentVars.HighPrecisionMode)
+		dependentVars.ScrollPS.InitScrollSCFunc(dependentVars.HighPrecisionMode)
 	}
 
 	return dependentVars
@@ -143,6 +144,7 @@ func (c *ConfigsT) setConfigVars(rawCfg *RawConfigsT) {
 			c.Mouse.ClickReleaseInterval)
 
 		c.Mouse.Speed.Validate()
+		c.Scroll.Speed.Validate()
 
 		//init Stick map
 		stickAngleMarginSC := rawCfg.PadsSticks.Stick.AngleMargin
@@ -156,6 +158,8 @@ func (c *ConfigsT) setConfigVars(rawCfg *RawConfigsT) {
 
 	case DualShock:
 		c.Mouse.Intervals.Validate()
+		c.Scroll.Intervals.Validate()
+
 		c.PadsSticks.Stick.DeadzoneDS = rawCfg.PadsSticks.Stick.Deadzone
 		gofuncs.PanicAnyNotPositive(c.PadsSticks.Stick.DeadzoneDS)
 	}
@@ -182,11 +186,11 @@ func (rawMouseCfg *MouseCfgT) ValidateConvert() {
 type ScrollCfgT struct {
 	HorizontalThresholdPct float64              `json:"HorizontalThresholdPct"`
 	Intervals              PrecisionsIntervalsT `json:"Intervals"`
+	Speed                  PrecisionsSpeedT     `json:"Speed"`
 }
 
 func (scrollCfg *ScrollCfgT) ValidateConvert() {
 	gofuncs.NumberToPctInPlace(&scrollCfg.HorizontalThresholdPct)
-	scrollCfg.Intervals.Validate()
 }
 
 type GamingCfgT struct {
