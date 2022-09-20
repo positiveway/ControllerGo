@@ -87,7 +87,7 @@ func MakeDependentVariables() *DependentVariablesT {
 	dependentVars.ScrollPS = dependentVars.Typing.LeftPS
 
 	if !cfg.Mouse.OnRightStickPad {
-		gofuncs.Swap(dependentVars.MousePS, dependentVars.ScrollPS)
+		dependentVars.MousePS, dependentVars.ScrollPS = dependentVars.ScrollPS, dependentVars.MousePS
 	}
 
 	dependentVars.Buttons.Init(cfg, dependentVars.HighPrecisionMode, dependentVars.allBtnAxis)
