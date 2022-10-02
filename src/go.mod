@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/bendahl/uinput v1.5.1
 	github.com/go-vgo/robotgo v0.100.10
-	github.com/positiveway/gofuncs v0.1.11-0.20220918222810-a31cabc105ed
+	github.com/positiveway/gofuncs v0.1.11-0.20220920182056-26f1970460d1
 )
 
 require (

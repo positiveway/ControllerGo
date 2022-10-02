@@ -21,14 +21,14 @@ const (
 type ZoneT string
 
 const (
-	ZoneRight     ZoneT = "Right"
-	ZoneUpRight   ZoneT = "UpRight"
-	ZoneUp        ZoneT = "Up"
-	ZoneUpLeft    ZoneT = "UpLeft"
-	ZoneLeft      ZoneT = "Left"
-	ZoneDownLeft  ZoneT = "DownLeft"
-	ZoneDown      ZoneT = "Down"
-	ZoneDownRight ZoneT = "DownRight"
+	ZoneRight     ZoneT = "→"
+	ZoneUpRight   ZoneT = "↗"
+	ZoneUp        ZoneT = "↑"
+	ZoneUpLeft    ZoneT = "↖"
+	ZoneLeft      ZoneT = "←"
+	ZoneDownLeft  ZoneT = "↙"
+	ZoneDown      ZoneT = "↓"
+	ZoneDownRight ZoneT = "↘"
 )
 
 type ZonesT []ZoneT
